@@ -1,0 +1,134 @@
+:root {
+    --bg-black: #000000;
+    --term-white: #ffffff;
+    --term-amber: #ffb000;
+    --term-red: #ff3e3e;
+    --term-dim: #333333;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --console-height: 200px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-black);
+    color: var(--term-white);
+    font-family: var(--font-mono);
+    overflow: hidden;
+}
+
+.tui-container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+}
+
+.canvas-area {
+    flex: 1;
+    position: relative;
+    background: #000000;
+    border-bottom: 2px solid var(--term-dim);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+canvas {
+    width: 600px;
+    height: 600px;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    border: 1px solid var(--term-dim);
+}
+
+.tui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    pointer-events: none;
+    background: #101010;
+}
+
+.status-bar {
+    display: flex;
+    gap: 20px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.status-item {
+    padding: 2px 8px;
+    border: 1px solid var(--term-dim);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Console Pane */
+.console-pane {
+    height: var(--console-height);
+    background: var(--bg-black);
+    padding: 10px;
+    font-size: 0.85rem;
+    overflow-y: auto;
+    border-top: 1px solid var(--term-dim);
+    color: var(--term-white);
+    scrollbar-width: thin;
+    scrollbar-color: var(--term-dim) var(--bg-black);
+}
+
+.console-pane::-webkit-scrollbar {
+    width: 6px;
+}
+
+.console-pane::-webkit-scrollbar-track {
+    background: var(--bg-black);
+}
+
+.console-pane::-webkit-scrollbar-thumb {
+    background: var(--term-dim);
+}
+
+.log-line {
+    margin-bottom: 4px;
+    display: flex;
+    gap: 8px;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.log-prefix {
+    color: var(--term-dim);
+    white-space: nowrap;
+}
+
+.log-line.warn {
+    color: var(--term-amber);
+}
+
+.log-line.error {
+    color: var(--term-red);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

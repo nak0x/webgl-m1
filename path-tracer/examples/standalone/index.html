@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL TUI Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="description" content="A minimalist WebGL TUI interface.">
+</head>
+
+<body>
+    <div class="tui-container">
+        <div class="canvas-area">
+            <canvas id="canvas"></canvas>
+            <div class="tui-overlay">
+                <div class="status-bar">
+                    <span class="status-item">ACTIVE_SHAPES: <span id="shape-count">0</span></span>
+                    <span class="status-item">SPP: <span id="spp-count">0</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="console-pane" id="console-pane">
+            <!-- Logs will be injected here -->
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

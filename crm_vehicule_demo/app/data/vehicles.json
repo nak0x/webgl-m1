@@ -1,0 +1,206 @@
+[
+  {
+    "id": "v001",
+    "name": "Colibri-1",
+    "type": "velo_cargo",
+    "typeLabel": "Vélo Cargo",
+    "status": "bon_etat",
+    "assignedTo": "Atelier Nord",
+    "lastMaintenance": "2026-03-15",
+    "nextMaintenance": "2026-06-15",
+    "mileage": 1240,
+    "position": { "x": 3, "z": 5 },
+    "path": [
+      { "x": 0, "z": 0 }, { "x": 1, "z": 0 }, { "x": 2, "z": 1 },
+      { "x": 2, "z": 3 }, { "x": 3, "z": 4 }, { "x": 3, "z": 5 }
+    ],
+    "parts": ["p001", "p003", "p006"]
+  },
+  {
+    "id": "v002",
+    "name": "Soleil-2",
+    "type": "triporteur_elec",
+    "typeLabel": "Triporteur Électrique",
+    "status": "bon_etat",
+    "assignedTo": "Coopérative Centre",
+    "lastMaintenance": "2026-03-20",
+    "nextMaintenance": "2026-06-20",
+    "mileage": 870,
+    "position": { "x": -4, "z": 2 },
+    "path": [
+      { "x": -6, "z": -2 }, { "x": -6, "z": 0 }, { "x": -5, "z": 1 },
+      { "x": -4, "z": 1 }, { "x": -4, "z": 2 }
+    ],
+    "parts": ["p002", "p004"]
+  },
+  {
+    "id": "v003",
+    "name": "Horizon-H1",
+    "type": "camionnette_hydro",
+    "typeLabel": "Camionnette Hydrogène",
+    "status": "warning",
+    "assignedTo": "Ferme Urbaine Est",
+    "lastMaintenance": "2026-02-10",
+    "nextMaintenance": "2026-04-10",
+    "mileage": 3420,
+    "position": { "x": 6, "z": -3 },
+    "path": [
+      { "x": 0, "z": 0 }, { "x": 2, "z": 0 }, { "x": 4, "z": -1 },
+      { "x": 5, "z": -2 }, { "x": 6, "z": -3 }
+    ],
+    "parts": ["p001", "p005", "p007"]
+  },
+  {
+    "id": "v004",
+    "name": "Abeille-3",
+    "type": "velo_cargo",
+    "typeLabel": "Vélo Cargo",
+    "status": "reparation_obligatoire",
+    "assignedTo": "Marché Sud",
+    "lastMaintenance": "2026-01-05",
+    "nextMaintenance": "2026-02-05",
+    "mileage": 2890,
+    "position": { "x": -2, "z": -5 },
+    "path": [
+      { "x": -5, "z": -4 }, { "x": -4, "z": -4 }, { "x": -3, "z": -5 },
+      { "x": -2, "z": -5 }
+    ],
+    "parts": ["p001", "p003", "p008"]
+  },
+  {
+    "id": "v005",
+    "name": "Vent-4",
+    "type": "triporteur_elec",
+    "typeLabel": "Triporteur Électrique",
+    "status": "bon_etat",
+    "assignedTo": "Recyclerie Ouest",
+    "lastMaintenance": "2026-03-25",
+    "nextMaintenance": "2026-06-25",
+    "mileage": 560,
+    "position": { "x": -6, "z": -1 },
+    "path": [
+      { "x": -3, "z": 2 }, { "x": -4, "z": 2 }, { "x": -5, "z": 1 },
+      { "x": -6, "z": 0 }, { "x": -6, "z": -1 }
+    ],
+    "parts": ["p002", "p004", "p006"]
+  },
+  {
+    "id": "v006",
+    "name": "Aurore-H2",
+    "type": "camionnette_hydro",
+    "typeLabel": "Camionnette Hydrogène",
+    "status": "bon_etat",
+    "assignedTo": "Hub Logistique",
+    "lastMaintenance": "2026-03-18",
+    "nextMaintenance": "2026-06-18",
+    "mileage": 1950,
+    "position": { "x": 5, "z": 4 },
+    "path": [
+      { "x": 2, "z": 0 }, { "x": 3, "z": 1 }, { "x": 4, "z": 2 },
+      { "x": 5, "z": 3 }, { "x": 5, "z": 4 }
+    ],
+    "parts": ["p005", "p007"]
+  },
+  {
+    "id": "v007",
+    "name": "Rosée-5",
+    "type": "velo_cargo",
+    "typeLabel": "Vélo Cargo",
+    "status": "warning",
+    "assignedTo": "Jardin Partagé Nord",
+    "lastMaintenance": "2026-02-20",
+    "nextMaintenance": "2026-04-20",
+    "mileage": 1780,
+    "position": { "x": 1, "z": 6 },
+    "path": [
+      { "x": -2, "z": 4 }, { "x": -1, "z": 5 }, { "x": 0, "z": 5 },
+      { "x": 1, "z": 6 }
+    ],
+    "parts": ["p001", "p003"]
+  },
+  {
+    "id": "v008",
+    "name": "Éclair-6",
+    "type": "triporteur_elec",
+    "typeLabel": "Triporteur Électrique",
+    "status": "reparation_obligatoire",
+    "assignedTo": "Atelier Réparation",
+    "lastMaintenance": "2025-12-15",
+    "nextMaintenance": "2026-01-15",
+    "mileage": 4200,
+    "position": { "x": 0, "z": 0 },
+    "path": [
+      { "x": 3, "z": -2 }, { "x": 2, "z": -1 }, { "x": 1, "z": 0 },
+      { "x": 0, "z": 0 }
+    ],
+    "parts": ["p002", "p004", "p008", "p009"]
+  },
+  {
+    "id": "v009",
+    "name": "Cascade-H3",
+    "type": "camionnette_hydro",
+    "typeLabel": "Camionnette Hydrogène",
+    "status": "warning",
+    "assignedTo": "Station Hydrogène",
+    "lastMaintenance": "2026-02-28",
+    "nextMaintenance": "2026-04-28",
+    "mileage": 2670,
+    "position": { "x": -5, "z": 5 },
+    "path": [
+      { "x": 0, "z": 3 }, { "x": -1, "z": 4 }, { "x": -3, "z": 5 },
+      { "x": -4, "z": 5 }, { "x": -5, "z": 5 }
+    ],
+    "parts": ["p005", "p007", "p010"]
+  },
+  {
+    "id": "v010",
+    "name": "Mousse-7",
+    "type": "velo_cargo",
+    "typeLabel": "Vélo Cargo",
+    "status": "bon_etat",
+    "assignedTo": "Bibliothèque Mobile",
+    "lastMaintenance": "2026-03-22",
+    "nextMaintenance": "2026-06-22",
+    "mileage": 420,
+    "position": { "x": 4, "z": -6 },
+    "path": [
+      { "x": 1, "z": -4 }, { "x": 2, "z": -4 }, { "x": 3, "z": -5 },
+      { "x": 4, "z": -6 }
+    ],
+    "parts": ["p001", "p006"]
+  },
+  {
+    "id": "v011",
+    "name": "Pollen-8",
+    "type": "triporteur_elec",
+    "typeLabel": "Triporteur Électrique",
+    "status": "bon_etat",
+    "assignedTo": "Livraison Alimentaire",
+    "lastMaintenance": "2026-03-10",
+    "nextMaintenance": "2026-06-10",
+    "mileage": 1100,
+    "position": { "x": -3, "z": 3 },
+    "path": [
+      { "x": 0, "z": 1 }, { "x": -1, "z": 2 }, { "x": -2, "z": 2 },
+      { "x": -3, "z": 3 }
+    ],
+    "parts": ["p002", "p004"]
+  },
+  {
+    "id": "v012",
+    "name": "Torrent-H4",
+    "type": "camionnette_hydro",
+    "typeLabel": "Camionnette Hydrogène",
+    "status": "reparation_obligatoire",
+    "assignedTo": "Garage Central",
+    "lastMaintenance": "2025-11-30",
+    "nextMaintenance": "2026-01-30",
+    "mileage": 5100,
+    "position": { "x": 2, "z": -2 },
+    "path": [
+      { "x": 5, "z": 1 }, { "x": 4, "z": 0 }, { "x": 3, "z": -1 },
+      { "x": 2, "z": -2 }
+    ],
+    "parts": ["p005", "p007", "p008", "p009", "p010"]
+  }
+]

@@ -1,0 +1,23 @@
+{
+    "name": "webgl-pathtracer",
+    "version": "1.0.0",
+    "description": "Real-time path tracer for WebGL with temporal reprojection and bilateral denoising",
+    "type": "module",
+    "main": "src/index.js",
+    "exports": {
+        ".": "./src/index.js",
+        "./three": "./src/three/ThreeAdapter.js"
+    },
+    "scripts": {
+        "example:standalone": "python3 -m http.server 8005",
+        "example:threejs": "python3 -m http.server 8005"
+    },
+    "keywords": ["webgl", "pathtracer", "raytracing", "rendering", "3d"],
+    "license": "MIT",
+    "peerDependencies": {
+        "three": ">=0.150.0"
+    },
+    "peerDependenciesMeta": {
+        "three": { "optional": true }
+    }
+}

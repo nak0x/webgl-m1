@@ -1,0 +1,12 @@
+[
+  { "id": "p001", "name": "Chaîne vélo renforcée", "category": "Transmission", "quantity": 8, "minStock": 3, "unitPrice": 25 },
+  { "id": "p002", "name": "Batterie Li-ion 48V", "category": "Électrique", "quantity": 2, "minStock": 2, "unitPrice": 320 },
+  { "id": "p003", "name": "Pneu cargo 26\"", "category": "Roues", "quantity": 12, "minStock": 4, "unitPrice": 35 },
+  { "id": "p004", "name": "Contrôleur moteur BLDC", "category": "Électrique", "quantity": 1, "minStock": 2, "unitPrice": 180 },
+  { "id": "p005", "name": "Pile à combustible H2", "category": "Hydrogène", "quantity": 3, "minStock": 1, "unitPrice": 1200 },
+  { "id": "p006", "name": "Plaquettes de frein", "category": "Freinage", "quantity": 15, "minStock": 6, "unitPrice": 18 },
+  { "id": "p007", "name": "Filtre hydrogène", "category": "Hydrogène", "quantity": 4, "minStock": 2, "unitPrice": 85 },
+  { "id": "p008", "name": "Roulement à billes", "category": "Transmission", "quantity": 20, "minStock": 8, "unitPrice": 12 },
+  { "id": "p009", "name": "Câble de frein universel", "category": "Freinage", "quantity": 10, "minStock": 5, "unitPrice": 8 },
+  { "id": "p010", "name": "Valve réservoir H2", "category": "Hydrogène", "quantity": 2, "minStock": 2, "unitPrice": 150 }
+]
