@@ -23,18 +23,6 @@ export function usePlayer(scene: THREE.Scene): PlayerState {
   body.castShadow = true
   group.add(body)
 
-  // Small head indicator for direction
-  const headGeo = new THREE.SphereGeometry(0.15, 12, 8)
-  const headMat = new THREE.MeshStandardMaterial({
-    color: 0x88b87a,
-    roughness: 0.3,
-    metalness: 0.1,
-  })
-  const head = new THREE.Mesh(headGeo, headMat)
-  head.position.y = 1.35
-  head.castShadow = true
-  group.add(head)
-
   group.position.set(0, 0, 0)
   scene.add(group)
 
