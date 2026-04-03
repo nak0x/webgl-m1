@@ -10,6 +10,9 @@
     <NuxtLink to="/materiaux" class="nav-link" active-class="nav-link--active">
       Matériaux
     </NuxtLink>
+    <NuxtLink to="/_TemplatePage" class="nav-link" active-class="nav-link--active">
+      Test
+    </NuxtLink>
   </nav>
 </template>
 
