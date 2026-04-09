@@ -13,6 +13,12 @@
     <NuxtLink to="/car_xray" class="nav-link" active-class="nav-link--active">
       Car xray
     </NuxtLink>
+    <NuxtLink to="/fps" class="nav-link" active-class="nav-link--active">
+      FPS
+    </NuxtLink>
+    <NuxtLink to="/interact" class="nav-link" active-class="nav-link--active">
+      Interact
+    </NuxtLink>
   </nav>
 </template>
 
