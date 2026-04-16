@@ -1,0 +1,7 @@
+{
+  "fps": 24,
+  "cuts": [
+    { "frame": 0,  "camera": "Cam_A" },
+    { "frame": 50, "camera": "Cam_B" }
+  ]
+}
