@@ -19,6 +19,9 @@
     <NuxtLink to="/interact" class="nav-link" active-class="nav-link--active">
       Interact
     </NuxtLink>
+    <NuxtLink to="/screen" class="nav-link" active-class="nav-link--active">
+      Screen
+    </NuxtLink>
   </nav>
 </template>
 
