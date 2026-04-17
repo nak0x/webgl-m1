@@ -72,6 +72,21 @@ export default class InteractionManager extends EventEmitter {
     this._raycast.setMode(enabled ? 'fps' : 'free')
   }
 
+  /**
+   * Retourne une Map<Object3D, id> de tous les objets interactables enregistrés
+   * (proximity + hoverable). Utilisé par CrosshairTarget pour filtrer l'outline.
+   */
+  getInteractables() {
+    const map = new Map()
+    for (const entry of this._proximity._entries) {
+      map.set(entry.object3D, entry.id)
+    }
+    for (const [mesh, id] of this._raycast._meshMap) {
+      map.set(mesh, id)
+    }
+    return map
+  }
+
   // ── Boucle ──────────────────────────────────────────────────────
 
   update() {

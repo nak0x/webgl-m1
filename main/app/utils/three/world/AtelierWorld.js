@@ -1,14 +1,17 @@
-import * as THREE    from 'three'
-import FpsController from '../FpsController.js'
+import * as THREE       from 'three'
+import FpsController   from '../FpsController.js'
+import CrosshairTarget from '../CrosshairTarget.js'
+import QuestManager    from '../quest/QuestManager.js'
+import PcScreen        from '../PcScreen.js'
 
 export default class AtelierWorld {
-  constructor(experience) {
+  constructor(experience, callbacks = {}) {
     this.experience  = experience
     this.scene       = experience.scene
     this.camera      = experience.camera
     this.resources   = experience.resources
+    this._callbacks  = callbacks
 
-    // Fond sombre atelier
     this.scene.background = new THREE.Color(0x1a1a1a)
     this.scene.fog = new THREE.Fog(0x1a1a1a, 20, 60)
 
@@ -20,6 +23,8 @@ export default class AtelierWorld {
     this._setupModel()
     this._setupFloor()
     this._setupFps()
+    this._setupPcScreen()
+    this._setupQuest()
   }
 
   _setupLights() {
@@ -58,12 +63,8 @@ export default class AtelierWorld {
 
     this.scene.add(this.model)
 
-    // Récupère la caméra embarquée dans le GLB
-    // gltf.cameras liste toutes les caméras exportées depuis Blender
     if (gltf.cameras?.length > 0) {
       const gltfCam = gltf.cameras[0]
-
-      // S'assure que la matrice monde est à jour
       gltfCam.updateWorldMatrix(true, false)
 
       const pos  = new THREE.Vector3()
@@ -72,13 +73,9 @@ export default class AtelierWorld {
 
       this.camera.instance.position.copy(pos)
       this.camera.instance.quaternion.copy(quat)
-
-      console.log('[AtelierWorld] Camera GLB utilisée :', gltfCam.name, pos)
     } else {
-      // Fallback si pas de caméra dans le GLB
       this.camera.instance.position.set(0, 1.7, 0)
       this.camera.instance.lookAt(0, 1.7, -1)
-      console.warn('[AtelierWorld] Aucune caméra trouvée dans le GLB — position fallback')
     }
   }
 
@@ -99,16 +96,107 @@ export default class AtelierWorld {
   }
 
   _setupFps() {
-    this._fps = new FpsController(this.experience)
+    this._fps             = new FpsController(this.experience)
+    this._crosshairTarget = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
+
+    const dialogue = this.experience.dialogue
+    dialogue.on('open',     () => {
+      this._fps.enabled = false
+      this._fps.controls.unlock()
+    })
+    dialogue.on('complete', () => {
+      this._fps.enabled = true
+    })
+  }
+
+  _setupPcScreen() {
+    const mesh = this.model?.getObjectByName('dalle_css3d')
+    if (!mesh) {
+      console.warn('AtelierWorld: mesh "dalle_css3d" introuvable')
+      return
+    }
+    this._pcScreen = new PcScreen(this.experience, mesh)
+    this._pcScreen.setFpsController(this._fps)
+  }
+
+  _setupQuest() {
+    const { interaction } = this.experience
+
+    const npc  = this.model?.getObjectByName('coffee_machine')
+    const pc   = this.model?.getObjectByName('computer')  // TODO: nom réel
+    const tool = this.model?.getObjectByName('door_bureau')   // TODO: nom réel
+    const door = this.model?.getObjectByName('door_in')   // TODO: nom réel
+
+    if (npc)  interaction.registerProximity(npc,  'npc',  2.0)
+    if (pc)   interaction.registerProximity(pc,   'pc',   1.5)
+    if (tool) interaction.registerProximity(tool, 'tool', 1.5)
+    if (door) interaction.registerProximity(door, 'door', 2.0)
+
+    const steps = [
+      {
+        id:      'talk_npc',
+        label:   'Parler au technicien',
+        hint:    'Approchez-vous et appuyez sur E',
+        trigger: { type: 'interact', id: 'npc' },
+        dialogue: [
+          { speaker: 'Technicien', text: 'Ah, vous êtes enfin là.' },
+          { speaker: 'Technicien', text: 'Votre mission : accéder au PC et récupérer le dossier.' },
+          { speaker: 'Technicien', text: 'L\'outil dont vous aurez besoin est dans l\'atelier.' },
+        ],
+      },
+      {
+        id:      'use_pc',
+        label:   'Accéder au PC de bureau',
+        hint:    'Approchez-vous du PC et appuyez sur E',
+        trigger: { type: 'interact', id: 'pc' },
+        onComplete: () => {
+          this._pcScreen?.enter()
+        },
+      },
+      {
+        id:      'pick_tool',
+        label:   'Récupérer l\'outil',
+        hint:    'L\'outil se trouve dans l\'atelier',
+        trigger: { type: 'interact', id: 'tool' },
+        onComplete: () => {
+          this.toolPickedUp = true
+          tool?.removeFromParent()
+          interaction.unregister('tool')
+        },
+      },
+      {
+        id:      'exit_door',
+        label:   'Sortir du bureau',
+        hint:    'Approchez-vous de la porte et appuyez sur E',
+        trigger: { type: 'interact', id: 'door' },
+        onComplete: (callbacks) => {
+          callbacks.transitionTo?.('scene2')
+        },
+      },
+    ]
+
+    this._quest = new QuestManager(this.experience, steps, this._callbacks)
+    this._callbacks.onQuestReady?.(this._quest)
+    this._callbacks.onDialogueReady?.(this.experience.dialogue)
+    this._quest.start()
   }
 
   update() {
     this._fps?.update(this.experience.time.delta)
+    this._crosshairTarget?.update()
+    this._pcScreen?.update(this.experience.time.delta)
+  }
+
+  resize() {
+    this._pcScreen?.resize()
   }
 
   dispose() {
+    this._quest?.dispose()
     this._fps?.dispose()
+    this._crosshairTarget?.dispose()
+    this._pcScreen?.dispose()
     this.experience.interaction.setFpsMode(false)
 
     this._floorGeo?.dispose()
