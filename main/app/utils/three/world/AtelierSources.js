@@ -7,6 +7,6 @@ export default [
   {
     name: 'atelier',
     type: 'gltf',
-    path: '/models/atelier.glb',
+    path: '/models/atelier_camera_1.0.0.glb',
   },
 ]

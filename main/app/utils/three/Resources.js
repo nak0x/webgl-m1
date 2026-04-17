@@ -14,7 +14,8 @@
  *   })
  */
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import EventEmitter from './EventEmitter.js'
 
 export default class Resources extends EventEmitter {
@@ -36,8 +37,15 @@ export default class Resources extends EventEmitter {
   }
 
   _setLoaders() {
+    const draco = new DRACOLoader()
+    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')
+
+    const gltf = new GLTFLoader()
+    gltf.setDRACOLoader(draco)
+
     this.loaders = {
-      gltf:    new GLTFLoader(),
+      gltf,
+      draco,
       texture: new THREE.TextureLoader(),
     }
   }
