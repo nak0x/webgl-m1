@@ -1,8 +1,10 @@
-import * as THREE       from 'three'
-import FpsController   from '../FpsController.js'
-import CrosshairTarget from '../CrosshairTarget.js'
-import QuestManager    from '../quest/QuestManager.js'
-import PcScreen        from '../PcScreen.js'
+import * as THREE        from 'three'
+import FpsController    from '../FpsController.js'
+import CrosshairTarget  from '../CrosshairTarget.js'
+import QuestManager     from '../quest/QuestManager.js'
+import PcScreen         from '../PcScreen.js'
+import DialogueManager  from '../dialogue/DialogueManager.js'
+import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
 
 export default class AtelierWorld {
   constructor(experience, callbacks = {}) {
@@ -15,13 +17,17 @@ export default class AtelierWorld {
     this.scene.background = new THREE.Color(0x1a1a1a)
     this.scene.fog = new THREE.Fog(0x1a1a1a, 20, 60)
 
+    // Le World possède son DialogueManager — Experience en garde la référence
+    this.dialogue = new DialogueManager()
+    experience.setDialogue(this.dialogue)
+
     this.resources.on('ready', () => this._setup())
   }
 
   _setup() {
     this._setupLights()
     this._setupModel()
-    this._setupFloor()
+    if (SCENE.USE_BUILTIN_FLOOR) this._setupFloor()
     this._setupFps()
     this._setupPcScreen()
     this._setupQuest()
@@ -63,6 +69,12 @@ export default class AtelierWorld {
 
     this.scene.add(this.model)
 
+    if (this.experience.debug.active) {
+      const meshNames = []
+      this.model.traverse(c => { if (c.isMesh) meshNames.push(c.name) })
+      console.log('[AtelierWorld] meshes GLTF :', meshNames)
+    }
+
     if (gltf.cameras?.length > 0) {
       const gltfCam = gltf.cameras[0]
       gltfCam.updateWorldMatrix(true, false)
@@ -100,20 +112,19 @@ export default class AtelierWorld {
     this._crosshairTarget = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
 
-    const dialogue = this.experience.dialogue
-    dialogue.on('open',     () => {
+    this.dialogue.on('open',     () => {
       this._fps.enabled = false
       this._fps.controls.unlock()
     })
-    dialogue.on('complete', () => {
+    this.dialogue.on('complete', () => {
       this._fps.enabled = true
     })
   }
 
   _setupPcScreen() {
-    const mesh = this.model?.getObjectByName('dalle_css3d')
+    const mesh = this.model?.getObjectByName(OBJECTS.SCREEN)
     if (!mesh) {
-      console.warn('AtelierWorld: mesh "dalle_css3d" introuvable')
+      console.warn(`AtelierWorld: mesh "${OBJECTS.SCREEN}" introuvable`)
       return
     }
     this._pcScreen = new PcScreen(this.experience, mesh)
@@ -123,15 +134,15 @@ export default class AtelierWorld {
   _setupQuest() {
     const { interaction } = this.experience
 
-    const npc  = this.model?.getObjectByName('coffee_machine')
-    const pc   = this.model?.getObjectByName('computer')  // TODO: nom réel
-    const tool = this.model?.getObjectByName('door_bureau')   // TODO: nom réel
-    const door = this.model?.getObjectByName('door_in')   // TODO: nom réel
+    const npc  = this.model?.getObjectByName(OBJECTS.NPC)
+    const pc   = this.model?.getObjectByName(OBJECTS.PC)
+    const tool = this.model?.getObjectByName(OBJECTS.TOOL)
+    const door = this.model?.getObjectByName(OBJECTS.DOOR)
 
-    if (npc)  interaction.registerProximity(npc,  'npc',  2.0)
-    if (pc)   interaction.registerProximity(pc,   'pc',   1.5)
-    if (tool) interaction.registerProximity(tool, 'tool', 1.5)
-    if (door) interaction.registerProximity(door, 'door', 2.0)
+    if (npc)  interaction.registerProximity(npc,  'npc',  PROXIMITY.NPC)
+    if (pc)   interaction.registerProximity(pc,   'pc',   PROXIMITY.PC)
+    if (tool) interaction.registerProximity(tool, 'tool', PROXIMITY.TOOL)
+    if (door) interaction.registerProximity(door, 'door', PROXIMITY.DOOR)
 
     const steps = [
       {
@@ -178,7 +189,7 @@ export default class AtelierWorld {
 
     this._quest = new QuestManager(this.experience, steps, this._callbacks)
     this._callbacks.onQuestReady?.(this._quest)
-    this._callbacks.onDialogueReady?.(this.experience.dialogue)
+    this._callbacks.onDialogueReady?.(this.dialogue)
     this._quest.start()
   }
 
@@ -194,13 +205,16 @@ export default class AtelierWorld {
 
   dispose() {
     this._quest?.dispose()
+    this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()
     this._pcScreen?.dispose()
     this.experience.interaction.setFpsMode(false)
 
-    this._floorGeo?.dispose()
-    this._floorMat?.dispose()
+    if (SCENE.USE_BUILTIN_FLOOR) {
+      this._floorGeo?.dispose()
+      this._floorMat?.dispose()
+    }
 
     if (this.model) {
       this.model.traverse(child => {

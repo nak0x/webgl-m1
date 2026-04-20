@@ -16,8 +16,10 @@ export default class RaycastDetector {
     this._emitter    = emitter
     this._camera     = experience.camera.instance
     this._canvas     = experience.canvas
-    this._raycaster  = new THREE.Raycaster()
-    this._mouse      = new THREE.Vector2()
+    this._scene      = experience.scene
+    this._raycaster              = new THREE.Raycaster()
+    this._raycaster.firstHitOnly = true   // stoppe au 1er hit → occlusion préservée, O(1) vs O(n)
+    this._mouse                  = new THREE.Vector2()
     this._mouseDirty = false
     this._mode       = 'free'
     this._meshMap    = new Map()  // mesh → id
@@ -58,19 +60,17 @@ export default class RaycastDetector {
     this._mouseDirty = false
 
     this._raycaster.setFromCamera(this._mouse, this._camera)
-    const meshes = [...this._meshMap.keys()]
-    const hits   = this._raycaster.intersectObjects(meshes, true)
 
-    // Remonte la hiérarchie pour trouver le mesh enregistré
+    // Caste contre toute la scène — le premier hit bloque les suivants
+    const hits = this._raycaster.intersectObjects(this._scene.children, true)
+
+    // Valide l'interaction uniquement si le hit le plus proche est un interactable
     let hitId = null
     if (hits.length > 0) {
-      for (const hit of hits) {
-        let obj = hit.object
-        while (obj) {
-          if (this._meshMap.has(obj)) { hitId = this._meshMap.get(obj); break }
-          obj = obj.parent
-        }
-        if (hitId) break
+      let obj = hits[0].object
+      while (obj) {
+        if (this._meshMap.has(obj)) { hitId = this._meshMap.get(obj); break }
+        obj = obj.parent
       }
     }
 

@@ -48,18 +48,17 @@ export default class CrosshairTarget {
     let targetId  = null
     let hitMesh   = null
 
-    for (const hit of hits) {
-      let obj = hit.object
+    if (hits.length > 0) {
+      let obj = hits[0].object
       while (obj) {
         if (interactables.has(obj)) {
           targetObj = obj
           targetId  = interactables.get(obj)
-          hitMesh   = hit.object
+          hitMesh   = hits[0].object
           break
         }
         obj = obj.parent
       }
-      if (targetObj) break
     }
 
     if (!targetObj) {

@@ -19,7 +19,6 @@ import Resources             from './Resources.js'
 import Camera                from './Camera.js'
 import Renderer              from './Renderer.js'
 import InteractionManager    from './interaction/InteractionManager.js'
-import DialogueManager       from './dialogue/DialogueManager.js'
 import Debug                 from './Debug.js'
 
 export default class Experience {
@@ -37,7 +36,7 @@ export default class Experience {
     this.camera      = new Camera(this)
     this.renderer    = new Renderer(this)
     this.interaction = new InteractionManager(this)
-    this.dialogue    = new DialogueManager()
+    this.dialogue    = null   // assigné par le World via setDialogue()
 
     // Boucle & resize propagés par Experience
     this.time.on('tick',    () => this._update())
@@ -47,6 +46,14 @@ export default class Experience {
   /** Attache le World à l'experience. */
   setWorld(world) {
     this.world = world
+  }
+
+  /**
+   * Enregistre le DialogueManager du World.
+   * Appelé par le World qui possède et gère son propre manager.
+   */
+  setDialogue(manager) {
+    this.dialogue = manager
   }
 
   _update() {
@@ -70,7 +77,6 @@ export default class Experience {
     this.camera.dispose()      // dispose OrbitControls
     this.renderer.dispose()    // dispose WebGLRenderer
     this.interaction.dispose() // remove listeners souris/clavier
-    this.dialogue.dispose()    // clear dialogue state
     this.debug.dispose()       // destroy GUI si active
     this.world?.dispose?.()    // dispose ressources du world
   }

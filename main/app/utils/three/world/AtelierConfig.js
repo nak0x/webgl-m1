@@ -1,0 +1,31 @@
+/**
+ * AtelierConfig — noms d'objets et constantes de la scène Atelier.
+ *
+ * Centralise tous les noms de meshes GLTF et les rayons de proximité.
+ * Mettre à jour ici après chaque ré-export Blender.
+ */
+
+/** Noms exacts des meshes dans le fichier GLB */
+export const OBJECTS = {
+  NPC:    'coffee_machine',
+  PC:     'computer',
+  TOOL:   'glasses',
+  DOOR:   'door_in',
+  SCREEN: 'dalle_css3d',
+}
+
+/** Rayons de détection de proximité (unités Three.js) */
+export const PROXIMITY = {
+  NPC:  2.0,
+  PC:   1.5,
+  TOOL: 1.5,
+  DOOR: 2.0,
+}
+
+/**
+ * USE_BUILTIN_FLOOR : true  → _setupFloor() crée un plan procédural
+ *                    false → le GLTF contient déjà un sol (évite le z-fighting)
+ */
+export const SCENE = {
+  USE_BUILTIN_FLOOR: true,
+}
