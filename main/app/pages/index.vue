@@ -1,20 +1,24 @@
 <template>
   <canvas ref="canvas" />
 
-  <QuestHud
-    :current-step="quest.currentStep.value"
-    :step-index="quest.stepIndex.value"
-    :total-steps="quest.totalSteps.value"
-  />
+  <StartHud v-if="!isStarted" @start="startExperience" />
 
-  <DialogueHud
-    :active="dialogue.active.value"
-    :current="dialogue.current.value"
-    :index="dialogue.index.value"
-    :total="dialogue.total.value"
-    :is-last="dialogue.isLast.value"
-    @next="dialogue.next()"
-  />
+  <template v-if="isStarted">
+    <QuestHud
+      :current-step="quest.currentStep.value"
+      :step-index="quest.stepIndex.value"
+      :total-steps="quest.totalSteps.value"
+    />
+
+    <DialogueHud
+      :active="dialogue.active.value"
+      :current="dialogue.current.value"
+      :index="dialogue.index.value"
+      :total="dialogue.total.value"
+      :is-last="dialogue.isLast.value"
+      @next="dialogue.next()"
+    />
+  </template>
 
   <!-- Overlay de transition fade-to-black -->
   <div class="fade-overlay" :class="{ 'fade-overlay--visible': isFading }" />
@@ -34,6 +38,7 @@ const canvas    = useTemplateRef('canvas')
 const quest     = useQuestState()
 const dialogue  = useDialogueState()
 const isFading  = ref(false)
+const isStarted = ref(false)
 
 const FADE_MS = 400
 
@@ -44,32 +49,29 @@ function makeCallbacks() {
   return {
     onQuestReady:    (mgr) => quest.bind(mgr),
     onDialogueReady: (mgr) => dialogue.bind(mgr),
+    onFpsReady:      (fps) => fps.lock(),
     transitionTo,
   }
 }
 
 async function transitionTo(name) {
-  // 1. Fade au noir
   isFading.value = true
   await new Promise(r => setTimeout(r, FADE_MS))
 
-  // 2. Charge la scène cible pendant qu'on est dans le noir
   if (name === 'scene2') {
     await sceneManager.load(AtelierScene2World, AtelierScene2Sources, makeCallbacks())
   }
 
-  // 3. Fade retour
   await nextTick()
   isFading.value = false
 }
 
-onMounted(() => {
-  // Sources vides — SceneManager gère le chargement de chaque scène
+function startExperience() {
+  isStarted.value = true
   experience   = new Experience(canvas.value)
   sceneManager = new SceneManager(experience)
-
   sceneManager.load(AtelierWorld, AtelierSources, makeCallbacks())
-})
+}
 
 onUnmounted(() => {
   sceneManager?.dispose()

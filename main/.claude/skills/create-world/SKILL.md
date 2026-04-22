@@ -1,11 +1,13 @@
 ---
 name: create-world
-description: Scaffold une nouvelle scène Three.js complète (World + Sources + Config + page Nuxt). Se déclenche quand l'utilisateur demande à créer une nouvelle scène, un nouveau World, ou utilise la commande /new-world.
+description: Scaffold une nouvelle scène Three.js (World + Sources + Config). Se déclenche quand l'utilisateur demande à créer une nouvelle scène, un nouveau World, ou utilise la commande /new-world.
 ---
 
 # Créer une nouvelle scène (World)
 
 Procédure pour scaffolder une scène complète en respectant le pattern Experience. Voir `@.claude/rules/architecture.md` pour le pattern.
+
+> **Pas de page Nuxt** — les transitions entre scènes sont gérées par le SceneManager au sein d'une seule page. Ne jamais créer `app/pages/<nom>.vue` pour un nouveau World.
 
 ## Checklist
 
@@ -16,7 +18,7 @@ Procédure pour scaffolder une scène complète en respectant le pattern Experie
    **`<Nom>Sources.js`** — copier depuis `_templateSources.js`, lister les GLB/textures
    ```js
    export default [
-     { name: 'mainModel', type: 'gltfModel', path: '/models/<nom>.glb' },
+     { name: 'mainModel', type: 'gltf', path: '/models/<nom>.glb' },
    ]
    ```
 
@@ -38,18 +40,13 @@ Procédure pour scaffolder une scène complète en respectant le pattern Experie
    - `_setupQuest()` — enregistrer objets interactifs + steps QuestManager
    - `destroy()` — dispose geometries/materials créés ici
 
-3. **Créer la page** `app/pages/<nom>.vue` en copiant `_TemplatePage.vue` :
-   - Instancier Experience
-   - Monter `<Nom>World`
-   - Passer callbacks (`transitionTo`, `onOpenWebPage` si besoin)
-   - `onBeforeUnmount` → `experience.destroy()`
-
-4. **Router** — Nuxt détecte automatiquement la page via le nom de fichier. Vérifier que la route existe (`:3000/<nom>`).
-
-5. **Transition depuis la scène précédente** — si cette scène est la cible d'un `transitionTo` existant, brancher la navigation côté page appelante.
+3. **Brancher dans le SceneManager** — enregistrer le nouveau World comme cible de transition :
+   - Ajouter l'entrée dans le registre du SceneManager (clé = identifiant de scène)
+   - Vérifier que la scène précédente appelle bien `sceneManager.transitionTo('<clé>')`
 
 ## Pièges à éviter
 
+- **Ne pas créer de page Nuxt** — une seule page orchestre toutes les scènes via le SceneManager
 - **Ne pas** importer manuellement depuis `utils/three/materials/` ou `utils/three/textures/` (auto-imports Nuxt, voir `@.claude/rules/stack-constraints.md`)
 - **Ne pas** copier les matériaux legacy (bois, eau, plexi) — voir `@.claude/rules/cleanup-policy.md`
 - **Ne pas** oublier le `destroy()` — leak geometry/material sinon

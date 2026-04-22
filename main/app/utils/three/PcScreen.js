@@ -380,7 +380,10 @@ export default class PcScreen {
       // Fade out terminé → cache complètement et restaure
       this._cssRenderer.domElement.style.display = 'none'
       this._cssIsVisible = false   // permet à _updateVisibility de reprendre la main
-      if (this._fps) this._fps.enabled = true
+      if (this._fps) {
+        this._fps.enabled = true
+        this._fps.lock()
+      }
     }
   }
 

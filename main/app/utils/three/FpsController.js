@@ -76,6 +76,10 @@ export default class FpsController {
     return this.controls.isLocked
   }
 
+  lock() {
+    this.controls.lock()
+  }
+
   update(deltaMs) {
     if (!this.controls.isLocked || !this.enabled) return
 

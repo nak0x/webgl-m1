@@ -118,7 +118,10 @@ export default class AtelierWorld {
     })
     this.dialogue.on('complete', () => {
       this._fps.enabled = true
+      this._fps.lock()
     })
+
+    this._callbacks.onFpsReady?.(this._fps)
   }
 
   _setupPcScreen() {
