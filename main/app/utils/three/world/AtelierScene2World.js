@@ -1,4 +1,6 @@
-import * as THREE from 'three'
+import * as THREE       from 'three'
+import FpsController   from '../FpsController.js'
+import CrosshairTarget from '../CrosshairTarget.js'
 
 export default class AtelierScene2World {
   constructor(experience, callbacks = {}) {
@@ -16,6 +18,14 @@ export default class AtelierScene2World {
   _setup() {
     this._setupLights()
     this._setupModel()
+    this._setupFps()
+  }
+
+  _setupFps() {
+    this._fps             = new FpsController(this.experience)
+    this._crosshairTarget = new CrosshairTarget(this.experience)
+    this.experience.interaction.setFpsMode(true)
+    this._callbacks.onFpsReady?.(this._fps)
   }
 
   _setupLights() {
@@ -84,11 +94,18 @@ export default class AtelierScene2World {
     }
   }
 
-  update() {}
+  update() {
+    this._fps?.update(this.experience.time.delta)
+    this._crosshairTarget?.update()
+  }
 
   resize() {}
 
   dispose() {
+    this._fps?.dispose()
+    this._crosshairTarget?.dispose()
+    this.experience.interaction.setFpsMode(false)
+
     if (this.model) {
       this.model.traverse(child => {
         child.geometry?.dispose()
