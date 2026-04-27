@@ -7,11 +7,13 @@
 
 /** Noms exacts des meshes dans le fichier GLB */
 export const OBJECTS = {
-  NPC:    'coffee_machine',
-  PC:     'computer',
-  TOOL:   'glasses',
-  DOOR:   'door_in',
-  SCREEN: 'dalle_css3d',
+  NPC:         'coffee_machine',
+  PC:          'computer',
+  TOOL:        'glasses',
+  DOOR:        'door_in',
+  DOOR_BUREAU: 'door_bureau',
+  SCENE_MESH:  'fixed_scene',
+  SCREEN:      'dalle_css3d',
 }
 
 /** Rayons de détection de proximité (unités Three.js) */
@@ -27,5 +29,5 @@ export const PROXIMITY = {
  *                    false → le GLTF contient déjà un sol (évite le z-fighting)
  */
 export const SCENE = {
-  USE_BUILTIN_FLOOR: true,
+  USE_BUILTIN_FLOOR: false,
 }

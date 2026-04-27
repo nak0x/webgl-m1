@@ -4,6 +4,7 @@ import CrosshairTarget  from '../CrosshairTarget.js'
 import QuestManager     from '../quest/QuestManager.js'
 import PcScreen         from '../PcScreen.js'
 import DialogueManager  from '../dialogue/DialogueManager.js'
+import PhysicsWorld from '../PhysicsWorld.js'
 import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
 
 export default class AtelierWorld {
@@ -21,7 +22,12 @@ export default class AtelierWorld {
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
 
-    this.resources.on('ready', () => this._setup())
+    this._physics = new PhysicsWorld()
+    let _pReady = false
+    let _rReady = false
+    const trySetup = () => { if (_pReady && _rReady) this._setup() }
+    this._physics.on('ready',    () => { _pReady = true; trySetup() })
+    this.resources.on('ready',   () => { _rReady = true; trySetup() })
   }
 
   _setup() {
@@ -29,6 +35,7 @@ export default class AtelierWorld {
     this._setupModel()
     if (SCENE.USE_BUILTIN_FLOOR) this._setupFloor()
     this._setupFps()
+    this._setupPhysics()
     this._setupPcScreen()
     this._setupQuest()
   }
@@ -124,6 +131,22 @@ export default class AtelierWorld {
     this._callbacks.onFpsReady?.(this._fps)
   }
 
+  _setupPhysics() {
+    const eyePos = this.camera.instance.position
+
+    const skip = new Set([OBJECTS.DOOR, OBJECTS.DOOR_BUREAU, OBJECTS.TOOL])
+    this.model?.traverse(child => {
+      if (child.isMesh && child.geometry && !skip.has(child.name)) {
+        this._physics.addMeshCollider(child)
+      }
+    })
+
+    const character = this._physics.createCharacter({ x: eyePos.x, y: eyePos.y, z: eyePos.z })
+    this._fps.setCharacter(character)
+
+    if (this.experience.debug.active) this._physics.enableDebug(this.scene)
+  }
+
   _setupPcScreen() {
     const mesh = this.model?.getObjectByName(OBJECTS.SCREEN)
     if (!mesh) {
@@ -197,6 +220,7 @@ export default class AtelierWorld {
   }
 
   update() {
+    this._physics?.step(this.experience.time.delta)
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
     this._pcScreen?.update(this.experience.time.delta)
@@ -209,6 +233,7 @@ export default class AtelierWorld {
   dispose() {
     this._quest?.dispose()
     this.dialogue.dispose()
+    this._physics?.destroy()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()
     this._pcScreen?.dispose()

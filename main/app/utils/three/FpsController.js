@@ -1,31 +1,24 @@
-/**
- * FpsController — PointerLock + WASD sur la caméra principale.
- *
- * Usage :
- *   this._fps = new FpsController(experience)
- *   // dans update() :
- *   this._fps.update(experience.time.delta)
- *   // dans dispose() :
- *   this._fps.dispose()
- *
- * Clic sur le canvas → lock le pointeur.
- * ESC → déverrouille (comportement natif du navigateur).
- */
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
+import { Vector3 } from 'three'
+
+const _forward = new Vector3()
+const _right   = new Vector3()
+const _moveDir = new Vector3()
+const _up      = new Vector3(0, 1, 0)
 
 export default class FpsController {
   constructor(experience) {
     this._experience = experience
     this._camera     = experience.camera.instance
     this._canvas     = experience.canvas
-    this._time       = experience.time
 
     this.controls = new PointerLockControls(this._camera, document.body)
 
-    // État des touches
-    this._keys  = { w: false, a: false, s: false, d: false }
-    this.speed   = 4     // unités/seconde, modifiable depuis le World
-    this.enabled = true  // false pendant dialogue
+    this._keys      = { w: false, a: false, s: false, d: false }
+    this.speed      = 4
+    this.enabled    = true
+
+    this._character = null
 
     this._crosshairEl = this._createCrosshair()
 
@@ -33,7 +26,6 @@ export default class FpsController {
     this._onKeyUp   = this._onKeyUp.bind(this)
     this._onClick   = this._onClick.bind(this)
 
-    // Affiche/cache le crosshair selon le lock
     this.controls.addEventListener('lock',   () => { this._crosshairEl.style.opacity = '1' })
     this.controls.addEventListener('unlock', () => { this._crosshairEl.style.opacity = '0' })
 
@@ -41,9 +33,12 @@ export default class FpsController {
     window.addEventListener('keyup',   this._onKeyUp)
     this._canvas.addEventListener('click', this._onClick)
 
-    // Désactive OrbitControls pour laisser la place au FPS
     experience.camera.autoUpdate       = false
     experience.camera.controls.enabled = false
+  }
+
+  setCharacter(character) {
+    this._character = character
   }
 
   _createCrosshair() {
@@ -81,14 +76,38 @@ export default class FpsController {
   }
 
   update(deltaMs) {
-    if (!this.controls.isLocked || !this.enabled) return
+    if (!this.controls.isLocked || !this.enabled || !this._character) return
 
-    const dist = this.speed * (deltaMs / 1000)
+    const dt = deltaMs / 1000
+    const { body, collider, controller } = this._character
 
-    if (this._keys.w) this.controls.moveForward(dist)
-    if (this._keys.s) this.controls.moveForward(-dist)
-    if (this._keys.a) this.controls.moveRight(-dist)
-    if (this._keys.d) this.controls.moveRight(dist)
+    this._camera.getWorldDirection(_forward)
+    _forward.y = 0
+    _forward.normalize()
+    _right.crossVectors(_forward, _up)
+
+    _moveDir.set(0, 0, 0)
+    if (this._keys.w) _moveDir.addScaledVector(_forward,  1)
+    if (this._keys.s) _moveDir.addScaledVector(_forward, -1)
+    if (this._keys.a) _moveDir.addScaledVector(_right,   -1)
+    if (this._keys.d) _moveDir.addScaledVector(_right,    1)
+    if (_moveDir.lengthSq() > 0) _moveDir.normalize()
+    _moveDir.multiplyScalar(this.speed * dt)
+    _moveDir.y = 0
+
+    controller.computeColliderMovement(collider, _moveDir)
+    const corrected = controller.computedMovement()
+
+    const pos = body.translation()
+    body.setNextKinematicTranslation({
+      x: pos.x + corrected.x,
+      y: pos.y,
+      z: pos.z + corrected.z,
+    })
+
+    const newPos = body.translation()
+    this._camera.position.x = newPos.x
+    this._camera.position.z = newPos.z
   }
 
   _onClick() {
@@ -120,7 +139,6 @@ export default class FpsController {
     this._crosshairEl.remove()
     this.controls.dispose()
 
-    // Rétablit OrbitControls
     this._experience.camera.autoUpdate       = true
     this._experience.camera.controls.enabled = true
   }
