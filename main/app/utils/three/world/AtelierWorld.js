@@ -4,7 +4,7 @@ import CrosshairTarget  from '../CrosshairTarget.js'
 import QuestManager     from '../quest/QuestManager.js'
 import PcScreen         from '../PcScreen.js'
 import DialogueManager  from '../dialogue/DialogueManager.js'
-import { Octree } from 'three/addons/math/Octree.js'
+import { buildOctree } from '../buildOctree.js'
 import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
 
 export default class AtelierWorld {
@@ -109,10 +109,7 @@ export default class AtelierWorld {
   }
 
   _setupFps() {
-    const octree = new Octree()
-    octree.fromGraphNode(this.model)
-
-    this._fps             = new FpsController(this.experience, octree)
+    this._fps             = new FpsController(this.experience, buildOctree(this.scene))
     this._crosshairTarget = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
 
@@ -189,7 +186,7 @@ export default class AtelierWorld {
         hint:    'Approchez-vous de la porte et appuyez sur E',
         trigger: { type: 'interact', id: 'door' },
         onComplete: (callbacks) => {
-          callbacks.transitionTo?.('Hub   (scène 2)')
+          callbacks.transitionTo?.('scene_2')
         },
       },
     ]

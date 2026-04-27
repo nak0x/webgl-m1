@@ -2,19 +2,17 @@ import * as THREE       from 'three'
 import FpsController   from '../FpsController.js'
 import CrosshairTarget from '../CrosshairTarget.js'
 import DialogueManager from '../dialogue/DialogueManager.js'
-import QuestManager    from '../quest/QuestManager.js'
 import { buildOctree } from '../buildOctree.js'
-import { OBJECTS, PROXIMITY } from './AtelierScene2Config.js'
 
-export default class AtelierScene2World {
+export default class AtelierScene3World {
   constructor(experience, callbacks = {}) {
     this.experience = experience
     this.scene      = experience.scene
     this.camera     = experience.camera
     this._callbacks = callbacks
 
-    this.scene.background = new THREE.Color(0x111118)
-    this.scene.fog = new THREE.Fog(0x111118, 25, 70)
+    this.scene.background = new THREE.Color(0x0a0a12)
+    this.scene.fog = new THREE.Fog(0x0a0a12, 20, 60)
 
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
@@ -26,7 +24,6 @@ export default class AtelierScene2World {
     this._setupLights()
     this._setupModel()
     this._setupFps()
-    this._setupQuest()
   }
 
   _setupLights() {
@@ -71,14 +68,14 @@ export default class AtelierScene2World {
       this.camera.instance.position.copy(pos)
       this.camera.instance.quaternion.copy(quat)
     } else {
-      this.camera.instance.position.set(0, 2, 6)
-      this.camera.instance.lookAt(0, 1, 0)
+      this.camera.instance.position.set(0, 1.7, 0)
+      this.camera.instance.lookAt(0, 1.7, -1)
     }
 
     if (this.experience.debug.active) {
       const names = []
       this.model.traverse(c => { if (c.isMesh) names.push(c.name) })
-      console.log('[AtelierScene2World] meshes GLTF :', names)
+      console.log('[AtelierScene3World] meshes GLTF :', names)
     }
   }
 
@@ -93,67 +90,6 @@ export default class AtelierScene2World {
     this._callbacks.onFpsReady?.(this._fps)
   }
 
-  _setupQuest() {
-    const { interaction } = this.experience
-
-    const wrench      = this.model?.getObjectByName(OBJECTS.WRENCH)
-    const screwdriver = this.model?.getObjectByName(OBJECTS.SCREWDRIVER)
-    const screwBox    = this.model?.getObjectByName(OBJECTS.SCREW_BOX)
-    const door        = this.model?.getObjectByName(OBJECTS.DOOR)
-
-    if (wrench)      interaction.registerProximity(wrench,      'wrench',      PROXIMITY.WRENCH)
-    if (screwdriver) interaction.registerProximity(screwdriver, 'screwdriver', PROXIMITY.SCREWDRIVER)
-    if (screwBox)    interaction.registerProximity(screwBox,    'screw_box',   PROXIMITY.SCREW_BOX)
-    if (door)        interaction.registerProximity(door,        'door',        PROXIMITY.DOOR)
-
-    const steps = [
-      {
-        id:      'pick_wrench',
-        label:   'Récupérer la clé à molette',
-        hint:    'Approchez-vous et appuyez sur E',
-        trigger: { type: 'interact', id: 'wrench' },
-        onComplete: () => {
-          wrench?.removeFromParent()
-          interaction.unregister('wrench')
-        },
-      },
-      {
-        id:      'pick_screwdriver',
-        label:   'Récupérer le tournevis',
-        hint:    'Approchez-vous du tournevis et appuyez sur E',
-        trigger: { type: 'interact', id: 'screwdriver' },
-        onComplete: () => {
-          screwdriver?.removeFromParent()
-          interaction.unregister('screwdriver')
-        },
-      },
-      {
-        id:      'pick_screw_box',
-        label:   'Récupérer la boîte de vis',
-        hint:    'Approchez-vous de la boîte de vis et appuyez sur E',
-        trigger: { type: 'interact', id: 'screw_box' },
-        onComplete: () => {
-          screwBox?.removeFromParent()
-          interaction.unregister('screw_box')
-        },
-      },
-      {
-        id:      'exit_door',
-        label:   'Sortir par la porte',
-        hint:    'Approchez-vous de la porte et appuyez sur E',
-        trigger: { type: 'interact', id: 'door' },
-        onComplete: (callbacks) => {
-          callbacks.transitionTo?.('scene_3')
-        },
-      },
-    ]
-
-    this._quest = new QuestManager(this.experience, steps, this._callbacks)
-    this._callbacks.onQuestReady?.(this._quest)
-    this._callbacks.onDialogueReady?.(this.dialogue)
-    this._quest.start()
-  }
-
   update() {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
@@ -162,7 +98,6 @@ export default class AtelierScene2World {
   resize() {}
 
   dispose() {
-    this._quest?.dispose()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()
