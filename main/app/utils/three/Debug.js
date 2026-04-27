@@ -13,7 +13,8 @@
  * Le popup d'identification des objets est géré par CrosshairTarget
  * (actif en FPS, overlay visible uniquement si debug.active).
  */
-import GUI from 'lil-gui'
+import GUI   from 'lil-gui'
+import Stats from 'stats.js'
 
 export default class Debug {
   constructor() {
@@ -21,10 +22,17 @@ export default class Debug {
 
     if (this.active) {
       this.gui = new GUI({ width: 300 })
+
+      this.stats = new Stats()
+      this.stats.showPanel(0) // 0: FPS, 1: ms/frame, 2: MB
+      document.body.appendChild(this.stats.dom)
     }
   }
 
   dispose() {
     this.gui?.destroy()
+    if (this.stats) {
+      document.body.removeChild(this.stats.dom)
+    }
   }
 }

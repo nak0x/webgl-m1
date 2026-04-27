@@ -12,6 +12,7 @@
   "dependencies": {
     "lil-gui": "^0.21.0",
     "nuxt": "^4.4.2",
+    "stats.js": "^0.17.0",
     "three": "^0.183.2",
     "vue": "^3.5.30",
     "vue-router": "^5.0.4"

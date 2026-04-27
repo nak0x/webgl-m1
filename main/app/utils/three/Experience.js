@@ -50,10 +50,12 @@ export default class Experience {
   }
 
   _update() {
-    this.camera.update()       // controls.update() si autoUpdate
-    this.interaction.update()  // raycasting, proximité, trigger zones
-    this.world?.update()       // logique 3D spécifique à la scène
-    this.renderer.update()     // rendu final
+    this.debug.stats?.begin()
+    this.camera.update()
+    this.interaction.update()
+    this.world?.update()
+    this.renderer.update()
+    this.debug.stats?.end()
   }
 
   _resize() {
