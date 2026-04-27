@@ -1,24 +1,39 @@
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
+import { Capsule } from 'three/addons/math/Capsule.js'
 import { Vector3 } from 'three'
+
+const GRAVITY        = 30
+const WALK_SPEED     = 8
+const DAMPING        = 8
+const CAPSULE_RADIUS = 0.3
+const EYE_HEIGHT     = 1.0   // distance start → end (hauteur du cylindre)
 
 const _forward = new Vector3()
 const _right   = new Vector3()
-const _moveDir = new Vector3()
+const _move    = new Vector3()
 const _up      = new Vector3(0, 1, 0)
 
 export default class FpsController {
-  constructor(experience) {
+  constructor(experience, octree) {
     this._experience = experience
     this._camera     = experience.camera.instance
     this._canvas     = experience.canvas
+    this._octree     = octree
 
     this.controls = new PointerLockControls(this._camera, document.body)
+    this._keys    = { w: false, a: false, s: false, d: false }
+    this.speed    = WALK_SPEED
+    this.enabled  = true
 
-    this._keys      = { w: false, a: false, s: false, d: false }
-    this.speed      = 4
-    this.enabled    = true
+    this._velocity = new Vector3()
+    this._onFloor  = false
 
-    this._character = null
+    const eye = this._camera.position
+    this._capsule = new Capsule(
+      new Vector3(eye.x, eye.y - EYE_HEIGHT, eye.z),
+      new Vector3(eye.x, eye.y,              eye.z),
+      CAPSULE_RADIUS,
+    )
 
     this._crosshairEl = this._createCrosshair()
 
@@ -37,9 +52,8 @@ export default class FpsController {
     experience.camera.controls.enabled = false
   }
 
-  setCharacter(character) {
-    this._character = character
-  }
+  get isLocked() { return this.controls.isLocked }
+  lock()         { this.controls.lock() }
 
   _createCrosshair() {
     const el = document.createElement('div')
@@ -67,47 +81,56 @@ export default class FpsController {
     return el
   }
 
-  get isLocked() {
-    return this.controls.isLocked
-  }
-
-  lock() {
-    this.controls.lock()
-  }
-
   update(deltaMs) {
-    if (!this.controls.isLocked || !this.enabled || !this._character) return
+    if (!this.controls.isLocked || !this.enabled) return
 
-    const dt = deltaMs / 1000
-    const { body, collider, controller } = this._character
+    const dt = Math.min(deltaMs / 1000, 0.05)
 
     this._camera.getWorldDirection(_forward)
     _forward.y = 0
     _forward.normalize()
     _right.crossVectors(_forward, _up)
 
-    _moveDir.set(0, 0, 0)
-    if (this._keys.w) _moveDir.addScaledVector(_forward,  1)
-    if (this._keys.s) _moveDir.addScaledVector(_forward, -1)
-    if (this._keys.a) _moveDir.addScaledVector(_right,   -1)
-    if (this._keys.d) _moveDir.addScaledVector(_right,    1)
-    if (_moveDir.lengthSq() > 0) _moveDir.normalize()
-    _moveDir.multiplyScalar(this.speed * dt)
-    _moveDir.y = 0
+    _move.set(0, 0, 0)
+    if (this._keys.w) _move.addScaledVector(_forward,  1)
+    if (this._keys.s) _move.addScaledVector(_forward, -1)
+    if (this._keys.a) _move.addScaledVector(_right,   -1)
+    if (this._keys.d) _move.addScaledVector(_right,    1)
+    if (_move.lengthSq() > 0) _move.normalize()
 
-    controller.computeColliderMovement(collider, _moveDir)
-    const corrected = controller.computedMovement()
+    const accel = this._onFloor ? this.speed : this.speed * 0.3
+    this._velocity.x += _move.x * accel * dt * 9
+    this._velocity.z += _move.z * accel * dt * 9
+    const damp = Math.exp(-DAMPING * dt)
+    this._velocity.x *= damp
+    this._velocity.z *= damp
 
-    const pos = body.translation()
-    body.setNextKinematicTranslation({
-      x: pos.x + corrected.x,
-      y: pos.y,
-      z: pos.z + corrected.z,
-    })
+    if (this._onFloor) {
+      this._velocity.y = Math.max(0, this._velocity.y)
+    } else {
+      this._velocity.y -= GRAVITY * dt
+    }
 
-    const newPos = body.translation()
-    this._camera.position.x = newPos.x
-    this._camera.position.z = newPos.z
+    this._capsule.translate(this._velocity.clone().multiplyScalar(dt))
+    this._resolveCollisions()
+    this._camera.position.copy(this._capsule.end)
+  }
+
+  _resolveCollisions() {
+    const result = this._octree.capsuleIntersect(this._capsule)
+    this._onFloor = false
+    if (!result) return
+
+    this._onFloor = result.normal.y > 0
+
+    if (!this._onFloor) {
+      const vn = result.normal.dot(this._velocity)
+      this._velocity.addScaledVector(result.normal, -vn)
+    } else {
+      this._velocity.y = Math.max(0, this._velocity.y)
+    }
+
+    this._capsule.translate(result.normal.multiplyScalar(result.depth))
   }
 
   _onClick() {
