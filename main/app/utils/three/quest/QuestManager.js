@@ -110,6 +110,9 @@ export default class QuestManager extends EventEmitter {
   }
 
   dispose() {
+    if (this.currentStep !== null) {
+      this.trigger('quest:complete')
+    }
     this._unsubscribe()
     this.off()
   }

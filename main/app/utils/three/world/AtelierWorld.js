@@ -189,7 +189,7 @@ export default class AtelierWorld {
         hint:    'Approchez-vous de la porte et appuyez sur E',
         trigger: { type: 'interact', id: 'door' },
         onComplete: (callbacks) => {
-          callbacks.transitionTo?.('scene2')
+          callbacks.transitionTo?.('Hub   (scène 2)')
         },
       },
     ]

@@ -29,8 +29,7 @@ import Experience            from '~/utils/three/Experience.js'
 import SceneManager          from '~/utils/three/SceneManager.js'
 import AtelierWorld          from '~/utils/three/world/AtelierWorld.js'
 import AtelierSources        from '~/utils/three/world/AtelierSources.js'
-import AtelierScene2World    from '~/utils/three/world/AtelierScene2World.js'
-import AtelierScene2Sources  from '~/utils/three/world/AtelierScene2Sources.js'
+import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
 import { useQuestState }    from '~/composables/useQuestState.js'
 import { useDialogueState } from '~/composables/useDialogueState.js'
 
@@ -55,13 +54,12 @@ function makeCallbacks() {
 }
 
 async function transitionTo(name) {
+  const scene = SCENES[name]
+  if (!scene) return
+
   isFading.value = true
   await new Promise(r => setTimeout(r, FADE_MS))
-
-  if (name === 'scene2') {
-    await sceneManager.load(AtelierScene2World, AtelierScene2Sources, makeCallbacks())
-  }
-
+  await sceneManager.load(scene.World, scene.sources, makeCallbacks())
   await nextTick()
   isFading.value = false
 }
@@ -71,6 +69,16 @@ function startExperience() {
   experience   = new Experience(canvas.value)
   sceneManager = new SceneManager(experience)
   sceneManager.load(AtelierWorld, AtelierSources, makeCallbacks())
+
+  if (experience.debug.active) {
+    _registerDebugSceneSwitcher()
+  }
+}
+
+function _registerDebugSceneSwitcher() {
+  const state  = { scene: SCENE_NAMES[0] }
+  const folder = experience.debug.gui.addFolder('Scènes')
+  folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(transitionTo)
 }
 
 onUnmounted(() => {

@@ -50,6 +50,9 @@ export default class DialogueManager extends EventEmitter {
   }
 
   dispose() {
+    if (this.active) {
+      this.trigger('complete')
+    }
     this.active  = false
     this.current = null
     this._lines  = []
