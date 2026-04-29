@@ -1,14 +1,14 @@
-import AtelierWorld         from './AtelierWorld.js'
-import AtelierSources       from './AtelierSources.js'
-import AtelierScene2World   from './AtelierScene2World.js'
-import AtelierScene2Sources from './AtelierScene2Sources.js'
-import AtelierScene3World   from './AtelierScene3World.js'
-import AtelierScene3Sources from './AtelierScene3Sources.js'
+import AtelierWorld   from './atelier/AtelierWorld.js'
+import AtelierSources from './atelier/AtelierSources.js'
+import HubWorld       from './hub/HubWorld.js'
+import HubSources     from './hub/HubSources.js'
+import CityWorld      from './city/CityWorld.js'
+import CitySources    from './city/CitySources.js'
 
 export const SCENES = {
-  'scene_1': { World: AtelierWorld,       sources: AtelierSources       },
-  'scene_2':   { World: AtelierScene2World, sources: AtelierScene2Sources },
-  'scene_3':           { World: AtelierScene3World, sources: AtelierScene3Sources },
+  'scene_1': { World: AtelierWorld, sources: AtelierSources },
+  'scene_2': { World: HubWorld,     sources: HubSources     },
+  'scene_3': { World: CityWorld,    sources: CitySources    },
 }
 
 export const SCENE_NAMES = Object.keys(SCENES)

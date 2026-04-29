@@ -27,8 +27,8 @@
 <script setup>
 import Experience            from '~/utils/three/Experience.js'
 import SceneManager          from '~/utils/three/SceneManager.js'
-import AtelierWorld          from '~/utils/three/world/AtelierWorld.js'
-import AtelierSources        from '~/utils/three/world/AtelierSources.js'
+import AtelierWorld          from '~/utils/three/world/atelier/AtelierWorld.js'
+import AtelierSources        from '~/utils/three/world/atelier/AtelierSources.js'
 import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
 import { useQuestState }    from '~/composables/useQuestState.js'
 import { useDialogueState } from '~/composables/useDialogueState.js'

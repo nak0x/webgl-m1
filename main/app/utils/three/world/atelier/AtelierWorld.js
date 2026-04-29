@@ -1,10 +1,10 @@
 import * as THREE        from 'three'
-import FpsController    from '../FpsController.js'
-import CrosshairTarget  from '../CrosshairTarget.js'
-import QuestManager     from '../quest/QuestManager.js'
-import PcScreen         from '../PcScreen.js'
-import DialogueManager  from '../dialogue/DialogueManager.js'
-import { buildOctree } from '../buildOctree.js'
+import FpsController    from '../../FpsController.js'
+import CrosshairTarget  from '../../CrosshairTarget.js'
+import QuestManager     from '../../quest/QuestManager.js'
+import PcScreen         from '../../PcScreen.js'
+import DialogueManager  from '../../dialogue/DialogueManager.js'
+import { buildOctree } from '../../buildOctree.js'
 import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
 
 export default class AtelierWorld {

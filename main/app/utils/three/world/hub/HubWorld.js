@@ -1,12 +1,12 @@
 import * as THREE       from 'three'
-import FpsController   from '../FpsController.js'
-import CrosshairTarget from '../CrosshairTarget.js'
-import DialogueManager from '../dialogue/DialogueManager.js'
-import QuestManager    from '../quest/QuestManager.js'
-import { buildOctree } from '../buildOctree.js'
-import { OBJECTS, PROXIMITY } from './AtelierScene2Config.js'
+import FpsController   from '../../FpsController.js'
+import CrosshairTarget from '../../CrosshairTarget.js'
+import DialogueManager from '../../dialogue/DialogueManager.js'
+import QuestManager    from '../../quest/QuestManager.js'
+import { buildOctree } from '../../buildOctree.js'
+import { OBJECTS, PROXIMITY } from './HubConfig.js'
 
-export default class AtelierScene2World {
+export default class HubWorld {
   constructor(experience, callbacks = {}) {
     this.experience = experience
     this.scene      = experience.scene
@@ -78,7 +78,7 @@ export default class AtelierScene2World {
     if (this.experience.debug.active) {
       const names = []
       this.model.traverse(c => { if (c.isMesh) names.push(c.name) })
-      console.log('[AtelierScene2World] meshes GLTF :', names)
+      console.log('[HubWorld] meshes GLTF :', names)
     }
   }
 

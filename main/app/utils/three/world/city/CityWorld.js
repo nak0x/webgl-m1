@@ -1,10 +1,10 @@
 import * as THREE       from 'three'
-import FpsController   from '../FpsController.js'
-import CrosshairTarget from '../CrosshairTarget.js'
-import DialogueManager from '../dialogue/DialogueManager.js'
-import { buildOctree } from '../buildOctree.js'
+import FpsController   from '../../FpsController.js'
+import CrosshairTarget from '../../CrosshairTarget.js'
+import DialogueManager from '../../dialogue/DialogueManager.js'
+import { buildOctree } from '../../buildOctree.js'
 
-export default class AtelierScene3World {
+export default class CityWorld {
   constructor(experience, callbacks = {}) {
     this.experience = experience
     this.scene      = experience.scene
@@ -22,7 +22,7 @@ export default class AtelierScene3World {
 
   _setup() {
     this._setupLights()
-    this._setupModel()
+    if (!this._setupModel()) return
     this._setupFps()
   }
 
@@ -47,8 +47,11 @@ export default class AtelierScene3World {
   }
 
   _setupModel() {
-    const gltf = this.experience.resources.items.atelierScene2
-    if (!gltf) return
+    const gltf = this.experience.resources.items.town
+    if (!gltf) {
+      console.error('[CityWorld] GLB "town" failed to load — check CitySources path and browser console')
+      return false
+    }
 
     this.model = gltf.scene
     this.model.traverse(child => {
@@ -75,19 +78,26 @@ export default class AtelierScene3World {
     if (this.experience.debug.active) {
       const names = []
       this.model.traverse(c => { if (c.isMesh) names.push(c.name) })
-      console.log('[AtelierScene3World] meshes GLTF :', names)
+      console.log('[CityWorld] meshes GLTF :', names)
     }
+
+    return true
   }
 
   _setupFps() {
-    this._fps             = new FpsController(this.experience, buildOctree(this.scene))
+    // buildOctree is synchronous and expensive on large models — defer past first render
     this._crosshairTarget = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
 
-    this.dialogue.on('open',     () => { this._fps.enabled = false; this._fps.controls.unlock() })
-    this.dialogue.on('complete', () => { this._fps.enabled = true;  this._fps.lock() })
+    setTimeout(() => {
+      if (!this.model) return
+      this._fps = new FpsController(this.experience, buildOctree(this.model))
 
-    this._callbacks.onFpsReady?.(this._fps)
+      this.dialogue.on('open',     () => { this._fps.enabled = false; this._fps.controls.unlock() })
+      this.dialogue.on('complete', () => { this._fps.enabled = true;  this._fps.lock() })
+
+      this._callbacks.onFpsReady?.(this._fps)
+    }, 0)
   }
 
   update() {
