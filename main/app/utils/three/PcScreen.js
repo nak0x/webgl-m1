@@ -362,6 +362,11 @@ export default class PcScreen {
     el.style.pointerEvents = 'none'
     el.style.opacity = '0'
 
+    // L'iframe garde le focus DOM tant qu'on ne le retire pas explicitement,
+    // sinon les inputs clavier continuent d'aller dans l'écran après la sortie.
+    this._iframe?.blur()
+    this._exp.canvas?.focus()
+
     window.removeEventListener('keydown', this._onKey)
     window.removeEventListener('message', this._onMsg)
   }

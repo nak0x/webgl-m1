@@ -36,8 +36,15 @@ export default class InteractionManager extends EventEmitter {
     this._trigger   = new TriggerZoneDetector(experience, this)
     this._pointer   = new PointerStyler(experience.canvas, this)
 
+    this._aimedId = null
+
     this._onKeyDown = this._onKeyDown.bind(this)
     window.addEventListener('keydown', this._onKeyDown)
+  }
+
+  /** Notifié par CrosshairTarget : id de l'interactable actuellement visé (ou null). */
+  setAimedId(id) {
+    this._aimedId = id
   }
 
   // ── API publique ────────────────────────────────────────────────
@@ -99,10 +106,10 @@ export default class InteractionManager extends EventEmitter {
 
   _onKeyDown(e) {
     if (e.code !== 'KeyE') return
+    if (!this._aimedId) return
     const nearbyIds = this._proximity.getInsideIds()
-    for (const id of nearbyIds) {
-      this.trigger('interact', { id })
-    }
+    if (!nearbyIds.has(this._aimedId)) return
+    this.trigger('interact', { id: this._aimedId })
   }
 
   // ── Nettoyage ────────────────────────────────────────────────────
