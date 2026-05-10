@@ -1,0 +1,3760 @@
+{
+  "chunkSize": 64,
+  "origin": [
+    0,
+    0
+  ],
+  "chunks": [
+    {
+      "id": "3_4",
+      "col": 3,
+      "row": 4,
+      "aabb": {
+        "min": [
+          192,
+          -0.8818893432617188,
+          256
+        ],
+        "max": [
+          256,
+          28.11762046813965,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_3_4_lod0.gltf",
+          "triCount": 77213
+        },
+        {
+          "file": "chunk_3_4_lod1.gltf",
+          "triCount": 19278
+        },
+        {
+          "file": "chunk_3_4_lod2.gltf",
+          "triCount": 4587
+        }
+      ]
+    },
+    {
+      "id": "4_4",
+      "col": 4,
+      "row": 4,
+      "aabb": {
+        "min": [
+          256,
+          -0.8818893432617188,
+          256
+        ],
+        "max": [
+          320,
+          59.699710845947266,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_4_4_lod0.gltf",
+          "triCount": 90796
+        },
+        {
+          "file": "chunk_4_4_lod1.gltf",
+          "triCount": 22689
+        },
+        {
+          "file": "chunk_4_4_lod2.gltf",
+          "triCount": 5408
+        }
+      ]
+    },
+    {
+      "id": "5_4",
+      "col": 5,
+      "row": 4,
+      "aabb": {
+        "min": [
+          320,
+          -0.8818893432617188,
+          256
+        ],
+        "max": [
+          372.1441955566406,
+          28.109243392944336,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_5_4_lod0.gltf",
+          "triCount": 85138
+        },
+        {
+          "file": "chunk_5_4_lod1.gltf",
+          "triCount": 21254
+        },
+        {
+          "file": "chunk_5_4_lod2.gltf",
+          "triCount": 5084
+        }
+      ]
+    },
+    {
+      "id": "4_5",
+      "col": 4,
+      "row": 5,
+      "aabb": {
+        "min": [
+          256,
+          -0.8818893432617188,
+          320
+        ],
+        "max": [
+          320,
+          59.69132995605469,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_4_5_lod0.gltf",
+          "triCount": 74959
+        },
+        {
+          "file": "chunk_4_5_lod1.gltf",
+          "triCount": 18629
+        },
+        {
+          "file": "chunk_4_5_lod2.gltf",
+          "triCount": 4482
+        }
+      ]
+    },
+    {
+      "id": "5_5",
+      "col": 5,
+      "row": 5,
+      "aabb": {
+        "min": [
+          320,
+          -0.8818893432617188,
+          320
+        ],
+        "max": [
+          363.30755615234375,
+          13.959753036499023,
+          372.5660705566406
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_5_5_lod0.gltf",
+          "triCount": 6226
+        },
+        {
+          "file": "chunk_5_5_lod1.gltf",
+          "triCount": 1438
+        },
+        {
+          "file": "chunk_5_5_lod2.gltf",
+          "triCount": 410
+        }
+      ]
+    },
+    {
+      "id": "3_5",
+      "col": 3,
+      "row": 5,
+      "aabb": {
+        "min": [
+          192,
+          -0.8818893432617188,
+          320
+        ],
+        "max": [
+          256,
+          28.109243392944336,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_3_5_lod0.gltf",
+          "triCount": 103265
+        },
+        {
+          "file": "chunk_3_5_lod1.gltf",
+          "triCount": 25795
+        },
+        {
+          "file": "chunk_3_5_lod2.gltf",
+          "triCount": 6180
+        }
+      ]
+    },
+    {
+      "id": "2_5",
+      "col": 2,
+      "row": 5,
+      "aabb": {
+        "min": [
+          128,
+          -0.8818893432617188,
+          320
+        ],
+        "max": [
+          192,
+          20.861169815063477,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_5_lod0.gltf",
+          "triCount": 52939
+        },
+        {
+          "file": "chunk_2_5_lod1.gltf",
+          "triCount": 13210
+        },
+        {
+          "file": "chunk_2_5_lod2.gltf",
+          "triCount": 3169
+        }
+      ]
+    },
+    {
+      "id": "2_4",
+      "col": 2,
+      "row": 4,
+      "aabb": {
+        "min": [
+          128,
+          -0.8818893432617188,
+          256
+        ],
+        "max": [
+          192,
+          59.69132995605469,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_4_lod0.gltf",
+          "triCount": 88762
+        },
+        {
+          "file": "chunk_2_4_lod1.gltf",
+          "triCount": 21805
+        },
+        {
+          "file": "chunk_2_4_lod2.gltf",
+          "triCount": 5268
+        }
+      ]
+    },
+    {
+      "id": "2_3",
+      "col": 2,
+      "row": 3,
+      "aabb": {
+        "min": [
+          128,
+          -0.8818893432617188,
+          192
+        ],
+        "max": [
+          192,
+          28.109243392944336,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_3_lod0.gltf",
+          "triCount": 82317
+        },
+        {
+          "file": "chunk_2_3_lod1.gltf",
+          "triCount": 20562
+        },
+        {
+          "file": "chunk_2_3_lod2.gltf",
+          "triCount": 4905
+        }
+      ]
+    },
+    {
+      "id": "3_3",
+      "col": 3,
+      "row": 3,
+      "aabb": {
+        "min": [
+          192,
+          -0.8818893432617188,
+          192
+        ],
+        "max": [
+          256,
+          28.109243392944336,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_3_3_lod0.gltf",
+          "triCount": 116918
+        },
+        {
+          "file": "chunk_3_3_lod1.gltf",
+          "triCount": 29156
+        },
+        {
+          "file": "chunk_3_3_lod2.gltf",
+          "triCount": 6928
+        }
+      ]
+    },
+    {
+      "id": "3_2",
+      "col": 3,
+      "row": 2,
+      "aabb": {
+        "min": [
+          192,
+          -0.8818893432617188,
+          154.0484161376953
+        ],
+        "max": [
+          256,
+          19.873432159423828,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_3_2_lod0.gltf",
+          "triCount": 36646
+        },
+        {
+          "file": "chunk_3_2_lod1.gltf",
+          "triCount": 9112
+        },
+        {
+          "file": "chunk_3_2_lod2.gltf",
+          "triCount": 2180
+        }
+      ]
+    },
+    {
+      "id": "4_2",
+      "col": 4,
+      "row": 2,
+      "aabb": {
+        "min": [
+          256,
+          -0.8818893432617188,
+          155.11911010742188
+        ],
+        "max": [
+          320,
+          59.69132995605469,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_4_2_lod0.gltf",
+          "triCount": 7683
+        },
+        {
+          "file": "chunk_4_2_lod1.gltf",
+          "triCount": 1919
+        },
+        {
+          "file": "chunk_4_2_lod2.gltf",
+          "triCount": 460
+        }
+      ]
+    },
+    {
+      "id": "4_3",
+      "col": 4,
+      "row": 3,
+      "aabb": {
+        "min": [
+          256,
+          -0.8818893432617188,
+          192
+        ],
+        "max": [
+          320,
+          59.400691986083984,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_4_3_lod0.gltf",
+          "triCount": 86759
+        },
+        {
+          "file": "chunk_4_3_lod1.gltf",
+          "triCount": 21466
+        },
+        {
+          "file": "chunk_4_3_lod2.gltf",
+          "triCount": 5187
+        }
+      ]
+    },
+    {
+      "id": "5_3",
+      "col": 5,
+      "row": 3,
+      "aabb": {
+        "min": [
+          320,
+          -0.8818893432617188,
+          192
+        ],
+        "max": [
+          368.2503967285156,
+          28.109243392944336,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_5_3_lod0.gltf",
+          "triCount": 29721
+        },
+        {
+          "file": "chunk_5_3_lod1.gltf",
+          "triCount": 7428
+        },
+        {
+          "file": "chunk_5_3_lod2.gltf",
+          "triCount": 1782
+        }
+      ]
+    },
+    {
+      "id": "4_6",
+      "col": 4,
+      "row": 6,
+      "aabb": {
+        "min": [
+          256,
+          -0.8818893432617188,
+          384
+        ],
+        "max": [
+          302.8879089355469,
+          -0.8818893432617188,
+          396.0315856933594
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_4_6_lod0.gltf",
+          "triCount": 3
+        },
+        {
+          "file": "chunk_4_6_lod1.gltf",
+          "triCount": 2
+        },
+        {
+          "file": "chunk_4_6_lod2.gltf",
+          "triCount": 2
+        }
+      ]
+    },
+    {
+      "id": "3_6",
+      "col": 3,
+      "row": 6,
+      "aabb": {
+        "min": [
+          198.3466033935547,
+          -0.8818893432617188,
+          384
+        ],
+        "max": [
+          256,
+          -0.8818893432617188,
+          397.102294921875
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_3_6_lod0.gltf",
+          "triCount": 5
+        },
+        {
+          "file": "chunk_3_6_lod1.gltf",
+          "triCount": 3
+        },
+        {
+          "file": "chunk_3_6_lod2.gltf",
+          "triCount": 1
+        }
+      ]
+    },
+    {
+      "id": "2_2",
+      "col": 2,
+      "row": 2,
+      "aabb": {
+        "min": [
+          128,
+          -0.8818893432617188,
+          128
+        ],
+        "max": [
+          192,
+          17.945112228393555,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_2_lod0.gltf",
+          "triCount": 24279
+        },
+        {
+          "file": "chunk_2_2_lod1.gltf",
+          "triCount": 6064
+        },
+        {
+          "file": "chunk_2_2_lod2.gltf",
+          "triCount": 1447
+        }
+      ]
+    },
+    {
+      "id": "5_2",
+      "col": 5,
+      "row": 2,
+      "aabb": {
+        "min": [
+          320,
+          -0.8818893432617188,
+          178.58462524414062
+        ],
+        "max": [
+          338.1247863769531,
+          -0.8818893432617188,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_5_2_lod0.gltf",
+          "triCount": 3
+        },
+        {
+          "file": "chunk_5_2_lod1.gltf",
+          "triCount": 2
+        },
+        {
+          "file": "chunk_5_2_lod2.gltf",
+          "triCount": 2
+        }
+      ]
+    },
+    {
+      "id": "-1_3",
+      "col": -1,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -64,
+          -0.05986986681818962,
+          192
+        ],
+        "max": [
+          0,
+          18.12495231628418,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_3_lod0.gltf",
+          "triCount": 30905
+        },
+        {
+          "file": "chunk_-1_3_lod1.gltf",
+          "triCount": 7710
+        },
+        {
+          "file": "chunk_-1_3_lod2.gltf",
+          "triCount": 1841
+        }
+      ]
+    },
+    {
+      "id": "-2_3",
+      "col": -2,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          192
+        ],
+        "max": [
+          -64,
+          27.51351547241211,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_3_lod0.gltf",
+          "triCount": 77285
+        },
+        {
+          "file": "chunk_-2_3_lod1.gltf",
+          "triCount": 18168
+        },
+        {
+          "file": "chunk_-2_3_lod2.gltf",
+          "triCount": 4632
+        }
+      ]
+    },
+    {
+      "id": "1_-1",
+      "col": 1,
+      "row": -1,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          -11.917231559753418
+        ],
+        "max": [
+          128,
+          20.861183166503906,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_-1_lod0.gltf",
+          "triCount": 16741
+        },
+        {
+          "file": "chunk_1_-1_lod1.gltf",
+          "triCount": 4183
+        },
+        {
+          "file": "chunk_1_-1_lod2.gltf",
+          "triCount": 1003
+        }
+      ]
+    },
+    {
+      "id": "1_0",
+      "col": 1,
+      "row": 0,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          128,
+          27.519454956054688,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_0_lod0.gltf",
+          "triCount": 128647
+        },
+        {
+          "file": "chunk_1_0_lod1.gltf",
+          "triCount": 29205
+        },
+        {
+          "file": "chunk_1_0_lod2.gltf",
+          "triCount": 7640
+        }
+      ]
+    },
+    {
+      "id": "0_-1",
+      "col": 0,
+      "row": -1,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          -14.840434074401855
+        ],
+        "max": [
+          64,
+          25.20524024963379,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_-1_lod0.gltf",
+          "triCount": 24735
+        },
+        {
+          "file": "chunk_0_-1_lod1.gltf",
+          "triCount": 6182
+        },
+        {
+          "file": "chunk_0_-1_lod2.gltf",
+          "triCount": 1483
+        }
+      ]
+    },
+    {
+      "id": "0_0",
+      "col": 0,
+      "row": 0,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          64,
+          84.33141326904297,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_0_lod0.gltf",
+          "triCount": 122671
+        },
+        {
+          "file": "chunk_0_0_lod1.gltf",
+          "triCount": 30554
+        },
+        {
+          "file": "chunk_0_0_lod2.gltf",
+          "triCount": 7244
+        }
+      ]
+    },
+    {
+      "id": "-4_-1",
+      "col": -4,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          -12.038477897644043
+        ],
+        "max": [
+          -192,
+          24.596920013427734,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_-1_lod0.gltf",
+          "triCount": 9727
+        },
+        {
+          "file": "chunk_-4_-1_lod1.gltf",
+          "triCount": 2431
+        },
+        {
+          "file": "chunk_-4_-1_lod2.gltf",
+          "triCount": 580
+        }
+      ]
+    },
+    {
+      "id": "-3_-1",
+      "col": -3,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          -12.489588737487793
+        ],
+        "max": [
+          -128,
+          27.513507843017578,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_-1_lod0.gltf",
+          "triCount": 8947
+        },
+        {
+          "file": "chunk_-3_-1_lod1.gltf",
+          "triCount": 1794
+        },
+        {
+          "file": "chunk_-3_-1_lod2.gltf",
+          "triCount": 535
+        }
+      ]
+    },
+    {
+      "id": "-4_0",
+      "col": -4,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          -192,
+          27.513540267944336,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_0_lod0.gltf",
+          "triCount": 75948
+        },
+        {
+          "file": "chunk_-4_0_lod1.gltf",
+          "triCount": 18967
+        },
+        {
+          "file": "chunk_-4_0_lod2.gltf",
+          "triCount": 4543
+        }
+      ]
+    },
+    {
+      "id": "-3_0",
+      "col": -3,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          -128,
+          31.236486434936523,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_0_lod0.gltf",
+          "triCount": 58851
+        },
+        {
+          "file": "chunk_-3_0_lod1.gltf",
+          "triCount": 14665
+        },
+        {
+          "file": "chunk_-3_0_lod2.gltf",
+          "triCount": 3531
+        }
+      ]
+    },
+    {
+      "id": "2_0",
+      "col": 2,
+      "row": 0,
+      "aabb": {
+        "min": [
+          128,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          136.8515167236328,
+          18.124942779541016,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_0_lod0.gltf",
+          "triCount": 5931
+        },
+        {
+          "file": "chunk_2_0_lod1.gltf",
+          "triCount": 1482
+        },
+        {
+          "file": "chunk_2_0_lod2.gltf",
+          "triCount": 353
+        }
+      ]
+    },
+    {
+      "id": "0_1",
+      "col": 0,
+      "row": 1,
+      "aabb": {
+        "min": [
+          0,
+          -0.7338272929191589,
+          64
+        ],
+        "max": [
+          64,
+          27.513511657714844,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_1_lod0.gltf",
+          "triCount": 69434
+        },
+        {
+          "file": "chunk_0_1_lod1.gltf",
+          "triCount": 15681
+        },
+        {
+          "file": "chunk_0_1_lod2.gltf",
+          "triCount": 4159
+        }
+      ]
+    },
+    {
+      "id": "1_1",
+      "col": 1,
+      "row": 1,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          128,
+          27.513574600219727,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_1_lod0.gltf",
+          "triCount": 65721
+        },
+        {
+          "file": "chunk_1_1_lod1.gltf",
+          "triCount": 14970
+        },
+        {
+          "file": "chunk_1_1_lod2.gltf",
+          "triCount": 3936
+        }
+      ]
+    },
+    {
+      "id": "-1_1",
+      "col": -1,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -64,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          0,
+          27.513525009155273,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_1_lod0.gltf",
+          "triCount": 91343
+        },
+        {
+          "file": "chunk_-1_1_lod1.gltf",
+          "triCount": 20923
+        },
+        {
+          "file": "chunk_-1_1_lod2.gltf",
+          "triCount": 5479
+        }
+      ]
+    },
+    {
+      "id": "-1_0",
+      "col": -1,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -64,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          0,
+          84.06127166748047,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_0_lod0.gltf",
+          "triCount": 83368
+        },
+        {
+          "file": "chunk_-1_0_lod1.gltf",
+          "triCount": 20548
+        },
+        {
+          "file": "chunk_-1_0_lod2.gltf",
+          "triCount": 4990
+        }
+      ]
+    },
+    {
+      "id": "-1_-1",
+      "col": -1,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -64,
+          -0.010971490293741226,
+          -4.960643291473389
+        ],
+        "max": [
+          0,
+          18.11434555053711,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_-1_lod0.gltf",
+          "triCount": 1510
+        },
+        {
+          "file": "chunk_-1_-1_lod1.gltf",
+          "triCount": 375
+        },
+        {
+          "file": "chunk_-1_-1_lod2.gltf",
+          "triCount": 146
+        }
+      ]
+    },
+    {
+      "id": "-2_0",
+      "col": -2,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          0
+        ],
+        "max": [
+          -64,
+          27.51358985900879,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_0_lod0.gltf",
+          "triCount": 77085
+        },
+        {
+          "file": "chunk_-2_0_lod1.gltf",
+          "triCount": 17551
+        },
+        {
+          "file": "chunk_-2_0_lod2.gltf",
+          "triCount": 4619
+        }
+      ]
+    },
+    {
+      "id": "-2_-1",
+      "col": -2,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          -4.960643291473389
+        ],
+        "max": [
+          -64,
+          15.124783515930176,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_-1_lod0.gltf",
+          "triCount": 103
+        },
+        {
+          "file": "chunk_-2_-1_lod1.gltf",
+          "triCount": 24
+        },
+        {
+          "file": "chunk_-2_-1_lod2.gltf",
+          "triCount": 14
+        }
+      ]
+    },
+    {
+      "id": "-2_1",
+      "col": -2,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          -64,
+          27.52431297302246,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_1_lod0.gltf",
+          "triCount": 100610
+        },
+        {
+          "file": "chunk_-2_1_lod1.gltf",
+          "triCount": 22831
+        },
+        {
+          "file": "chunk_-2_1_lod2.gltf",
+          "triCount": 6034
+        }
+      ]
+    },
+    {
+      "id": "-3_2",
+      "col": -3,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          128
+        ],
+        "max": [
+          -128,
+          27.524892807006836,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_2_lod0.gltf",
+          "triCount": 106981
+        },
+        {
+          "file": "chunk_-3_2_lod1.gltf",
+          "triCount": 26603
+        },
+        {
+          "file": "chunk_-3_2_lod2.gltf",
+          "triCount": 6418
+        }
+      ]
+    },
+    {
+      "id": "-2_2",
+      "col": -2,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          128
+        ],
+        "max": [
+          -64,
+          27.513507843017578,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_2_lod0.gltf",
+          "triCount": 112342
+        },
+        {
+          "file": "chunk_-2_2_lod1.gltf",
+          "triCount": 28080
+        },
+        {
+          "file": "chunk_-2_2_lod2.gltf",
+          "triCount": 6697
+        }
+      ]
+    },
+    {
+      "id": "-3_1",
+      "col": -3,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          -128,
+          84.33141326904297,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_1_lod0.gltf",
+          "triCount": 82797
+        },
+        {
+          "file": "chunk_-3_1_lod1.gltf",
+          "triCount": 16450
+        },
+        {
+          "file": "chunk_-3_1_lod2.gltf",
+          "triCount": 4953
+        }
+      ]
+    },
+    {
+      "id": "-5_0",
+      "col": -5,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -320,
+          -0.000014396850019693375,
+          0
+        ],
+        "max": [
+          -256,
+          41.07639694213867,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_0_lod0.gltf",
+          "triCount": 17518
+        },
+        {
+          "file": "chunk_-5_0_lod1.gltf",
+          "triCount": 4379
+        },
+        {
+          "file": "chunk_-5_0_lod2.gltf",
+          "triCount": 1046
+        }
+      ]
+    },
+    {
+      "id": "1_2",
+      "col": 1,
+      "row": 2,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          128
+        ],
+        "max": [
+          128,
+          84.33141326904297,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_2_lod0.gltf",
+          "triCount": 124698
+        },
+        {
+          "file": "chunk_1_2_lod1.gltf",
+          "triCount": 27138
+        },
+        {
+          "file": "chunk_1_2_lod2.gltf",
+          "triCount": 7480
+        }
+      ]
+    },
+    {
+      "id": "2_1",
+      "col": 2,
+      "row": 1,
+      "aabb": {
+        "min": [
+          128,
+          -0.04710756242275238,
+          64
+        ],
+        "max": [
+          136.33587646484375,
+          15.878463745117188,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_1_lod0.gltf",
+          "triCount": 2760
+        },
+        {
+          "file": "chunk_2_1_lod1.gltf",
+          "triCount": 690
+        },
+        {
+          "file": "chunk_2_1_lod2.gltf",
+          "triCount": 165
+        }
+      ]
+    },
+    {
+      "id": "0_2",
+      "col": 0,
+      "row": 2,
+      "aabb": {
+        "min": [
+          0,
+          -1.208634853363037,
+          128
+        ],
+        "max": [
+          64,
+          31.708850860595703,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_2_lod0.gltf",
+          "triCount": 77848
+        },
+        {
+          "file": "chunk_0_2_lod1.gltf",
+          "triCount": 18620
+        },
+        {
+          "file": "chunk_0_2_lod2.gltf",
+          "triCount": 4667
+        }
+      ]
+    },
+    {
+      "id": "-1_2",
+      "col": -1,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -64,
+          -1.208634853363037,
+          128
+        ],
+        "max": [
+          0,
+          87.48018646240234,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_2_lod0.gltf",
+          "triCount": 132033
+        },
+        {
+          "file": "chunk_-1_2_lod1.gltf",
+          "triCount": 30693
+        },
+        {
+          "file": "chunk_-1_2_lod2.gltf",
+          "triCount": 7916
+        }
+      ]
+    },
+    {
+      "id": "-4_1",
+      "col": -4,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          -192,
+          27.513534545898438,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_1_lod0.gltf",
+          "triCount": 88694
+        },
+        {
+          "file": "chunk_-4_1_lod1.gltf",
+          "triCount": 22100
+        },
+        {
+          "file": "chunk_-4_1_lod2.gltf",
+          "triCount": 5321
+        }
+      ]
+    },
+    {
+      "id": "-4_2",
+      "col": -4,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          128
+        ],
+        "max": [
+          -192,
+          84.33141326904297,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_2_lod0.gltf",
+          "triCount": 97628
+        },
+        {
+          "file": "chunk_-4_2_lod1.gltf",
+          "triCount": 19466
+        },
+        {
+          "file": "chunk_-4_2_lod2.gltf",
+          "triCount": 5781
+        }
+      ]
+    },
+    {
+      "id": "-5_1",
+      "col": -5,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -320,
+          -0.5633959770202637,
+          64
+        ],
+        "max": [
+          -256,
+          41.07639694213867,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_1_lod0.gltf",
+          "triCount": 16922
+        },
+        {
+          "file": "chunk_-5_1_lod1.gltf",
+          "triCount": 4230
+        },
+        {
+          "file": "chunk_-5_1_lod2.gltf",
+          "triCount": 1012
+        }
+      ]
+    },
+    {
+      "id": "-4_3",
+      "col": -4,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -256,
+          -0.7733962535858154,
+          192
+        ],
+        "max": [
+          -192,
+          77.2634048461914,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_3_lod0.gltf",
+          "triCount": 115775
+        },
+        {
+          "file": "chunk_-4_3_lod1.gltf",
+          "triCount": 28932
+        },
+        {
+          "file": "chunk_-4_3_lod2.gltf",
+          "triCount": 6945
+        }
+      ]
+    },
+    {
+      "id": "-3_3",
+      "col": -3,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          192
+        ],
+        "max": [
+          -128,
+          24.60643768310547,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_3_lod0.gltf",
+          "triCount": 56792
+        },
+        {
+          "file": "chunk_-3_3_lod1.gltf",
+          "triCount": 14180
+        },
+        {
+          "file": "chunk_-3_3_lod2.gltf",
+          "triCount": 3406
+        }
+      ]
+    },
+    {
+      "id": "-5_3",
+      "col": -5,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -320,
+          -0.7733962535858154,
+          192
+        ],
+        "max": [
+          -256,
+          70.38114166259766,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_3_lod0.gltf",
+          "triCount": 124820
+        },
+        {
+          "file": "chunk_-5_3_lod1.gltf",
+          "triCount": 31202
+        },
+        {
+          "file": "chunk_-5_3_lod2.gltf",
+          "triCount": 7158
+        }
+      ]
+    },
+    {
+      "id": "-5_2",
+      "col": -5,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -320,
+          -0.7733962535858154,
+          128
+        ],
+        "max": [
+          -256,
+          78.97552490234375,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_2_lod0.gltf",
+          "triCount": 20147
+        },
+        {
+          "file": "chunk_-5_2_lod1.gltf",
+          "triCount": 4589
+        },
+        {
+          "file": "chunk_-5_2_lod2.gltf",
+          "triCount": 1207
+        }
+      ]
+    },
+    {
+      "id": "-4_4",
+      "col": -4,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -256,
+          -0.7733962535858154,
+          256
+        ],
+        "max": [
+          -192,
+          86.45922088623047,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_4_lod0.gltf",
+          "triCount": 149298
+        },
+        {
+          "file": "chunk_-4_4_lod1.gltf",
+          "triCount": 34317
+        },
+        {
+          "file": "chunk_-4_4_lod2.gltf",
+          "triCount": 8875
+        }
+      ]
+    },
+    {
+      "id": "0_4",
+      "col": 0,
+      "row": 4,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          256
+        ],
+        "max": [
+          64,
+          87.48018646240234,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_4_lod0.gltf",
+          "triCount": 148183
+        },
+        {
+          "file": "chunk_0_4_lod1.gltf",
+          "triCount": 37037
+        },
+        {
+          "file": "chunk_0_4_lod2.gltf",
+          "triCount": 8876
+        }
+      ]
+    },
+    {
+      "id": "0_5",
+      "col": 0,
+      "row": 5,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          320
+        ],
+        "max": [
+          64,
+          87.48018646240234,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_5_lod0.gltf",
+          "triCount": 65811
+        },
+        {
+          "file": "chunk_0_5_lod1.gltf",
+          "triCount": 15700
+        },
+        {
+          "file": "chunk_0_5_lod2.gltf",
+          "triCount": 3932
+        }
+      ]
+    },
+    {
+      "id": "-2_5",
+      "col": -2,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          320
+        ],
+        "max": [
+          -64,
+          87.48018646240234,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_5_lod0.gltf",
+          "triCount": 107793
+        },
+        {
+          "file": "chunk_-2_5_lod1.gltf",
+          "triCount": 25258
+        },
+        {
+          "file": "chunk_-2_5_lod2.gltf",
+          "triCount": 6445
+        }
+      ]
+    },
+    {
+      "id": "-5_5",
+      "col": -5,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -320,
+          -0.7733962535858154,
+          320
+        ],
+        "max": [
+          -256,
+          79.39814758300781,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_5_lod0.gltf",
+          "triCount": 65937
+        },
+        {
+          "file": "chunk_-5_5_lod1.gltf",
+          "triCount": 16480
+        },
+        {
+          "file": "chunk_-5_5_lod2.gltf",
+          "triCount": 3945
+        }
+      ]
+    },
+    {
+      "id": "-4_5",
+      "col": -4,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          320
+        ],
+        "max": [
+          -192,
+          48.16947937011719,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_5_lod0.gltf",
+          "triCount": 112392
+        },
+        {
+          "file": "chunk_-4_5_lod1.gltf",
+          "triCount": 25953
+        },
+        {
+          "file": "chunk_-4_5_lod2.gltf",
+          "triCount": 6734
+        }
+      ]
+    },
+    {
+      "id": "-4_6",
+      "col": -4,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -256,
+          -0.5633959770202637,
+          384
+        ],
+        "max": [
+          -192,
+          27.513551712036133,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-4_6_lod0.gltf",
+          "triCount": 20471
+        },
+        {
+          "file": "chunk_-4_6_lod1.gltf",
+          "triCount": 4880
+        },
+        {
+          "file": "chunk_-4_6_lod2.gltf",
+          "triCount": 1227
+        }
+      ]
+    },
+    {
+      "id": "1_3",
+      "col": 1,
+      "row": 3,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          192
+        ],
+        "max": [
+          128,
+          27.513477325439453,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_3_lod0.gltf",
+          "triCount": 53246
+        },
+        {
+          "file": "chunk_1_3_lod1.gltf",
+          "triCount": 12438
+        },
+        {
+          "file": "chunk_1_3_lod2.gltf",
+          "triCount": 3186
+        }
+      ]
+    },
+    {
+      "id": "0_6",
+      "col": 0,
+      "row": 6,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          384
+        ],
+        "max": [
+          64,
+          20.86111068725586,
+          400.34088134765625
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_6_lod0.gltf",
+          "triCount": 26571
+        },
+        {
+          "file": "chunk_0_6_lod1.gltf",
+          "triCount": 6033
+        },
+        {
+          "file": "chunk_0_6_lod2.gltf",
+          "triCount": 1593
+        }
+      ]
+    },
+    {
+      "id": "0_3",
+      "col": 0,
+      "row": 3,
+      "aabb": {
+        "min": [
+          0,
+          -0.5633959770202637,
+          192
+        ],
+        "max": [
+          64,
+          27.513463973999023,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_0_3_lod0.gltf",
+          "triCount": 80331
+        },
+        {
+          "file": "chunk_0_3_lod1.gltf",
+          "triCount": 20003
+        },
+        {
+          "file": "chunk_0_3_lod2.gltf",
+          "triCount": 4798
+        }
+      ]
+    },
+    {
+      "id": "-5_4",
+      "col": -5,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -320,
+          -0.7733962535858154,
+          256
+        ],
+        "max": [
+          -256,
+          79.39816284179688,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_4_lod0.gltf",
+          "triCount": 53558
+        },
+        {
+          "file": "chunk_-5_4_lod1.gltf",
+          "triCount": 13381
+        },
+        {
+          "file": "chunk_-5_4_lod2.gltf",
+          "triCount": 3212
+        }
+      ]
+    },
+    {
+      "id": "-3_5",
+      "col": -3,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -192,
+          -0.08434591442346573,
+          320
+        ],
+        "max": [
+          -128,
+          27.513500213623047,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_5_lod0.gltf",
+          "triCount": 80756
+        },
+        {
+          "file": "chunk_-3_5_lod1.gltf",
+          "triCount": 20178
+        },
+        {
+          "file": "chunk_-3_5_lod2.gltf",
+          "triCount": 4808
+        }
+      ]
+    },
+    {
+      "id": "1_4",
+      "col": 1,
+      "row": 4,
+      "aabb": {
+        "min": [
+          64,
+          -1.208634853363037,
+          256
+        ],
+        "max": [
+          128,
+          46.70684814453125,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_4_lod0.gltf",
+          "triCount": 84614
+        },
+        {
+          "file": "chunk_1_4_lod1.gltf",
+          "triCount": 21125
+        },
+        {
+          "file": "chunk_1_4_lod2.gltf",
+          "triCount": 4988
+        }
+      ]
+    },
+    {
+      "id": "-3_6",
+      "col": -3,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -192,
+          -0.05986338108778,
+          384
+        ],
+        "max": [
+          -128,
+          27.5135440826416,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_6_lod0.gltf",
+          "triCount": 18040
+        },
+        {
+          "file": "chunk_-3_6_lod1.gltf",
+          "triCount": 4133
+        },
+        {
+          "file": "chunk_-3_6_lod2.gltf",
+          "triCount": 1081
+        }
+      ]
+    },
+    {
+      "id": "-2_6",
+      "col": -2,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          384
+        ],
+        "max": [
+          -64,
+          86.95365142822266,
+          396.384765625
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_6_lod0.gltf",
+          "triCount": 20179
+        },
+        {
+          "file": "chunk_-2_6_lod1.gltf",
+          "triCount": 4976
+        },
+        {
+          "file": "chunk_-2_6_lod2.gltf",
+          "triCount": 1209
+        }
+      ]
+    },
+    {
+      "id": "-1_4",
+      "col": -1,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -64,
+          -0.5633959770202637,
+          256
+        ],
+        "max": [
+          0,
+          84.33141326904297,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_4_lod0.gltf",
+          "triCount": 53037
+        },
+        {
+          "file": "chunk_-1_4_lod1.gltf",
+          "triCount": 12011
+        },
+        {
+          "file": "chunk_-1_4_lod2.gltf",
+          "triCount": 3166
+        }
+      ]
+    },
+    {
+      "id": "-3_4",
+      "col": -3,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -192,
+          -0.5633959770202637,
+          256
+        ],
+        "max": [
+          -128,
+          87.48018646240234,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-3_4_lod0.gltf",
+          "triCount": 72322
+        },
+        {
+          "file": "chunk_-3_4_lod1.gltf",
+          "triCount": 15075
+        },
+        {
+          "file": "chunk_-3_4_lod2.gltf",
+          "triCount": 4335
+        }
+      ]
+    },
+    {
+      "id": "-2_4",
+      "col": -2,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -128,
+          -0.5633959770202637,
+          256
+        ],
+        "max": [
+          -64,
+          84.33141326904297,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-2_4_lod0.gltf",
+          "triCount": 94659
+        },
+        {
+          "file": "chunk_-2_4_lod1.gltf",
+          "triCount": 22790
+        },
+        {
+          "file": "chunk_-2_4_lod2.gltf",
+          "triCount": 5655
+        }
+      ]
+    },
+    {
+      "id": "-1_5",
+      "col": -1,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -64,
+          -0.05993711203336716,
+          320
+        ],
+        "max": [
+          0,
+          27.513704299926758,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_5_lod0.gltf",
+          "triCount": 78270
+        },
+        {
+          "file": "chunk_-1_5_lod1.gltf",
+          "triCount": 19543
+        },
+        {
+          "file": "chunk_-1_5_lod2.gltf",
+          "triCount": 4695
+        }
+      ]
+    },
+    {
+      "id": "-1_6",
+      "col": -1,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -64,
+          -0.5633959770202637,
+          384
+        ],
+        "max": [
+          0,
+          24.596925735473633,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-1_6_lod0.gltf",
+          "triCount": 8028
+        },
+        {
+          "file": "chunk_-1_6_lod1.gltf",
+          "triCount": 2005
+        },
+        {
+          "file": "chunk_-1_6_lod2.gltf",
+          "triCount": 455
+        }
+      ]
+    },
+    {
+      "id": "1_5",
+      "col": 1,
+      "row": 5,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          320
+        ],
+        "max": [
+          128,
+          45.99093246459961,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_5_lod0.gltf",
+          "triCount": 61877
+        },
+        {
+          "file": "chunk_1_5_lod1.gltf",
+          "triCount": 15241
+        },
+        {
+          "file": "chunk_1_5_lod2.gltf",
+          "triCount": 3698
+        }
+      ]
+    },
+    {
+      "id": "1_6",
+      "col": 1,
+      "row": 6,
+      "aabb": {
+        "min": [
+          64,
+          -0.5633959770202637,
+          384
+        ],
+        "max": [
+          128,
+          11.63797378540039,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_1_6_lod0.gltf",
+          "triCount": 3028
+        },
+        {
+          "file": "chunk_1_6_lod1.gltf",
+          "triCount": 747
+        },
+        {
+          "file": "chunk_1_6_lod2.gltf",
+          "triCount": 180
+        }
+      ]
+    },
+    {
+      "id": "2_6",
+      "col": 2,
+      "row": 6,
+      "aabb": {
+        "min": [
+          128,
+          -1.208634853363037,
+          384
+        ],
+        "max": [
+          136.33587646484375,
+          6.78795051574707,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_6_lod0.gltf",
+          "triCount": 658
+        },
+        {
+          "file": "chunk_2_6_lod1.gltf",
+          "triCount": 164
+        },
+        {
+          "file": "chunk_2_6_lod2.gltf",
+          "triCount": 38
+        }
+      ]
+    },
+    {
+      "id": "-5_6",
+      "col": -5,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -272.0037536621094,
+          0,
+          384
+        ],
+        "max": [
+          -256,
+          41.359432220458984,
+          395.03936767578125
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_6_lod0.gltf",
+          "triCount": 20
+        },
+        {
+          "file": "chunk_-5_6_lod1.gltf",
+          "triCount": 6
+        },
+        {
+          "file": "chunk_-5_6_lod2.gltf",
+          "triCount": 2
+        }
+      ]
+    },
+    {
+      "id": "-5_-1",
+      "col": -5,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -320,
+          -3.63797872577655e-14,
+          -64
+        ],
+        "max": [
+          -256,
+          41.07639694213867,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_-1_lod0.gltf",
+          "triCount": 15605
+        },
+        {
+          "file": "chunk_-5_-1_lod1.gltf",
+          "triCount": 3900
+        },
+        {
+          "file": "chunk_-5_-1_lod2.gltf",
+          "triCount": 935
+        }
+      ]
+    },
+    {
+      "id": "2_-1",
+      "col": 2,
+      "row": -1,
+      "aabb": {
+        "min": [
+          128,
+          -4.026073297989062e-14,
+          -4.960643291473389
+        ],
+        "max": [
+          136.3358917236328,
+          7.2759574515531e-14,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_2_-1_lod0.gltf",
+          "triCount": 6
+        },
+        {
+          "file": "chunk_2_-1_lod1.gltf",
+          "triCount": 4
+        },
+        {
+          "file": "chunk_2_-1_lod2.gltf",
+          "triCount": 2
+        }
+      ]
+    },
+    {
+      "id": "-6_-2",
+      "col": -6,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -384,
+          0,
+          -128
+        ],
+        "max": [
+          -320,
+          41.07639694213867,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_-2_lod0.gltf",
+          "triCount": 16636
+        },
+        {
+          "file": "chunk_-6_-2_lod1.gltf",
+          "triCount": 4156
+        },
+        {
+          "file": "chunk_-6_-2_lod2.gltf",
+          "triCount": 996
+        }
+      ]
+    },
+    {
+      "id": "-6_2",
+      "col": -6,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -384,
+          -0.7733962535858154,
+          128
+        ],
+        "max": [
+          -320,
+          75.41755676269531,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_2_lod0.gltf",
+          "triCount": 100353
+        },
+        {
+          "file": "chunk_-6_2_lod1.gltf",
+          "triCount": 25086
+        },
+        {
+          "file": "chunk_-6_2_lod2.gltf",
+          "triCount": 6019
+        }
+      ]
+    },
+    {
+      "id": "-6_1",
+      "col": -6,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -384,
+          0,
+          64
+        ],
+        "max": [
+          -320,
+          41.07639694213867,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_1_lod0.gltf",
+          "triCount": 16542
+        },
+        {
+          "file": "chunk_-6_1_lod1.gltf",
+          "triCount": 4135
+        },
+        {
+          "file": "chunk_-6_1_lod2.gltf",
+          "triCount": 992
+        }
+      ]
+    },
+    {
+      "id": "-7_2",
+      "col": -7,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -448,
+          -1.1749601364135742,
+          128
+        ],
+        "max": [
+          -384,
+          79.39816284179688,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_2_lod0.gltf",
+          "triCount": 75627
+        },
+        {
+          "file": "chunk_-7_2_lod1.gltf",
+          "triCount": 18905
+        },
+        {
+          "file": "chunk_-7_2_lod2.gltf",
+          "triCount": 4532
+        }
+      ]
+    },
+    {
+      "id": "-10_2",
+      "col": -10,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          128
+        ],
+        "max": [
+          -576,
+          15.02090072631836,
+          163.88571166992188
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_2_lod0.gltf",
+          "triCount": 186
+        },
+        {
+          "file": "chunk_-10_2_lod1.gltf",
+          "triCount": 45
+        },
+        {
+          "file": "chunk_-10_2_lod2.gltf",
+          "triCount": 32
+        }
+      ]
+    },
+    {
+      "id": "-9_-2",
+      "col": -9,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -576,
+          -0.0053642988204956055,
+          -128
+        ],
+        "max": [
+          -512,
+          31.85866355895996,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_-2_lod0.gltf",
+          "triCount": 9797
+        },
+        {
+          "file": "chunk_-9_-2_lod1.gltf",
+          "triCount": 2449
+        },
+        {
+          "file": "chunk_-9_-2_lod2.gltf",
+          "triCount": 586
+        }
+      ]
+    },
+    {
+      "id": "-10_-2",
+      "col": -10,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          -128
+        ],
+        "max": [
+          -576,
+          14.401606559753418,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_-2_lod0.gltf",
+          "triCount": 130
+        },
+        {
+          "file": "chunk_-10_-2_lod1.gltf",
+          "triCount": 32
+        },
+        {
+          "file": "chunk_-10_-2_lod2.gltf",
+          "triCount": 14
+        }
+      ]
+    },
+    {
+      "id": "-6_0",
+      "col": -6,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -384,
+          0,
+          0
+        ],
+        "max": [
+          -320,
+          41.07639694213867,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_0_lod0.gltf",
+          "triCount": 9703
+        },
+        {
+          "file": "chunk_-6_0_lod1.gltf",
+          "triCount": 2424
+        },
+        {
+          "file": "chunk_-6_0_lod2.gltf",
+          "triCount": 582
+        }
+      ]
+    },
+    {
+      "id": "-7_-2",
+      "col": -7,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -448,
+          -1.1749601364135742,
+          -128
+        ],
+        "max": [
+          -384,
+          100.50274658203125,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_-2_lod0.gltf",
+          "triCount": 75918
+        },
+        {
+          "file": "chunk_-7_-2_lod1.gltf",
+          "triCount": 18977
+        },
+        {
+          "file": "chunk_-7_-2_lod2.gltf",
+          "triCount": 4552
+        }
+      ]
+    },
+    {
+      "id": "-6_-1",
+      "col": -6,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -384,
+          0,
+          -64
+        ],
+        "max": [
+          -320,
+          41.07639694213867,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_-1_lod0.gltf",
+          "triCount": 15889
+        },
+        {
+          "file": "chunk_-6_-1_lod1.gltf",
+          "triCount": 3970
+        },
+        {
+          "file": "chunk_-6_-1_lod2.gltf",
+          "triCount": 952
+        }
+      ]
+    },
+    {
+      "id": "-7_0",
+      "col": -7,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -448,
+          -1.1749601364135742,
+          0
+        ],
+        "max": [
+          -384,
+          41.07639694213867,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_0_lod0.gltf",
+          "triCount": 14069
+        },
+        {
+          "file": "chunk_-7_0_lod1.gltf",
+          "triCount": 3515
+        },
+        {
+          "file": "chunk_-7_0_lod2.gltf",
+          "triCount": 842
+        }
+      ]
+    },
+    {
+      "id": "-5_-2",
+      "col": -5,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -320,
+          0,
+          -128
+        ],
+        "max": [
+          -300.1959228515625,
+          41.07639694213867,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_-2_lod0.gltf",
+          "triCount": 16356
+        },
+        {
+          "file": "chunk_-5_-2_lod1.gltf",
+          "triCount": 4089
+        },
+        {
+          "file": "chunk_-5_-2_lod2.gltf",
+          "triCount": 980
+        }
+      ]
+    },
+    {
+      "id": "-7_1",
+      "col": -7,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -448,
+          -1.1749601364135742,
+          64
+        ],
+        "max": [
+          -384,
+          41.07639694213867,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_1_lod0.gltf",
+          "triCount": 20468
+        },
+        {
+          "file": "chunk_-7_1_lod1.gltf",
+          "triCount": 5114
+        },
+        {
+          "file": "chunk_-7_1_lod2.gltf",
+          "triCount": 1228
+        }
+      ]
+    },
+    {
+      "id": "-7_-1",
+      "col": -7,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -448,
+          -1.1749601364135742,
+          -64
+        ],
+        "max": [
+          -384,
+          41.07639694213867,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_-1_lod0.gltf",
+          "triCount": 20073
+        },
+        {
+          "file": "chunk_-7_-1_lod1.gltf",
+          "triCount": 5017
+        },
+        {
+          "file": "chunk_-7_-1_lod2.gltf",
+          "triCount": 1204
+        }
+      ]
+    },
+    {
+      "id": "-8_-2",
+      "col": -8,
+      "row": -2,
+      "aabb": {
+        "min": [
+          -512,
+          -1.1749601364135742,
+          -128
+        ],
+        "max": [
+          -448,
+          100.50274658203125,
+          -64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_-2_lod0.gltf",
+          "triCount": 94118
+        },
+        {
+          "file": "chunk_-8_-2_lod1.gltf",
+          "triCount": 23527
+        },
+        {
+          "file": "chunk_-8_-2_lod2.gltf",
+          "triCount": 5642
+        }
+      ]
+    },
+    {
+      "id": "-8_-1",
+      "col": -8,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -512,
+          -1.1749601364135742,
+          -64
+        ],
+        "max": [
+          -448,
+          4.669748306274414,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_-1_lod0.gltf",
+          "triCount": 6106
+        },
+        {
+          "file": "chunk_-8_-1_lod1.gltf",
+          "triCount": 1526
+        },
+        {
+          "file": "chunk_-8_-1_lod2.gltf",
+          "triCount": 366
+        }
+      ]
+    },
+    {
+      "id": "-8_0",
+      "col": -8,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -512,
+          -1.1749601364135742,
+          0
+        ],
+        "max": [
+          -448,
+          4.669748306274414,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_0_lod0.gltf",
+          "triCount": 6060
+        },
+        {
+          "file": "chunk_-8_0_lod1.gltf",
+          "triCount": 1515
+        },
+        {
+          "file": "chunk_-8_0_lod2.gltf",
+          "triCount": 362
+        }
+      ]
+    },
+    {
+      "id": "-8_1",
+      "col": -8,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -512,
+          -1.1749601364135742,
+          64
+        ],
+        "max": [
+          -448,
+          4.669748306274414,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_1_lod0.gltf",
+          "triCount": 5804
+        },
+        {
+          "file": "chunk_-8_1_lod1.gltf",
+          "triCount": 1450
+        },
+        {
+          "file": "chunk_-8_1_lod2.gltf",
+          "triCount": 348
+        }
+      ]
+    },
+    {
+      "id": "-8_2",
+      "col": -8,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -512,
+          -1.1749601364135742,
+          128
+        ],
+        "max": [
+          -448,
+          70.38178253173828,
+          192
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_2_lod0.gltf",
+          "triCount": 83299
+        },
+        {
+          "file": "chunk_-8_2_lod1.gltf",
+          "triCount": 20818
+        },
+        {
+          "file": "chunk_-8_2_lod2.gltf",
+          "triCount": 4986
+        }
+      ]
+    },
+    {
+      "id": "-10_0",
+      "col": -10,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          0
+        ],
+        "max": [
+          -576,
+          20.387372970581055,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_0_lod0.gltf",
+          "triCount": 218
+        },
+        {
+          "file": "chunk_-10_0_lod1.gltf",
+          "triCount": 53
+        },
+        {
+          "file": "chunk_-10_0_lod2.gltf",
+          "triCount": 16
+        }
+      ]
+    },
+    {
+      "id": "-10_1",
+      "col": -10,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          64
+        ],
+        "max": [
+          -576,
+          21.528057098388672,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_1_lod0.gltf",
+          "triCount": 414
+        },
+        {
+          "file": "chunk_-10_1_lod1.gltf",
+          "triCount": 99
+        },
+        {
+          "file": "chunk_-10_1_lod2.gltf",
+          "triCount": 26
+        }
+      ]
+    },
+    {
+      "id": "-10_-1",
+      "col": -10,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          -64
+        ],
+        "max": [
+          -576,
+          13.463927268981934,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_-1_lod0.gltf",
+          "triCount": 102
+        },
+        {
+          "file": "chunk_-10_-1_lod1.gltf",
+          "triCount": 25
+        },
+        {
+          "file": "chunk_-10_-1_lod2.gltf",
+          "triCount": 10
+        }
+      ]
+    },
+    {
+      "id": "-9_0",
+      "col": -9,
+      "row": 0,
+      "aabb": {
+        "min": [
+          -576,
+          -0.005364023614674807,
+          0
+        ],
+        "max": [
+          -512,
+          31.85866355895996,
+          64
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_0_lod0.gltf",
+          "triCount": 10434
+        },
+        {
+          "file": "chunk_-9_0_lod1.gltf",
+          "triCount": 2607
+        },
+        {
+          "file": "chunk_-9_0_lod2.gltf",
+          "triCount": 625
+        }
+      ]
+    },
+    {
+      "id": "-9_-1",
+      "col": -9,
+      "row": -1,
+      "aabb": {
+        "min": [
+          -576,
+          -0.005363821983337402,
+          -64
+        ],
+        "max": [
+          -512,
+          31.85866355895996,
+          0
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_-1_lod0.gltf",
+          "triCount": 9929
+        },
+        {
+          "file": "chunk_-9_-1_lod1.gltf",
+          "triCount": 2482
+        },
+        {
+          "file": "chunk_-9_-1_lod2.gltf",
+          "triCount": 595
+        }
+      ]
+    },
+    {
+      "id": "-9_1",
+      "col": -9,
+      "row": 1,
+      "aabb": {
+        "min": [
+          -576,
+          -0.0053642988204956055,
+          64
+        ],
+        "max": [
+          -512,
+          31.85866355895996,
+          128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_1_lod0.gltf",
+          "triCount": 18952
+        },
+        {
+          "file": "chunk_-9_1_lod1.gltf",
+          "triCount": 4737
+        },
+        {
+          "file": "chunk_-9_1_lod2.gltf",
+          "triCount": 1135
+        }
+      ]
+    },
+    {
+      "id": "-9_2",
+      "col": -9,
+      "row": 2,
+      "aabb": {
+        "min": [
+          -576,
+          -0.5533962249755859,
+          128
+        ],
+        "max": [
+          -512,
+          24.93501853942871,
+          173.71337890625
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_2_lod0.gltf",
+          "triCount": 972
+        },
+        {
+          "file": "chunk_-9_2_lod1.gltf",
+          "triCount": 243
+        },
+        {
+          "file": "chunk_-9_2_lod2.gltf",
+          "triCount": 54
+        }
+      ]
+    },
+    {
+      "id": "-6_-3",
+      "col": -6,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -384,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -320,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_-3_lod0.gltf",
+          "triCount": 28
+        },
+        {
+          "file": "chunk_-6_-3_lod1.gltf",
+          "triCount": 8
+        },
+        {
+          "file": "chunk_-6_-3_lod2.gltf",
+          "triCount": 4
+        }
+      ]
+    },
+    {
+      "id": "-5_-3",
+      "col": -5,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -320,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -300.1959228515625,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-5_-3_lod0.gltf",
+          "triCount": 24
+        },
+        {
+          "file": "chunk_-5_-3_lod1.gltf",
+          "triCount": 16
+        },
+        {
+          "file": "chunk_-5_-3_lod2.gltf",
+          "triCount": 6
+        }
+      ]
+    },
+    {
+      "id": "-7_-3",
+      "col": -7,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -448,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -384,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_-3_lod0.gltf",
+          "triCount": 72
+        },
+        {
+          "file": "chunk_-7_-3_lod1.gltf",
+          "triCount": 26
+        },
+        {
+          "file": "chunk_-7_-3_lod2.gltf",
+          "triCount": 20
+        }
+      ]
+    },
+    {
+      "id": "-8_-3",
+      "col": -8,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -512,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -448,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_-3_lod0.gltf",
+          "triCount": 66
+        },
+        {
+          "file": "chunk_-8_-3_lod1.gltf",
+          "triCount": 27
+        },
+        {
+          "file": "chunk_-8_-3_lod2.gltf",
+          "triCount": 27
+        }
+      ]
+    },
+    {
+      "id": "-9_-3",
+      "col": -9,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -576,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -512,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_-3_lod0.gltf",
+          "triCount": 30
+        },
+        {
+          "file": "chunk_-9_-3_lod1.gltf",
+          "triCount": 13
+        },
+        {
+          "file": "chunk_-9_-3_lod2.gltf",
+          "triCount": 8
+        }
+      ]
+    },
+    {
+      "id": "-10_-3",
+      "col": -10,
+      "row": -3,
+      "aabb": {
+        "min": [
+          -621.1301879882812,
+          -0.5533962249755859,
+          -146.60794067382812
+        ],
+        "max": [
+          -576,
+          0.006603717803955078,
+          -128
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-10_-3_lod0.gltf",
+          "triCount": 65
+        },
+        {
+          "file": "chunk_-10_-3_lod1.gltf",
+          "triCount": 24
+        },
+        {
+          "file": "chunk_-10_-3_lod2.gltf",
+          "triCount": 19
+        }
+      ]
+    },
+    {
+      "id": "-6_3",
+      "col": -6,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -384,
+          -0.7733962535858154,
+          192
+        ],
+        "max": [
+          -320,
+          70.38115692138672,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_3_lod0.gltf",
+          "triCount": 128336
+        },
+        {
+          "file": "chunk_-6_3_lod1.gltf",
+          "triCount": 32082
+        },
+        {
+          "file": "chunk_-6_3_lod2.gltf",
+          "triCount": 7697
+        }
+      ]
+    },
+    {
+      "id": "-7_3",
+      "col": -7,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -448,
+          -0.7733962535858154,
+          192
+        ],
+        "max": [
+          -384,
+          79.39815521240234,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_3_lod0.gltf",
+          "triCount": 57452
+        },
+        {
+          "file": "chunk_-7_3_lod1.gltf",
+          "triCount": 14355
+        },
+        {
+          "file": "chunk_-7_3_lod2.gltf",
+          "triCount": 3447
+        }
+      ]
+    },
+    {
+      "id": "-7_4",
+      "col": -7,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -448,
+          -0.7733962535858154,
+          256
+        ],
+        "max": [
+          -384,
+          70.38114166259766,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_4_lod0.gltf",
+          "triCount": 4438
+        },
+        {
+          "file": "chunk_-7_4_lod1.gltf",
+          "triCount": 1106
+        },
+        {
+          "file": "chunk_-7_4_lod2.gltf",
+          "triCount": 265
+        }
+      ]
+    },
+    {
+      "id": "-6_4",
+      "col": -6,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -384,
+          -0.000019431114196777344,
+          256
+        ],
+        "max": [
+          -320,
+          70.38114929199219,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_4_lod0.gltf",
+          "triCount": 64904
+        },
+        {
+          "file": "chunk_-6_4_lod1.gltf",
+          "triCount": 16218
+        },
+        {
+          "file": "chunk_-6_4_lod2.gltf",
+          "triCount": 3893
+        }
+      ]
+    },
+    {
+      "id": "-8_3",
+      "col": -8,
+      "row": 3,
+      "aabb": {
+        "min": [
+          -506.2459716796875,
+          -0.7733962535858154,
+          192
+        ],
+        "max": [
+          -448,
+          79.39815521240234,
+          256
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_3_lod0.gltf",
+          "triCount": 202546
+        },
+        {
+          "file": "chunk_-8_3_lod1.gltf",
+          "triCount": 50635
+        },
+        {
+          "file": "chunk_-8_3_lod2.gltf",
+          "triCount": 12146
+        }
+      ]
+    },
+    {
+      "id": "-6_5",
+      "col": -6,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -384,
+          -0.7733962535858154,
+          320
+        ],
+        "max": [
+          -320,
+          79.39815521240234,
+          384
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_5_lod0.gltf",
+          "triCount": 10900
+        },
+        {
+          "file": "chunk_-6_5_lod1.gltf",
+          "triCount": 2723
+        },
+        {
+          "file": "chunk_-6_5_lod2.gltf",
+          "triCount": 653
+        }
+      ]
+    },
+    {
+      "id": "-8_5",
+      "col": -8,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -512,
+          -0.0000017881393432617188,
+          320
+        ],
+        "max": [
+          -448,
+          70.38114166259766,
+          379.3269958496094
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_5_lod0.gltf",
+          "triCount": 86301
+        },
+        {
+          "file": "chunk_-8_5_lod1.gltf",
+          "triCount": 21562
+        },
+        {
+          "file": "chunk_-8_5_lod2.gltf",
+          "triCount": 5177
+        }
+      ]
+    },
+    {
+      "id": "-7_5",
+      "col": -7,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -448,
+          -0.7733962535858154,
+          320
+        ],
+        "max": [
+          -384,
+          70.38114166259766,
+          381.6229248046875
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-7_5_lod0.gltf",
+          "triCount": 77204
+        },
+        {
+          "file": "chunk_-7_5_lod1.gltf",
+          "triCount": 19296
+        },
+        {
+          "file": "chunk_-7_5_lod2.gltf",
+          "triCount": 4632
+        }
+      ]
+    },
+    {
+      "id": "-8_4",
+      "col": -8,
+      "row": 4,
+      "aabb": {
+        "min": [
+          -505.8642578125,
+          -0.7733962535858154,
+          256
+        ],
+        "max": [
+          -448,
+          79.3981704711914,
+          320
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-8_4_lod0.gltf",
+          "triCount": 202694
+        },
+        {
+          "file": "chunk_-8_4_lod1.gltf",
+          "triCount": 50664
+        },
+        {
+          "file": "chunk_-8_4_lod2.gltf",
+          "triCount": 12158
+        }
+      ]
+    },
+    {
+      "id": "-9_5",
+      "col": -9,
+      "row": 5,
+      "aabb": {
+        "min": [
+          -517.8116455078125,
+          0.021224357187747955,
+          345.43048095703125
+        ],
+        "max": [
+          -512,
+          21.984590530395508,
+          369.23236083984375
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-9_5_lod0.gltf",
+          "triCount": 329
+        },
+        {
+          "file": "chunk_-9_5_lod1.gltf",
+          "triCount": 135
+        },
+        {
+          "file": "chunk_-9_5_lod2.gltf",
+          "triCount": 57
+        }
+      ]
+    },
+    {
+      "id": "-6_6",
+      "col": -6,
+      "row": 6,
+      "aabb": {
+        "min": [
+          -334.6278381347656,
+          40.2558479309082,
+          384
+        ],
+        "max": [
+          -320.9841003417969,
+          42.4916877746582,
+          386.73211669921875
+        ]
+      },
+      "lods": [
+        {
+          "file": "chunk_-6_6_lod0.gltf",
+          "triCount": 12
+        },
+        {
+          "file": "chunk_-6_6_lod1.gltf",
+          "triCount": 7
+        },
+        {
+          "file": "chunk_-6_6_lod2.gltf",
+          "triCount": 3
+        }
+      ]
+    }
+  ]
+}
