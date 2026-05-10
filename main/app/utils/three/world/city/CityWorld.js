@@ -1,8 +1,16 @@
-import * as THREE       from 'three'
-import FpsController   from '../../FpsController.js'
-import CrosshairTarget from '../../CrosshairTarget.js'
-import DialogueManager from '../../dialogue/DialogueManager.js'
-import { buildOctree } from '../../buildOctree.js'
+import * as THREE        from 'three'
+import FpsController    from '../../FpsController.js'
+import CrosshairTarget  from '../../CrosshairTarget.js'
+import DialogueManager  from '../../dialogue/DialogueManager.js'
+import { buildOctree }  from '../../buildOctree.js'
+import CityChunkManager from './CityChunkManager.js'
+import { SPAWN, EYE_HEIGHT } from './CityConfig.js'
+
+// FpsController capsule radius is 0.3, EYE_HEIGHT constant is 1.0.
+// Settled camera height = floor_y + 0.3 + 1.0.
+// To get settled eye at EYE_HEIGHT (1.45m): floor_y = 1.45 - 1.3 = 0.15.
+const FLOOR_Y      = EYE_HEIGHT - 1.3   // 0.15 m
+const SKY          = new THREE.Color(0xc8dff5)
 
 export default class CityWorld {
   constructor(experience, callbacks = {}) {
@@ -11,98 +19,92 @@ export default class CityWorld {
     this.camera     = experience.camera
     this._callbacks = callbacks
 
-    this.scene.background = new THREE.Color(0x0a0a12)
-    this.scene.fog = new THREE.Fog(0x0a0a12, 20, 60)
+    this.scene.background = SKY.clone()
+    this.scene.fog         = new THREE.FogExp2(SKY.clone(), 0.006)
 
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
 
+    // No preloaded resources — start immediately once Resources fires 'ready'.
     experience.resources.on('ready', () => this._setup())
   }
 
   _setup() {
     this._setupLights()
-    if (!this._setupModel()) return
+    this._setupMaterial()
+    this._setupFloor()
     this._setupFps()
+    this._setupChunks()  // async, fire-and-forget — chunks load progressively
   }
 
   _setupLights() {
-    this.scene.add(new THREE.AmbientLight(0xfff5e0, 0.5))
+    // Sky-tinted ambient — primary fill for white clearcoat material
+    this.scene.add(new THREE.AmbientLight(0xd0e8ff, 1.4))
 
-    const sun = new THREE.DirectionalLight(0xfff5e0, 1.8)
-    sun.position.set(3, 8, 4)
-    sun.castShadow = true
-    sun.shadow.mapSize.set(2048, 2048)
-    sun.shadow.camera.near   = 0.1
-    sun.shadow.camera.far    = 30
-    sun.shadow.camera.left   = -10
-    sun.shadow.camera.right  =  10
-    sun.shadow.camera.top    =  10
-    sun.shadow.camera.bottom = -10
+    // Main sun — oblique to cast strong clearcoat highlights
+    const sun = new THREE.DirectionalLight(0xfffce0, 2.8)
+    sun.position.set(-30, 50, 30)
+    sun.castShadow = false  // shadows over a whole city would shatter performance
     this.scene.add(sun)
 
-    const fill = new THREE.DirectionalLight(0x8090ff, 0.25)
-    fill.position.set(-5, 3, -3)
+    // Sky bounce — slightly warm fill from opposite side
+    const fill = new THREE.DirectionalLight(0xa0c8f0, 0.7)
+    fill.position.set(20, 10, -30)
     this.scene.add(fill)
+
+    // Hemisphere — blends sky colour into ground-facing surfaces
+    this.scene.add(new THREE.HemisphereLight(0xd0e8ff, 0xb0a888, 0.5))
   }
 
-  _setupModel() {
-    const gltf = this.experience.resources.items.town
-    if (!gltf) {
-      console.error('[CityWorld] GLB "town" failed to load — check CitySources path and browser console')
-      return false
-    }
+  _setupMaterial() {
+    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff })
+  }
 
-    this.model = gltf.scene
-    this.model.traverse(child => {
-      if (child.isMesh) {
-        child.castShadow    = true
-        child.receiveShadow = true
-      }
-    })
-    this.scene.add(this.model)
-
-    if (gltf.cameras?.length > 0) {
-      const gltfCam = gltf.cameras[0]
-      gltfCam.updateWorldMatrix(true, false)
-      const pos  = new THREE.Vector3()
-      const quat = new THREE.Quaternion()
-      gltfCam.matrixWorld.decompose(pos, quat, new THREE.Vector3())
-      this.camera.instance.position.copy(pos)
-      this.camera.instance.quaternion.copy(quat)
-    } else {
-      this.camera.instance.position.set(0, 1.7, 0)
-      this.camera.instance.lookAt(0, 1.7, -1)
-    }
-
-    if (this.experience.debug.active) {
-      const names = []
-      this.model.traverse(c => { if (c.isMesh) names.push(c.name) })
-      console.log('[CityWorld] meshes GLTF :', names)
-    }
-
-    return true
+  // Invisible flat ground used by FpsController's octree.
+  // Placed at FLOOR_Y so the capsule settles with camera at exactly EYE_HEIGHT.
+  _setupFloor() {
+    const geo  = new THREE.PlaneGeometry(4000, 4000)
+    const mat  = new THREE.MeshBasicMaterial({ visible: false })
+    this._floor = new THREE.Mesh(geo, mat)
+    this._floor.rotation.x  = -Math.PI / 2
+    this._floor.position.y  = FLOOR_Y
+    this._floor.updateMatrixWorld(true)
+    this.scene.add(this._floor)
+    this._floorOctree = buildOctree(this._floor)
   }
 
   _setupFps() {
-    // buildOctree is synchronous and expensive on large models — defer past first render
-    this._crosshairTarget = new CrosshairTarget(this.experience)
+    this.camera.instance.position.copy(SPAWN)
+    this.camera.instance.lookAt(SPAWN.x + 1, SPAWN.y, SPAWN.z)
+
+    this._fps      = new FpsController(this.experience, this._floorOctree)
+    this._crosshair = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
 
-    setTimeout(() => {
-      if (!this.model) return
-      this._fps = new FpsController(this.experience, buildOctree(this.model))
+    this.dialogue.on('open',     () => { this._fps.enabled = false; this._fps.controls.unlock() })
+    this.dialogue.on('complete', () => { this._fps.enabled = true;  this._fps.lock() })
 
-      this.dialogue.on('open',     () => { this._fps.enabled = false; this._fps.controls.unlock() })
-      this.dialogue.on('complete', () => { this._fps.enabled = true;  this._fps.lock() })
+    this._callbacks.onFpsReady?.(this._fps)
+  }
 
-      this._callbacks.onFpsReady?.(this._fps)
-    }, 0)
+  async _setupChunks() {
+    this._chunks = new CityChunkManager(this.scene, this._material)
+    try {
+      await this._chunks.init()
+      this._chunks.update(SPAWN.x, SPAWN.z)
+    } catch (err) {
+      console.error('[CityWorld] manifest load failed:', err)
+    }
   }
 
   update() {
     this._fps?.update(this.experience.time.delta)
-    this._crosshairTarget?.update()
+    this._crosshair?.update()
+
+    if (this._chunks) {
+      const { x, z } = this.camera.instance.position
+      this._chunks.update(x, z)
+    }
   }
 
   resize() {}
@@ -110,17 +112,11 @@ export default class CityWorld {
   dispose() {
     this.dialogue.dispose()
     this._fps?.dispose()
-    this._crosshairTarget?.dispose()
+    this._crosshair?.dispose()
     this.experience.interaction.setFpsMode(false)
-
-    if (this.model) {
-      this.model.traverse(child => {
-        child.geometry?.dispose()
-        if (child.material) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material]
-          mats.forEach(m => m.dispose?.())
-        }
-      })
-    }
+    this._chunks?.dispose()
+    this._material?.dispose()
+    this._floor?.geometry?.dispose()
+    this._floor?.material?.dispose()
   }
 }

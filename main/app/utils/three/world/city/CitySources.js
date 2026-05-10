@@ -1,7 +1,2 @@
-export default [
-  {
-    name: 'town',
-    type: 'gltf',
-    path: '/models/town/residentiel_2.1.0.glb',
-  },
-]
+// City chunks are loaded dynamically by CityChunkManager — no preloaded assets.
+export default []
