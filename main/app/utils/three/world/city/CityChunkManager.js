@@ -133,8 +133,8 @@ export default class CityChunkManager {
           if (!child.isMesh) return
           child.geometry.computeVertexNormals()
           child.material      = this._material
-          child.castShadow    = false
-          child.receiveShadow = false
+          child.castShadow    = true
+          child.receiveShadow = true
           child.frustumCulled = true
         })
 

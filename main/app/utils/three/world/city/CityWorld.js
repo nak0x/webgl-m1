@@ -30,12 +30,13 @@ export default class CityWorld {
     experience.resources.on('ready', () => this._setup())
   }
 
-  _setup() {
+  async _setup() {
     this._setupLights()
     this._setupMaterial()
     this._setupFloor()
     this._setupFps()
     this._setupEffects()
+    await this._loadSettings()
     this._setupDebug()
     this._setupChunks()  // async, fire-and-forget — chunks load progressively
   }
@@ -47,7 +48,16 @@ export default class CityWorld {
     // Sun ~5° above horizon, WSW — deep amber-orange pre-sunset rake
     this._sun = new THREE.DirectionalLight(0xff7822, 3.6)
     this._sun.position.set(-10, 0.9, 1.8)
-    this._sun.castShadow = false
+    this._sun.castShadow = true
+    this._sun.shadow.mapSize.set(2048, 2048)
+    this._sun.shadow.camera.near   = 1
+    this._sun.shadow.camera.far    = 800
+    this._sun.shadow.camera.left   = -220
+    this._sun.shadow.camera.right  = 220
+    this._sun.shadow.camera.top    = 220
+    this._sun.shadow.camera.bottom = -220
+    this._sun.shadow.bias = -0.002
+    this._sun.shadow.camera.updateProjectionMatrix()
     this.scene.add(this._sun)
 
     // Cool blue sky fill from ENE (opposite the sun)
@@ -60,7 +70,7 @@ export default class CityWorld {
   }
 
   _setupMaterial() {
-    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff })
+    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide })
   }
 
   // Invisible flat ground used by FpsController's octree.
@@ -96,6 +106,102 @@ export default class CityWorld {
     renderer.setEdge({ edgeStrength: 0.35, edgeScale: 2.2 })
   }
 
+  async _loadSettings() {
+    try {
+      const res = await fetch('/settings/rendering.json')
+      if (!res.ok) return
+      this._applySettings(await res.json())
+    } catch {
+      // no saved settings — scene defaults remain
+    }
+  }
+
+  _applySettings(s) {
+    const { renderer } = this.experience
+
+    this.scene.background.set(s.sky.color)
+    this.scene.fog.color.set(s.fog.color)
+    this.scene.fog.density = s.fog.density
+
+    this._ambient.color.set(s.ambient.color)
+    this._ambient.intensity = s.ambient.intensity
+
+    this._sun.color.set(s.sun.color)
+    this._sun.intensity = s.sun.intensity
+    this._sun.position.set(s.sun.x, s.sun.y, s.sun.z)
+    if (s.sun.shadowRes) {
+      this._sun.shadow.mapSize.set(s.sun.shadowRes, s.sun.shadowRes)
+      this._sun.shadow.map?.dispose()
+      this._sun.shadow.map = null
+    }
+
+    this._fill.color.set(s.fill.color)
+    this._fill.intensity = s.fill.intensity
+    this._fill.position.set(s.fill.x, s.fill.y, s.fill.z)
+
+    this._hemi.color.set(s.hemi.sky)
+    this._hemi.groundColor.set(s.hemi.ground)
+    this._hemi.intensity = s.hemi.intensity
+
+    renderer.ssaoPass.enabled      = s.ssao.enabled
+    renderer.ssaoPass.kernelRadius = s.ssao.radius
+    renderer.ssaoPass.minDistance  = s.ssao.minDist
+    renderer.ssaoPass.maxDistance  = s.ssao.maxDist
+    renderer.aoColorPass.uniforms['aoStrength'].value = s.ssao.aoStrength
+    renderer.aoColorPass.uniforms['aoColor'].value.set(s.ssao.aoColor)
+    renderer.aoColorPass.enabled = s.ssao.aoStrength > 0
+
+    const eu = renderer.edgePass.uniforms
+    renderer.edgePass.enabled    = s.edge.enabled
+    eu.edgeStrength.value        = s.edge.strength
+    eu.edgeScale.value           = s.edge.scale
+    eu.edgeColor.value.set(s.edge.color)
+  }
+
+  _buildSettings() {
+    const { renderer } = this.experience
+    const eu = renderer.edgePass.uniforms
+    return {
+      sky:     { color: '#' + this.scene.background.getHexString() },
+      fog:     { color: '#' + this.scene.fog.color.getHexString(), density: this.scene.fog.density },
+      ambient: { color: '#' + this._ambient.color.getHexString(), intensity: this._ambient.intensity },
+      sun: {
+        color:     '#' + this._sun.color.getHexString(),
+        intensity: this._sun.intensity,
+        x:         this._sun.position.x,
+        y:         this._sun.position.y,
+        z:         this._sun.position.z,
+        shadowRes: this._sun.shadow.mapSize.x,
+      },
+      fill: {
+        color:     '#' + this._fill.color.getHexString(),
+        intensity: this._fill.intensity,
+        x: this._fill.position.x,
+        y: this._fill.position.y,
+        z: this._fill.position.z,
+      },
+      hemi: {
+        sky:       '#' + this._hemi.color.getHexString(),
+        ground:    '#' + this._hemi.groundColor.getHexString(),
+        intensity: this._hemi.intensity,
+      },
+      ssao: {
+        enabled:    renderer.ssaoPass.enabled,
+        radius:     renderer.ssaoPass.kernelRadius,
+        minDist:    renderer.ssaoPass.minDistance,
+        maxDist:    renderer.ssaoPass.maxDistance,
+        aoStrength: renderer.aoColorPass.uniforms['aoStrength'].value,
+        aoColor:    '#' + renderer.aoColorPass.uniforms['aoColor'].value.getHexString(),
+      },
+      edge: {
+        enabled:  renderer.edgePass.enabled,
+        strength: eu.edgeStrength.value,
+        scale:    eu.edgeScale.value,
+        color:    '#' + eu.edgeColor.value.getHexString(),
+      },
+    }
+  }
+
   _setupDebug() {
     const { debug, renderer } = this.experience
     if (!debug.active) return
@@ -125,6 +231,13 @@ export default class CityWorld {
     sunF.add(this._sun.position, 'x', -30, 30, 0.1).name('pos X')
     sunF.add(this._sun.position, 'y', -2, 20, 0.05).name('elevation')
     sunF.add(this._sun.position, 'z', -30, 30, 0.1).name('pos Z')
+
+    const shadowProxy = { resolution: this._sun.shadow.mapSize.x }
+    sunF.add(shadowProxy, 'resolution', [512, 1024, 2048, 4096]).name('shadow map res').onChange(v => {
+      this._sun.shadow.mapSize.set(v, v)
+      this._sun.shadow.map?.dispose()
+      this._sun.shadow.map = null
+    })
 
     const fillF = lightsF.addFolder('Fill')
     const fillProxy = { color: '#' + this._fill.color.getHexString() }
@@ -161,9 +274,19 @@ export default class CityWorld {
     const edgeU = renderer.edgePass.uniforms
     const edgeColorProxy = { color: '#' + edgeU.edgeColor.value.getHexString() }
     edgeF.add(renderer.edgePass, 'enabled')
-    edgeF.add(edgeU.edgeStrength, 'value', 0, 1, 0.01).name('strength')
+    edgeF.add(edgeU.edgeStrength, 'value', 0, 3, 0.01).name('strength')
     edgeF.add(edgeU.edgeScale,    'value', 0.5, 6, 0.1).name('scale')
     edgeF.addColor(edgeColorProxy, 'color').name('color').onChange(v => edgeU.edgeColor.value.set(v))
+
+    root.add({
+      export: () => {
+        const json = JSON.stringify(this._buildSettings(), null, 2)
+        const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+        const a    = Object.assign(document.createElement('a'), { href: url, download: 'rendering.json' })
+        a.click()
+        URL.revokeObjectURL(url)
+      },
+    }, 'export').name('Export settings ↓')
 
     this._debugFolder = root
   }
@@ -199,6 +322,9 @@ export default class CityWorld {
     this._material?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
+    this._sun.castShadow = false
+    this._sun.shadow.map?.dispose()
+    this._sun.shadow.map = null
     this.experience.renderer.disableEffect('ssao')
     this.experience.renderer.disableEffect('aoColor')
     this.experience.renderer.disableEffect('edge')
