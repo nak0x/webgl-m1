@@ -1,0 +1,46 @@
+{
+  "sky": {
+    "color": "#67b1f2"
+  },
+  "fog": {
+    "color": "#6a9ded",
+    "density": 0.013
+  },
+  "ambient": {
+    "color": "#b0d7f7",
+    "intensity": 0.85
+  },
+  "sun": {
+    "color": "#7a90f5",
+    "intensity": 6.6,
+    "x": -10,
+    "y": 0.9,
+    "z": 1.8
+  },
+  "fill": {
+    "color": "#6080b8",
+    "intensity": 0.38,
+    "x": 8,
+    "y": 4,
+    "z": -5
+  },
+  "hemi": {
+    "sky": "#9cc4ed",
+    "ground": "#454c7e",
+    "intensity": 0.5
+  },
+  "ssao": {
+    "enabled": true,
+    "radius": 1,
+    "minDist": 0.001,
+    "maxDist": 0.01,
+    "aoStrength": 0.55,
+    "aoColor": "#6da5ff"
+  },
+  "edge": {
+    "enabled": true,
+    "strength": 0.83,
+    "scale": 0.5,
+    "color": "#51b2ff"
+  }
+}
