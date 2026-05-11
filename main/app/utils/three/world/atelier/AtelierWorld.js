@@ -69,6 +69,7 @@ export default class AtelierWorld {
     })
 
     this.scene.add(this.model)
+    this.experience.renderProfile.apply(this.scene)
 
     if (this.experience.debug.active) {
       const meshNames = []
@@ -221,9 +222,10 @@ export default class AtelierWorld {
     }
 
     if (this.model) {
+      this.experience.renderProfile.restore(this.scene)
       this.model.traverse(child => {
         child.geometry?.dispose()
-        if (child.material) {
+        if (child.material && child.material !== this.experience.renderProfile.material) {
           const mats = Array.isArray(child.material) ? child.material : [child.material]
           mats.forEach(m => m.dispose?.())
         }

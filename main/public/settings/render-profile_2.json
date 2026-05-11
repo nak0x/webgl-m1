@@ -21,7 +21,6 @@
   },
   "ssao": {
     "enabled": true,
-    "kernelSize": 64,
     "radius": 0.31,
     "minDist": 0.0001,
     "maxDist": 0.005,
@@ -39,5 +38,5 @@
     "shininess": 34,
     "specular": "#1a1a1a"
   },
-  "exposureEv": -0.25
+  "exposureEv": -0.25000000000000006
 }
