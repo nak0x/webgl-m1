@@ -7,7 +7,7 @@
         <p class="dialogue-speaker">{{ current?.speaker }}</p>
 
         <!-- Text -->
-        <p class="dialogue-text">{{ current?.text }}</p>
+        <p class="dialogue-text">{{ displayedText }}</p>
 
         <!-- Footer -->
         <div class="dialogue-footer">
@@ -20,7 +20,7 @@
             />
           </span>
           <button class="dialogue-btn" @click="next">
-            {{ isLast ? 'Terminer' : 'Suivant' }}
+            {{ isTyping ? 'Passer' : isLast ? 'Terminer' : 'Suivant' }}
             <span class="dialogue-key">[ Espace ]</span>
           </button>
         </div>
@@ -41,11 +41,41 @@ const props = defineProps({
 
 const emit = defineEmits(['next'])
 
+const displayedText = ref('')
+const isTyping = ref(false)
+let _timer = null
+
+function startTyping(text) {
+  clearInterval(_timer)
+  displayedText.value = ''
+  if (!text) return
+  isTyping.value = true
+  let i = 0
+  _timer = setInterval(() => {
+    displayedText.value = text.slice(0, ++i)
+    if (i >= text.length) {
+      clearInterval(_timer)
+      isTyping.value = false
+    }
+  }, 30)
+}
+
+function skipTyping() {
+  clearInterval(_timer)
+  displayedText.value = props.current?.text ?? ''
+  isTyping.value = false
+}
+
 function next() {
+  if (isTyping.value) { skipTyping(); return }
   emit('next')
 }
 
-// Espace / Entrée pour avancer
+watch(() => props.current, (val) => {
+  if (val?.text) startTyping(val.text)
+})
+
+// Espace / Entrée pour avancer ou skipper
 function onKey(e) {
   if (!props.active) return
   if (e.code === 'Space' || e.code === 'Enter') {
@@ -55,7 +85,7 @@ function onKey(e) {
 }
 
 onMounted(()  => window.addEventListener('keydown', onKey))
-onUnmounted(() => window.removeEventListener('keydown', onKey))
+onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(_timer) })
 </script>
 
 <style scoped>

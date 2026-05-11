@@ -48,18 +48,17 @@ export default class CrosshairTarget {
     let targetId  = null
     let hitMesh   = null
 
-    for (const hit of hits) {
-      let obj = hit.object
+    if (hits.length > 0) {
+      let obj = hits[0].object
       while (obj) {
         if (interactables.has(obj)) {
           targetObj = obj
           targetId  = interactables.get(obj)
-          hitMesh   = hit.object
+          hitMesh   = hits[0].object
           break
         }
         obj = obj.parent
       }
-      if (targetObj) break
     }
 
     if (!targetObj) {
@@ -67,6 +66,7 @@ export default class CrosshairTarget {
         this._outlinePass.selectedObjects = []
         this._lastObj = null
       }
+      this._interaction.setAimedId(null)
       if (this._el) this._el.style.display = 'none'
       return
     }
@@ -75,6 +75,7 @@ export default class CrosshairTarget {
       this._outlinePass.selectedObjects = [targetObj]
       this._lastObj = targetObj
     }
+    this._interaction.setAimedId(targetId)
 
     if (this._el) {
       this._el.style.display = 'block'
@@ -99,6 +100,7 @@ export default class CrosshairTarget {
 
   dispose() {
     this._outlinePass.selectedObjects = []
+    this._interaction.setAimedId(null)
     this._el?.remove()
   }
 }

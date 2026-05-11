@@ -4,8 +4,10 @@
 .nuxt
 .nitro
 .cache
-.claude
 dist
+
+# Claude Code — versionner le dossier, ignorer seulement le local
+.claude/settings.local.json
 
 # Node dependencies
 node_modules

@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Edit(app/**)",
+      "Edit(public/**)",
+      "Edit(PROGRESS.md)",
+      "Write(app/**)",
+      "Write(public/**)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npx nuxi:*)",
+      "Bash(node:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": [
+      "Edit(.nuxt/**)",
+      "Write(.nuxt/**)",
+      "Edit(node_modules/**)",
+      "Write(node_modules/**)",
+      "Write(package-lock.json)",
+      "Bash(rm -rf .nuxt*)",
+      "Bash(rm -rf node_modules*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
+    ]
+  },
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

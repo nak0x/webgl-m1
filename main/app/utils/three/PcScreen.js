@@ -109,13 +109,16 @@ export default class PcScreen {
 <head><meta charset="utf-8">
 <style>
   *,html,body{margin:0;padding:0;box-sizing:border-box;width:100%;height:100%;}
-  body{background:#1a003a;display:flex;align-items:center;justify-content:center;}
+  body{background:#1a003a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;}
   p{color:#cc88ff;font:bold 32px monospace;text-align:center;line-height:1.6;}
   span{font-size:16px;opacity:.6;}
+  button{padding:12px 32px;background:#cc88ff;color:#1a003a;border:none;border-radius:8px;font:bold 18px monospace;cursor:pointer;}
+  button:hover{background:#fff;}
 </style>
 </head>
 <body>
   <p>CSS3D FRONT<br><span>dalle_css3d</span></p>
+  <button onclick="window.parent.postMessage({type:'pcscreen:exit'},'*')">Quitter</button>
 </body>
 </html>`
     }
@@ -359,6 +362,11 @@ export default class PcScreen {
     el.style.pointerEvents = 'none'
     el.style.opacity = '0'
 
+    // L'iframe garde le focus DOM tant qu'on ne le retire pas explicitement,
+    // sinon les inputs clavier continuent d'aller dans l'écran après la sortie.
+    this._iframe?.blur()
+    this._exp.canvas?.focus()
+
     window.removeEventListener('keydown', this._onKey)
     window.removeEventListener('message', this._onMsg)
   }
@@ -377,7 +385,10 @@ export default class PcScreen {
       // Fade out terminé → cache complètement et restaure
       this._cssRenderer.domElement.style.display = 'none'
       this._cssIsVisible = false   // permet à _updateVisibility de reprendre la main
-      if (this._fps) this._fps.enabled = true
+      if (this._fps) {
+        this._fps.enabled = true
+        this._fps.lock()
+      }
     }
   }
 
