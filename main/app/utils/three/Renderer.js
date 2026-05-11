@@ -26,6 +26,8 @@ import { ACESFilmicToneMappingShader }  from 'three/addons/shaders/ACESFilmicTon
 import { VignetteShader }               from 'three/addons/shaders/VignetteShader.js'
 import { RGBShiftShader }               from 'three/addons/shaders/RGBShiftShader.js'
 import { FilmShader }                   from 'three/addons/shaders/FilmShader.js'
+import { TAARenderPass }                from 'three/addons/postprocessing/TAARenderPass.js'
+import { SMAAPass }                     from 'three/addons/postprocessing/SMAAPass.js'
 
 // Depth-based edge detection — Roberts cross on linearised depth buffer.
 // Responds only to geometry discontinuities (silhouettes, corners, rooftops),
@@ -81,6 +83,55 @@ const EdgeShader = {
 
       vec3 col = texture2D(tDiffuse, vUv).rgb;
       gl_FragColor = vec4(mix(col, edgeColor, edge), 1.0);
+    }
+  `,
+}
+
+// Brightness / Contrast / Saturation / Temperature / Gamma / Gain — operates on LDR after tone-mapping.
+const ColorGradingShader = {
+  name: 'ColorGradingShader',
+  uniforms: {
+    tDiffuse:    { value: null },
+    brightness:  { value: 0.0 },
+    contrast:    { value: 0.0 },
+    saturation:  { value: 1.0 },
+    temperature: { value: 0.0 },
+    gamma:       { value: 1.0 },
+    gain:        { value: 1.0 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse;
+    uniform float brightness;
+    uniform float contrast;
+    uniform float saturation;
+    uniform float temperature;
+    uniform float gamma;
+    uniform float gain;
+    varying vec2 vUv;
+
+    float lum(vec3 c){ return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+    void main() {
+      vec4 tex = texture2D(tDiffuse, vUv);
+      vec3 col = tex.rgb;
+
+      col += brightness;
+      col  = (col - 0.5) * (1.0 + contrast) + 0.5;
+
+      float grey = lum(col);
+      col = mix(vec3(grey), col, saturation);
+
+      col.r += temperature * 0.1;
+      col.b -= temperature * 0.1;
+
+      col  = pow(max(col, vec3(0.0)), vec3(1.0 / max(gamma, 0.001)));
+      col *= gain;
+
+      gl_FragColor = vec4(clamp(col, 0.0, 1.0), tex.a);
     }
   `,
 }
@@ -154,15 +205,21 @@ export default class Renderer {
 
     this.composer = new EffectComposer(this.instance)
 
-    // 1. Rendu de la scène
+    // 1a. Rendu de la scène (standard)
     this.renderPass = new RenderPass(scene, camera.instance)
     this.composer.addPass(this.renderPass)
 
+    // 1b. TAA — mutuellement exclusif avec renderPass (un seul activé à la fois)
+    this.taaPass = new TAARenderPass(scene, camera.instance, 0x000000, 0)
+    this.taaPass.sampleLevel = 2   // 4 jittered samples per frame
+    this.taaPass.enabled     = false
+    this.composer.addPass(this.taaPass)
+
     // 2. SSAO — avant tout pass colorimétrique, accède au depth buffer
-    this.ssaoPass = new SSAOPass(scene, camera.instance, sizes.width, sizes.height)
-    this.ssaoPass.kernelRadius = 8
-    this.ssaoPass.minDistance  = 0.005
-    this.ssaoPass.maxDistance  = 0.1
+    this.ssaoPass = new SSAOPass(scene, camera.instance, sizes.width, sizes.height, 64)
+    this.ssaoPass.kernelRadius = 0.5
+    this.ssaoPass.minDistance  = 0.001
+    this.ssaoPass.maxDistance  = 0.05
     this.ssaoPass.enabled      = false
     this.composer.addPass(this.ssaoPass)
 
@@ -234,31 +291,68 @@ export default class Renderer {
     this.lutPass.enabled   = false
     this.composer.addPass(this.lutPass)
 
-    // 10. Vignette WebGL
+    // 10. Color grading — brightness / contrast / saturation / temperature / gamma / gain
+    this.colorGradingPass = new ShaderPass(ColorGradingShader)
+    this.colorGradingPass.enabled = false
+    this.composer.addPass(this.colorGradingPass)
+
+    // 11. SMAA — antialiasing spatial, après tone-mapping pour opérer sur LDR
+    this.smaaPass = new SMAAPass(
+      Math.floor(sizes.width  * sizes.pixelRatio),
+      Math.floor(sizes.height * sizes.pixelRatio),
+    )
+    this.smaaPass.enabled = false
+    this.composer.addPass(this.smaaPass)
+
+    // 12. Vignette WebGL
     this.vignettePass = new ShaderPass(VignetteShader)
     this.vignettePass.uniforms['offset'].value   = 0.95
     this.vignettePass.uniforms['darkness'].value = 1.6
     this.vignettePass.enabled = false
     this.composer.addPass(this.vignettePass)
 
-    // 11. Aberration chromatique
+    // 13. Aberration chromatique
     this.rgbShiftPass = new ShaderPass(RGBShiftShader)
     this.rgbShiftPass.uniforms['amount'].value = 0.003
     this.rgbShiftPass.enabled = false
     this.composer.addPass(this.rgbShiftPass)
 
-    // 12. Film grain
+    // 14. Film grain
     this.filmPass = new ShaderPass(FilmShader)
     this.filmPass.uniforms['intensity'].value = 0.35
     this.filmPass.uniforms['grayscale'].value = false
     this.filmPass.enabled = false
     this.composer.addPass(this.filmPass)
 
-    // 13. Conversion linéaire → sRGB (toujours en dernier)
+    // 15. Conversion linéaire → sRGB (toujours en dernier)
     this.composer.addPass(new OutputPass())
   }
 
   // ── API publique effets ───────────────────────────────────────────────────
+
+  /** Switch between TAA (scene re-rendered each frame with jitter) and standard RenderPass. */
+  setTaa({ enabled, sampleLevel, accumulate } = {}) {
+    this.taaPass.enabled     = !!enabled
+    this.renderPass.enabled  = !enabled
+    if (sampleLevel !== undefined) this.taaPass.sampleLevel = sampleLevel
+    if (accumulate  !== undefined) this.taaPass.accumulate  = accumulate
+  }
+
+  /** SMAA spatial antialiasing — works independently of TAA. */
+  setSMAA({ enabled } = {}) {
+    this.smaaPass.enabled = !!enabled
+  }
+
+  setColorGrading({ brightness, contrast, saturation, temperature, gamma, gain } = {}) {
+    this.colorGradingPass.enabled = true
+    const u = this.colorGradingPass.uniforms
+    if (brightness  !== undefined) u.brightness.value  = brightness
+    if (contrast    !== undefined) u.contrast.value    = contrast
+    if (saturation  !== undefined) u.saturation.value  = saturation
+    if (temperature !== undefined) u.temperature.value = temperature
+    if (gamma       !== undefined) u.gamma.value       = gamma
+    if (gain        !== undefined) u.gain.value        = gain
+  }
 
   setBloom({ strength, radius, threshold } = {}) {
     this.bloomPass.enabled = true
@@ -275,11 +369,19 @@ export default class Renderer {
     if (maxblur  !== undefined) u['maxblur'].value  = maxblur
   }
 
-  setSsao({ radius, minDistance, maxDistance } = {}) {
+  setSsao({ radius, minDistance, maxDistance, kernelSize } = {}) {
     this.ssaoPass.enabled = true
     if (radius      !== undefined) this.ssaoPass.kernelRadius = radius
     if (minDistance !== undefined) this.ssaoPass.minDistance  = minDistance
     if (maxDistance !== undefined) this.ssaoPass.maxDistance  = maxDistance
+    if (kernelSize  !== undefined && kernelSize !== this.ssaoPass.kernelSize) {
+      this.ssaoPass.kernelSize = kernelSize
+      // Clear in-place so ssaoMaterial.uniforms['kernel'].value keeps the same array ref.
+      this.ssaoPass.kernel.length = 0
+      this.ssaoPass._generateSampleKernel(kernelSize)
+      this.ssaoPass.ssaoMaterial.defines['KERNEL_SIZE'] = kernelSize
+      this.ssaoPass.ssaoMaterial.needsUpdate = true
+    }
   }
 
   setAoColor({ color, strength } = {}) {
@@ -350,9 +452,16 @@ export default class Renderer {
       chromaticAberration: this.rgbShiftPass,
       filmGrain:           this.filmPass,
       lut:                 this.lutPass,
+      colorGrading:        this.colorGradingPass,
+      smaa:                this.smaaPass,
     }
     if (name === 'all') {
       Object.values(map).forEach(p => { if (p) p.enabled = false })
+      this.renderPass.enabled = true
+      this.taaPass.enabled    = false
+    } else if (name === 'taa') {
+      this.taaPass.enabled    = false
+      this.renderPass.enabled = true
     } else if (map[name]) {
       map[name].enabled = false
     }
@@ -363,17 +472,21 @@ export default class Renderer {
   /** Appelé par Experience._resize() */
   resize() {
     const { width, height, pixelRatio } = this.sizes
+    const pw = Math.floor(width * pixelRatio)
+    const ph = Math.floor(height * pixelRatio)
     this.instance.setSize(width, height)
     this.instance.setPixelRatio(pixelRatio)
     this.composer.setSize(width, height)
     this.outlinePass.resolution.set(width, height)
     this.edgePass.uniforms['resolution'].value.set(width, height)
-    this.depthTarget.setSize(Math.floor(width * pixelRatio), Math.floor(height * pixelRatio))
+    this.depthTarget.setSize(pw, ph)
+    this.smaaPass.setSize(pw, ph)
   }
 
   /** Appelé par Experience._update() */
   update() {
     this.renderPass.camera = this.camera.instance
+    this.taaPass.camera    = this.camera.instance
 
     if (this.edgePass.enabled) {
       const u = this.edgePass.uniforms
