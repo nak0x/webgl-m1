@@ -27,6 +27,85 @@ import { VignetteShader }               from 'three/addons/shaders/VignetteShade
 import { RGBShiftShader }               from 'three/addons/shaders/RGBShiftShader.js'
 import { FilmShader }                   from 'three/addons/shaders/FilmShader.js'
 
+// Sobel edge detection on luminosity — mixes detected edges toward edgeColor
+const EdgeShader = {
+  name: 'EdgeShader',
+  uniforms: {
+    tDiffuse:     { value: null },
+    resolution:   { value: new THREE.Vector2(1, 1) },
+    edgeStrength: { value: 0.40 },
+    edgeScale:    { value: 2.20 },
+    edgeColor:    { value: new THREE.Color(0x000000) },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse;
+    uniform vec2  resolution;
+    uniform float edgeStrength;
+    uniform float edgeScale;
+    uniform vec3  edgeColor;
+    varying vec2 vUv;
+
+    float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    void main(){
+      vec2 p = 1.0 / resolution;
+
+      vec3 s0=texture2D(tDiffuse,vUv+vec2(-p.x,-p.y)).rgb;
+      vec3 s1=texture2D(tDiffuse,vUv+vec2( 0.0,-p.y)).rgb;
+      vec3 s2=texture2D(tDiffuse,vUv+vec2( p.x,-p.y)).rgb;
+      vec3 s3=texture2D(tDiffuse,vUv+vec2(-p.x, 0.0)).rgb;
+      vec3 s4=texture2D(tDiffuse,vUv).rgb;
+      vec3 s5=texture2D(tDiffuse,vUv+vec2( p.x, 0.0)).rgb;
+      vec3 s6=texture2D(tDiffuse,vUv+vec2(-p.x, p.y)).rgb;
+      vec3 s7=texture2D(tDiffuse,vUv+vec2( 0.0, p.y)).rgb;
+      vec3 s8=texture2D(tDiffuse,vUv+vec2( p.x, p.y)).rgb;
+
+      float l0=lum(s0),l1=lum(s1),l2=lum(s2);
+      float l3=lum(s3),             l5=lum(s5);
+      float l6=lum(s6),l7=lum(s7),l8=lum(s8);
+
+      float sx = -l0 - 2.*l3 - l6 + l2 + 2.*l5 + l8;
+      float sy = -l0 - 2.*l1 - l2 + l6 + 2.*l7 + l8;
+      float edge = clamp(sqrt(sx*sx + sy*sy) * edgeScale, 0.0, 1.0);
+
+      gl_FragColor = vec4(mix(s4, edgeColor, edgeStrength * edge), 1.0);
+    }
+  `,
+}
+
+// Tints SSAO-darkened areas with a chosen color instead of plain black.
+// Works on luminance: darker pixels get more tint → AO shadows gain hue.
+const AOColorShader = {
+  name: 'AOColorShader',
+  uniforms: {
+    tDiffuse:   { value: null },
+    aoColor:    { value: new THREE.Color(0x000000) },
+    aoStrength: { value: 0.0 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse;
+    uniform vec3  aoColor;
+    uniform float aoStrength;
+    varying vec2 vUv;
+
+    float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    void main(){
+      vec4 col = texture2D(tDiffuse, vUv);
+      float darkness = 1.0 - lum(col.rgb);
+      gl_FragColor = vec4(mix(col.rgb, aoColor, darkness * aoStrength), col.a);
+    }
+  `,
+}
+
 export default class Renderer {
   constructor(experience) {
     this.experience = experience
@@ -79,7 +158,18 @@ export default class Renderer {
     this.ssaoPass.enabled      = false
     this.composer.addPass(this.ssaoPass)
 
-    // 3. DOF — accède au depth buffer
+    // 3. AO color tint — hue-shifts SSAO-darkened areas
+    this.aoColorPass = new ShaderPass(AOColorShader)
+    this.aoColorPass.enabled = false
+    this.composer.addPass(this.aoColorPass)
+
+    // 4. Sobel inner-edge shading
+    this.edgePass = new ShaderPass(EdgeShader)
+    this.edgePass.uniforms['resolution'].value.set(sizes.width, sizes.height)
+    this.edgePass.enabled = false
+    this.composer.addPass(this.edgePass)
+
+    // 4. DOF — accède au depth buffer
     this.bokehPass = new BokehPass(scene, camera.instance, {
       focus:    5.0,
       aperture: 0.025,
@@ -88,7 +178,7 @@ export default class Renderer {
     this.bokehPass.enabled = false
     this.composer.addPass(this.bokehPass)
 
-    // 4. Outline — blanc, AdditiveBlending (ne peut pas être noir)
+    // 5. Outline — blanc, AdditiveBlending (ne peut pas être noir)
     this.outlinePass = new OutlinePass(
       new THREE.Vector2(sizes.width, sizes.height),
       scene,
@@ -101,7 +191,7 @@ export default class Renderer {
     this.outlinePass.hiddenEdgeColor.set('#ffffff')
     this.composer.addPass(this.outlinePass)
 
-    // 5. Bloom
+    // 6. Bloom
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(sizes.width, sizes.height),
       1.5, 0.4, 0.85,
@@ -109,43 +199,43 @@ export default class Renderer {
     this.bloomPass.enabled = false
     this.composer.addPass(this.bloomPass)
 
-    // 6. Motion blur (accumulation)
+    // 7. Motion blur (accumulation)
     this.afterimagePass = new AfterimagePass(0.96)
     this.afterimagePass.enabled = false
     this.composer.addPass(this.afterimagePass)
 
-    // 7. ACES Filmic tone mapping + exposition EV -1.64
+    // 8. ACES Filmic tone mapping + exposition EV -1.64
     this.acesPass = new ShaderPass(ACESFilmicToneMappingShader)
     this.acesPass.uniforms['exposure'].value = Math.pow(2, -1.64)
     this.composer.addPass(this.acesPass)
 
-    // 8. LUT — opère sur valeurs déjà tone-mappées
+    // 9. LUT — opère sur valeurs déjà tone-mappées
     this.lutPass = new LUTPass()
     this.lutPass.intensity = 1.0
     this.lutPass.enabled   = false
     this.composer.addPass(this.lutPass)
 
-    // 9. Vignette WebGL
+    // 10. Vignette WebGL
     this.vignettePass = new ShaderPass(VignetteShader)
     this.vignettePass.uniforms['offset'].value   = 0.95
     this.vignettePass.uniforms['darkness'].value = 1.6
     this.vignettePass.enabled = false
     this.composer.addPass(this.vignettePass)
 
-    // 10. Aberration chromatique
+    // 11. Aberration chromatique
     this.rgbShiftPass = new ShaderPass(RGBShiftShader)
     this.rgbShiftPass.uniforms['amount'].value = 0.003
     this.rgbShiftPass.enabled = false
     this.composer.addPass(this.rgbShiftPass)
 
-    // 11. Film grain
+    // 12. Film grain
     this.filmPass = new ShaderPass(FilmShader)
     this.filmPass.uniforms['intensity'].value = 0.35
     this.filmPass.uniforms['grayscale'].value = false
     this.filmPass.enabled = false
     this.composer.addPass(this.filmPass)
 
-    // 12. Conversion linéaire → sRGB (toujours en dernier)
+    // 13. Conversion linéaire → sRGB (toujours en dernier)
     this.composer.addPass(new OutputPass())
   }
 
@@ -171,6 +261,21 @@ export default class Renderer {
     if (radius      !== undefined) this.ssaoPass.kernelRadius = radius
     if (minDistance !== undefined) this.ssaoPass.minDistance  = minDistance
     if (maxDistance !== undefined) this.ssaoPass.maxDistance  = maxDistance
+  }
+
+  setAoColor({ color, strength } = {}) {
+    this.aoColorPass.enabled = true
+    if (color    !== undefined) this.aoColorPass.uniforms['aoColor'].value.set(color)
+    if (strength !== undefined) this.aoColorPass.uniforms['aoStrength'].value = strength
+  }
+
+  setEdge({ edgeStrength, edgeScale, edgeColor } = {}) {
+    this.edgePass.enabled = true
+    const u = this.edgePass.uniforms
+    if (edgeStrength !== undefined) u['edgeStrength'].value = edgeStrength
+    if (edgeScale    !== undefined) u['edgeScale'].value    = edgeScale
+    if (edgeColor    !== undefined) u['edgeColor'].value.set(edgeColor)
+    u['resolution'].value.set(this.sizes.width, this.sizes.height)
   }
 
   setMotionBlur({ damp } = {}) {
@@ -209,13 +314,15 @@ export default class Renderer {
 
   /**
    * Désactive une ou toutes les passes d'effet.
-   * @param {'bloom'|'dof'|'ssao'|'motionBlur'|'vignette'|'chromaticAberration'|'filmGrain'|'lut'|'all'} name
+   * @param {'bloom'|'dof'|'ssao'|'aoColor'|'edge'|'motionBlur'|'vignette'|'chromaticAberration'|'filmGrain'|'lut'|'all'} name
    */
   disableEffect(name) {
     const map = {
       bloom:               this.bloomPass,
       dof:                 this.bokehPass,
       ssao:                this.ssaoPass,
+      aoColor:             this.aoColorPass,
+      edge:                this.edgePass,
       motionBlur:          this.afterimagePass,
       vignetteGl:          this.vignettePass,
       chromaticAberration: this.rgbShiftPass,
@@ -238,6 +345,7 @@ export default class Renderer {
     this.instance.setPixelRatio(pixelRatio)
     this.composer.setSize(width, height)
     this.outlinePass.resolution.set(width, height)
+    this.edgePass.uniforms['resolution'].value.set(width, height)
   }
 
   /** Appelé par Experience._update() */

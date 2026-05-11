@@ -20,6 +20,8 @@
     />
   </template>
 
+  <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
+
   <!-- Overlay de transition fade-to-black -->
   <div class="fade-overlay" :class="{ 'fade-overlay--visible': isFading }" />
 </template>
@@ -27,8 +29,8 @@
 <script setup>
 import Experience            from '~/utils/three/Experience.js'
 import SceneManager          from '~/utils/three/SceneManager.js'
-import AtelierWorld          from '~/utils/three/world/AtelierWorld.js'
-import AtelierSources        from '~/utils/three/world/AtelierSources.js'
+import AtelierWorld          from '~/utils/three/world/atelier/AtelierWorld.js'
+import AtelierSources        from '~/utils/three/world/atelier/AtelierSources.js'
 import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
 import { useQuestState }    from '~/composables/useQuestState.js'
 import { useDialogueState } from '~/composables/useDialogueState.js'
@@ -38,6 +40,9 @@ const quest     = useQuestState()
 const dialogue  = useDialogueState()
 const isFading  = ref(false)
 const isStarted = ref(false)
+
+const isLoadingScene  = ref(false)
+const loadingProgress = ref(0)
 
 const FADE_MS = 400
 
@@ -50,6 +55,7 @@ function makeCallbacks() {
     onDialogueReady: (mgr) => dialogue.bind(mgr),
     onFpsReady:      (fps) => fps.lock(),
     transitionTo,
+    onLoadProgress:  (pct) => { loadingProgress.value = pct },
   }
 }
 
@@ -57,18 +63,29 @@ async function transitionTo(name) {
   const scene = SCENES[name]
   if (!scene) return
 
+  isLoadingScene.value  = true
+  loadingProgress.value = 0
   isFading.value = true
+
   await new Promise(r => setTimeout(r, FADE_MS))
   await sceneManager.load(scene.World, scene.sources, makeCallbacks())
   await nextTick()
+
+  // Hide loading bar before fading the scene back in
+  isLoadingScene.value = false
   isFading.value = false
 }
 
 function startExperience() {
-  isStarted.value = true
+  isStarted.value       = true
+  isLoadingScene.value  = true
+  loadingProgress.value = 0
+
   experience   = new Experience(canvas.value)
   sceneManager = new SceneManager(experience)
-  sceneManager.load(AtelierWorld, AtelierSources, makeCallbacks())
+  sceneManager.load(AtelierWorld, AtelierSources, makeCallbacks()).then(() => {
+    isLoadingScene.value = false
+  })
 
   if (experience.debug.active) {
     _registerDebugSceneSwitcher()

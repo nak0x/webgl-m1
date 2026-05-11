@@ -44,6 +44,10 @@ export default class SceneManager {
       const resources = new Resources(sources)
       this.experience.resources = resources
 
+      if (callbacks.onLoadProgress) {
+        resources.on('progress', callbacks.onLoadProgress)
+      }
+
       // 5. Nouveau World — il s'abonne à resources.on('ready') en interne
       this._world = new WorldClass(this.experience, callbacks)
       this.experience.setWorld(this._world)
