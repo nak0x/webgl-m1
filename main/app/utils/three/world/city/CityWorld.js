@@ -56,11 +56,9 @@ export default class CityWorld {
     this._sun.shadow.camera.right  = 220
     this._sun.shadow.camera.top    = 220
     this._sun.shadow.camera.bottom = -220
-    this._sun.shadow.bias          = -0.002
-    this._sun.shadow.normalBias    = 0.02
+    this._sun.shadow.bias = -0.002
+    this._sun.shadow.camera.updateProjectionMatrix()
     this.scene.add(this._sun)
-    // Target must be in the scene to allow repositioning at runtime.
-    this.scene.add(this._sun.target)
 
     // Cool blue sky fill from ENE (opposite the sun)
     this._fill = new THREE.DirectionalLight(0x6080b8, 0.38)
@@ -106,8 +104,6 @@ export default class CityWorld {
     const { renderer } = this.experience
     renderer.setSsao({ radius: 24, minDistance: 0.001, maxDistance: 0.12 })
     renderer.setEdge({ edgeStrength: 0.35, edgeScale: 2.2 })
-    // Shadow map is recomputed on demand (when chunk geometry changes), not every frame.
-    renderer.instance.shadowMap.autoUpdate = false
   }
 
   async _loadSettings() {
@@ -133,6 +129,11 @@ export default class CityWorld {
     this._sun.color.set(s.sun.color)
     this._sun.intensity = s.sun.intensity
     this._sun.position.set(s.sun.x, s.sun.y, s.sun.z)
+    if (s.sun.shadowRes) {
+      this._sun.shadow.mapSize.set(s.sun.shadowRes, s.sun.shadowRes)
+      this._sun.shadow.map?.dispose()
+      this._sun.shadow.map = null
+    }
 
     this._fill.color.set(s.fill.color)
     this._fill.intensity = s.fill.intensity
@@ -167,9 +168,10 @@ export default class CityWorld {
       sun: {
         color:     '#' + this._sun.color.getHexString(),
         intensity: this._sun.intensity,
-        x: this._sun.position.x,
-        y: this._sun.position.y,
-        z: this._sun.position.z,
+        x:         this._sun.position.x,
+        y:         this._sun.position.y,
+        z:         this._sun.position.z,
+        shadowRes: this._sun.shadow.mapSize.x,
       },
       fill: {
         color:     '#' + this._fill.color.getHexString(),
@@ -230,6 +232,13 @@ export default class CityWorld {
     sunF.add(this._sun.position, 'y', -2, 20, 0.05).name('elevation')
     sunF.add(this._sun.position, 'z', -30, 30, 0.1).name('pos Z')
 
+    const shadowProxy = { resolution: this._sun.shadow.mapSize.x }
+    sunF.add(shadowProxy, 'resolution', [512, 1024, 2048, 4096]).name('shadow map res').onChange(v => {
+      this._sun.shadow.mapSize.set(v, v)
+      this._sun.shadow.map?.dispose()
+      this._sun.shadow.map = null
+    })
+
     const fillF = lightsF.addFolder('Fill')
     const fillProxy = { color: '#' + this._fill.color.getHexString() }
     fillF.addColor(fillProxy, 'color').onChange(v => this._fill.color.set(v))
@@ -265,7 +274,7 @@ export default class CityWorld {
     const edgeU = renderer.edgePass.uniforms
     const edgeColorProxy = { color: '#' + edgeU.edgeColor.value.getHexString() }
     edgeF.add(renderer.edgePass, 'enabled')
-    edgeF.add(edgeU.edgeStrength, 'value', 0, 1, 0.01).name('strength')
+    edgeF.add(edgeU.edgeStrength, 'value', 0, 3, 0.01).name('strength')
     edgeF.add(edgeU.edgeScale,    'value', 0.5, 6, 0.1).name('scale')
     edgeF.addColor(edgeColorProxy, 'color').name('color').onChange(v => edgeU.edgeColor.value.set(v))
 
@@ -299,12 +308,6 @@ export default class CityWorld {
     if (this._chunks) {
       const { x, z } = this.camera.instance.position
       this._chunks.update(x, z)
-
-      if (this._chunks.dirty) {
-        this._sun.target.position.set(x, 0, z)
-        this._sun.target.updateMatrixWorld()
-        this.experience.renderer.instance.shadowMap.needsUpdate = true
-      }
     }
   }
 
@@ -319,9 +322,9 @@ export default class CityWorld {
     this._material?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
-    this.scene.remove(this._sun.target)
     this._sun.castShadow = false
-    this.experience.renderer.instance.shadowMap.autoUpdate = true
+    this._sun.shadow.map?.dispose()
+    this._sun.shadow.map = null
     this.experience.renderer.disableEffect('ssao')
     this.experience.renderer.disableEffect('aoColor')
     this.experience.renderer.disableEffect('edge')

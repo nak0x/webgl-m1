@@ -8,14 +8,15 @@
   },
   "ambient": {
     "color": "#b0d7f7",
-    "intensity": 0.85
+    "intensity": 0
   },
   "sun": {
     "color": "#7a90f5",
-    "intensity": 6.6,
-    "x": -10,
-    "y": 0.9,
-    "z": 1.8
+    "intensity": 10,
+    "x": -6.9,
+    "y": 1.05,
+    "z": 2,
+    "shadowRes": 4096
   },
   "fill": {
     "color": "#6080b8",
@@ -39,8 +40,8 @@
   },
   "edge": {
     "enabled": true,
-    "strength": 0.83,
-    "scale": 0.5,
+    "strength": 2.1,
+    "scale": 0.8,
     "color": "#51b2ff"
   }
 }
