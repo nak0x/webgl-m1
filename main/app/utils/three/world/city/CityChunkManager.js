@@ -30,6 +30,15 @@ export default class CityChunkManager {
 
     this._currentCol = Infinity
     this._currentRow = Infinity
+
+    this._dirty = false
+  }
+
+  // True (and cleared) when scene geometry changed — shadow map needs one recompute.
+  get dirty() {
+    const d = this._dirty
+    this._dirty = false
+    return d
   }
 
   async init() {
@@ -71,6 +80,7 @@ export default class CityChunkManager {
       if (!desired.has(id)) {
         this._scene.remove(group)
         this._active.delete(id)
+        this._dirty = true
       }
     }
 
@@ -133,8 +143,8 @@ export default class CityChunkManager {
           if (!child.isMesh) return
           child.geometry.computeVertexNormals()
           child.material      = this._material
-          child.castShadow    = false
-          child.receiveShadow = false
+          child.castShadow    = true
+          child.receiveShadow = true
           child.frustumCulled = true
         })
 
@@ -161,6 +171,7 @@ export default class CityChunkManager {
     if (old) this._scene.remove(old.group)
     this._scene.add(group)
     this._active.set(chunkId, { group, lod })
+    this._dirty = true
   }
 
   // Check against current player position (load may have finished after player moved).

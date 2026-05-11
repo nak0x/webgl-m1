@@ -48,8 +48,19 @@ export default class CityWorld {
     // Sun ~5° above horizon, WSW — deep amber-orange pre-sunset rake
     this._sun = new THREE.DirectionalLight(0xff7822, 3.6)
     this._sun.position.set(-10, 0.9, 1.8)
-    this._sun.castShadow = false
+    this._sun.castShadow = true
+    this._sun.shadow.mapSize.set(2048, 2048)
+    this._sun.shadow.camera.near   = 1
+    this._sun.shadow.camera.far    = 800
+    this._sun.shadow.camera.left   = -220
+    this._sun.shadow.camera.right  = 220
+    this._sun.shadow.camera.top    = 220
+    this._sun.shadow.camera.bottom = -220
+    this._sun.shadow.bias          = -0.002
+    this._sun.shadow.normalBias    = 0.02
     this.scene.add(this._sun)
+    // Target must be in the scene to allow repositioning at runtime.
+    this.scene.add(this._sun.target)
 
     // Cool blue sky fill from ENE (opposite the sun)
     this._fill = new THREE.DirectionalLight(0x6080b8, 0.38)
@@ -61,7 +72,7 @@ export default class CityWorld {
   }
 
   _setupMaterial() {
-    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff })
+    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide })
   }
 
   // Invisible flat ground used by FpsController's octree.
@@ -95,6 +106,8 @@ export default class CityWorld {
     const { renderer } = this.experience
     renderer.setSsao({ radius: 24, minDistance: 0.001, maxDistance: 0.12 })
     renderer.setEdge({ edgeStrength: 0.35, edgeScale: 2.2 })
+    // Shadow map is recomputed on demand (when chunk geometry changes), not every frame.
+    renderer.instance.shadowMap.autoUpdate = false
   }
 
   async _loadSettings() {
@@ -286,6 +299,12 @@ export default class CityWorld {
     if (this._chunks) {
       const { x, z } = this.camera.instance.position
       this._chunks.update(x, z)
+
+      if (this._chunks.dirty) {
+        this._sun.target.position.set(x, 0, z)
+        this._sun.target.updateMatrixWorld()
+        this.experience.renderer.instance.shadowMap.needsUpdate = true
+      }
     }
   }
 
@@ -300,6 +319,9 @@ export default class CityWorld {
     this._material?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
+    this.scene.remove(this._sun.target)
+    this._sun.castShadow = false
+    this.experience.renderer.instance.shadowMap.autoUpdate = true
     this.experience.renderer.disableEffect('ssao')
     this.experience.renderer.disableEffect('aoColor')
     this.experience.renderer.disableEffect('edge')
