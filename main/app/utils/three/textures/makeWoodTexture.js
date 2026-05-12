@@ -8,7 +8,7 @@
  * — nœud de bois
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export function makeWoodTexture(size = 1024) {
   const c   = document.createElement('canvas')

@@ -6,7 +6,7 @@
  * 3. Remplis les sections marquées TODO
  * 4. Crée la page Vue correspondante depuis _TemplatePage.vue
  */
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export default class TemplateWorld {
   constructor(experience) {

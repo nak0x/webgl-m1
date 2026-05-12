@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 /**
  * RenderProfile — profil de rendu unifié partagé entre toutes les scènes.

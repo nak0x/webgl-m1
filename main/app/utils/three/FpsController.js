@@ -1,6 +1,6 @@
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
-import { Capsule } from 'three/addons/math/Capsule.js'
-import { Vector3 } from 'three'
+import { PointerLockControls } from '/lib/addons/controls/PointerLockControls.js'
+import { Capsule } from '/lib/addons/math/Capsule.js'
+import { Vector3 } from '/lib/three.js'
 
 const GRAVITY        = 30
 const WALK_SPEED     = 8

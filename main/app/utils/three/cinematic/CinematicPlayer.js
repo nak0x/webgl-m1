@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 import EventEmitter from '../EventEmitter.js'
 import { applyEasing, lerpParam } from './CinematicInterpolator.js'
 

@@ -9,7 +9,7 @@
  *   Metalness = 0.0   (non métallique)
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 import { makeWoodTexture } from '../textures/makeWoodTexture'
 
 export function createBois() {

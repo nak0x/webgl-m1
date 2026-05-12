@@ -1,4 +1,4 @@
-import * as THREE       from 'three'
+import * as THREE       from '/lib/three.js'
 import FpsController   from '../FpsController.js'
 import CrosshairTarget from '../CrosshairTarget.js'
 import DialogueManager from '../dialogue/DialogueManager.js'

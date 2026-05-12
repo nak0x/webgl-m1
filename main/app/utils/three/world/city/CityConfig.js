@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export const CHUNK_DIR  = '/models/town/chunks/'
 export const CHUNK_SIZE = 64

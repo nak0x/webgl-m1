@@ -18,7 +18,7 @@
  *   })
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export function createEau() {
   const uniforms = {

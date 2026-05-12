@@ -1,4 +1,4 @@
-import { Octree } from 'three/addons/math/Octree.js'
+import { Octree } from '/lib/addons/math/Octree.js'
 
 /**
  * Builds an Octree from a Three.js Object3D (scene, model, group…).

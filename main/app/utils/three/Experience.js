@@ -12,7 +12,7 @@
  *   // ...
  *   exp.dispose()
  */
-import * as THREE            from 'three'
+import * as THREE            from '/lib/three.js'
 import Sizes                 from './Sizes.js'
 import Time                  from './Time.js'
 import Resources             from './Resources.js'

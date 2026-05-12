@@ -1,4 +1,4 @@
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { GLTFLoader } from '/lib/addons/loaders/GLTFLoader.js'
 import { CHUNK_DIR, RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
 
 // Chunks are position-only, not Draco-compressed — no DRACOLoader needed.

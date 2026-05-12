@@ -7,7 +7,7 @@
  * — taches brumeuses diffuses
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export function makePlexiTexture(size = 512) {
   const c   = document.createElement('canvas')

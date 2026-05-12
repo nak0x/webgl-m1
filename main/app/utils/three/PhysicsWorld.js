@@ -1,5 +1,5 @@
 import RAPIER from '@dimforge/rapier3d-compat'
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 import EventEmitter from './EventEmitter.js'
 
 const CHAR_HALF_HEIGHT = 0.3

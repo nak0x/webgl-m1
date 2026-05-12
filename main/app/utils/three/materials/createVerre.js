@@ -10,7 +10,7 @@
  *   Trans   = 1.0   (totalement transparent)
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export function createVerre() {
   const material = new THREE.MeshPhysicalMaterial({
