@@ -10,8 +10,8 @@
  *   - Le contenu CSS3D apparaît du côté où la flèche pointe
  *   - Fond de l'iframe coloré pour confirmer visuellement le bon côté
  */
-import * as THREE from 'three'
-import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js'
+import * as THREE from '/lib/three.js'
+import { CSS3DRenderer, CSS3DObject } from '/lib/addons/renderers/CSS3DRenderer.js'
 
 const TRANSITION_MS = 500
 

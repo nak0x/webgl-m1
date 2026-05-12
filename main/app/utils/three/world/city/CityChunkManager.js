@@ -1,4 +1,4 @@
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { GLTFLoader } from '/lib/addons/loaders/GLTFLoader.js'
 import { CHUNK_DIR, RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
 
 // Chunks are position-only, not Draco-compressed — no DRACOLoader needed.
@@ -133,8 +133,8 @@ export default class CityChunkManager {
           if (!child.isMesh) return
           child.geometry.computeVertexNormals()
           child.material      = this._material
-          child.castShadow    = false
-          child.receiveShadow = false
+          child.castShadow    = true
+          child.receiveShadow = true
           child.frustumCulled = true
         })
 

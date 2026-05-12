@@ -3,8 +3,8 @@
  * Reçoit l'Experience pour accéder à sizes, scene et canvas.
  * Le resize et l'update sont coordonnés par Experience (pas d'écoute interne).
  */
-import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import * as THREE from '/lib/three.js'
+import { OrbitControls } from '/lib/addons/controls/OrbitControls.js'
 
 export default class Camera {
   constructor(experience) {

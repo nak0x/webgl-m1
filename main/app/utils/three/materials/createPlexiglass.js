@@ -10,7 +10,7 @@
  *   Trans   ≈ 0.92  (quasi-transparent)
  */
 
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 import { makePlexiTexture } from '../textures/makePlexiTexture'
 
 export function createPlexiglass() {

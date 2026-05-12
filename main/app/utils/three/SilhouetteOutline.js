@@ -10,7 +10,7 @@
  *  - Épaisseur constante quelle que soit la forme du mesh
  *  - Épaisseur en view-space = résultat cohérent quel que soit la distance
  */
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 const VERT = /* glsl */`
   uniform float uThickness;

@@ -1,0 +1,25 @@
+{
+  "sky": { "color": "#67b1f2" },
+  "fog": { "color": "#6a9ded", "density": 0.013 },
+  "ambient": { "color": "#b0d7f7", "intensity": 0 },
+  "sun": {
+    "color": "#7a90f5",
+    "intensity": 10,
+    "x": -6.9,
+    "y": 1.05,
+    "z": 2,
+    "shadowRes": 4096
+  },
+  "fill": {
+    "color": "#6080b8",
+    "intensity": 0.38,
+    "x": 8,
+    "y": 4,
+    "z": -5
+  },
+  "hemi": {
+    "sky": "#9cc4ed",
+    "ground": "#454c7e",
+    "intensity": 0.5
+  }
+}

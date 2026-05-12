@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { LUTCubeLoader }  from 'three/addons/loaders/LUTCubeLoader.js'
+import { LUTCubeLoader }  from '/lib/addons/loaders/LUTCubeLoader.js'
 import Experience         from '~/utils/three/Experience.js'
 import CinematicPlayer    from '~/utils/three/cinematic/CinematicPlayer.js'
 import { useCinematicEditorStore, EVENT_TYPES } from '~/stores/cinematicEditor.js'

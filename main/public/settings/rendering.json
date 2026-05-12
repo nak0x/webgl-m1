@@ -1,0 +1,43 @@
+{
+  "aa": {
+    "mode": "SMAA",
+    "taaSamples": 2,
+    "taaAccumulate": true
+  },
+  "bloom": {
+    "enabled": true,
+    "strength": 0.01,
+    "radius": 0.08,
+    "threshold": 0.96
+  },
+  "colorGrading": {
+    "enabled": true,
+    "brightness": 0,
+    "contrast": 0.13,
+    "saturation": 1.35,
+    "temperature": -0.17,
+    "gamma": 0.81,
+    "gain": 1
+  },
+  "ssao": {
+    "enabled": true,
+    "kernelSize": 64,
+    "radius": 0.31,
+    "minDist": 0.0001,
+    "maxDist": 0.005,
+    "aoStrength": 0.62,
+    "aoColor": "#54a8ff"
+  },
+  "edge": {
+    "enabled": false,
+    "strength": 1.35,
+    "scale": 2.2,
+    "color": "#000000"
+  },
+  "material": {
+    "color": "#ebf8ff",
+    "shininess": 34,
+    "specular": "#1a1a1a"
+  },
+  "exposureEv": -0.25
+}

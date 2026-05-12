@@ -12,12 +12,13 @@
  *   // ...
  *   exp.dispose()
  */
-import * as THREE            from 'three'
+import * as THREE            from '/lib/three.js'
 import Sizes                 from './Sizes.js'
 import Time                  from './Time.js'
 import Resources             from './Resources.js'
 import Camera                from './Camera.js'
 import Renderer              from './Renderer.js'
+import RenderProfile         from './RenderProfile.js'
 import InteractionManager    from './interaction/InteractionManager.js'
 import Debug                 from './Debug.js'
 
@@ -33,10 +34,11 @@ export default class Experience {
     this.resources = new Resources(sources)
 
     // Three.js
-    this.camera      = new Camera(this)
-    this.renderer    = new Renderer(this)
-    this.interaction = new InteractionManager(this)
-    this.dialogue    = null   // assigné par le World via setDialogue()
+    this.camera         = new Camera(this)
+    this.renderer       = new Renderer(this)
+    this.renderProfile  = new RenderProfile(this)
+    this.interaction    = new InteractionManager(this)
+    this.dialogue       = null   // assigné par le World via setDialogue()
 
     // Boucle & resize propagés par Experience
     this.time.on('tick',    () => this._update())
@@ -72,12 +74,13 @@ export default class Experience {
   }
 
   dispose() {
-    this.time.dispose()        // stop RAF en premier
-    this.sizes.dispose()       // remove resize listener
-    this.camera.dispose()      // dispose OrbitControls
-    this.renderer.dispose()    // dispose WebGLRenderer
-    this.interaction.dispose() // remove listeners souris/clavier
-    this.debug.dispose()       // destroy GUI si active
-    this.world?.dispose?.()    // dispose ressources du world
+    this.time.dispose()            // stop RAF en premier
+    this.sizes.dispose()           // remove resize listener
+    this.camera.dispose()          // dispose OrbitControls
+    this.renderer.dispose()        // dispose WebGLRenderer
+    this.renderProfile.dispose()   // dispose white material + debug folder
+    this.interaction.dispose()     // remove listeners souris/clavier
+    this.debug.dispose()           // destroy GUI si active
+    this.world?.dispose?.()        // dispose ressources du world
   }
 }

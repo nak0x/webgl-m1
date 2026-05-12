@@ -1,4 +1,4 @@
-import * as THREE       from 'three'
+import * as THREE       from '/lib/three.js'
 import FpsController   from '../FpsController.js'
 import CrosshairTarget from '../CrosshairTarget.js'
 import DialogueManager from '../dialogue/DialogueManager.js'
@@ -58,6 +58,7 @@ export default class AtelierScene3World {
       }
     })
     this.scene.add(this.model)
+    this.experience.renderProfile.apply(this.scene)
 
     if (gltf.cameras?.length > 0) {
       const gltfCam = gltf.cameras[0]
@@ -104,9 +105,10 @@ export default class AtelierScene3World {
     this.experience.interaction.setFpsMode(false)
 
     if (this.model) {
+      this.experience.renderProfile.restore(this.scene)
       this.model.traverse(child => {
         child.geometry?.dispose()
-        if (child.material) {
+        if (child.material && child.material !== this.experience.renderProfile.material) {
           const mats = Array.isArray(child.material) ? child.material : [child.material]
           mats.forEach(m => m.dispose?.())
         }

@@ -12,7 +12,7 @@
  *   uEdgeBoost    — [1–20]   sensibilité de la détection d'arête
  *   uFresnel      — [0–1]    dose de Fresnel résiduel (0 = aucun reflet)
  */
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 const vertexShader = /* glsl */ `
   varying vec3 vNormal;

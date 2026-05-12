@@ -1,4 +1,4 @@
-import * as THREE        from 'three'
+import * as THREE        from '/lib/three.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
@@ -30,14 +30,13 @@ export default class CityWorld {
     experience.resources.on('ready', () => this._setup())
   }
 
-  _setup() {
+  async _setup() {
     this._setupLights()
-    this._setupMaterial()
     this._setupFloor()
     this._setupFps()
-    this._setupEffects()
     this._setupDebug()
-    this._setupChunks()  // async, fire-and-forget — chunks load progressively
+    this._loadCitySky()    // async, applies atmosphere overrides after lights are ready
+    this._setupChunks()    // async, fire-and-forget — chunks load progressively
   }
 
   _setupLights() {
@@ -47,7 +46,16 @@ export default class CityWorld {
     // Sun ~5° above horizon, WSW — deep amber-orange pre-sunset rake
     this._sun = new THREE.DirectionalLight(0xff7822, 3.6)
     this._sun.position.set(-10, 0.9, 1.8)
-    this._sun.castShadow = false
+    this._sun.castShadow = true
+    this._sun.shadow.mapSize.set(2048, 2048)
+    this._sun.shadow.camera.near   = 1
+    this._sun.shadow.camera.far    = 800
+    this._sun.shadow.camera.left   = -220
+    this._sun.shadow.camera.right  = 220
+    this._sun.shadow.camera.top    = 220
+    this._sun.shadow.camera.bottom = -220
+    this._sun.shadow.bias = -0.002
+    this._sun.shadow.camera.updateProjectionMatrix()
     this.scene.add(this._sun)
 
     // Cool blue sky fill from ENE (opposite the sun)
@@ -57,10 +65,6 @@ export default class CityWorld {
 
     this._hemi = new THREE.HemisphereLight(0xf0c880, 0x806040, 0.50)
     this.scene.add(this._hemi)
-  }
-
-  _setupMaterial() {
-    this._material = new THREE.MeshPhongMaterial({ color: 0xffffff })
   }
 
   // Invisible flat ground used by FpsController's octree.
@@ -90,20 +94,14 @@ export default class CityWorld {
     this._callbacks.onFpsReady?.(this._fps)
   }
 
-  _setupEffects() {
-    const { renderer } = this.experience
-    renderer.setSsao({ radius: 24, minDistance: 0.001, maxDistance: 0.12 })
-    renderer.setEdge({ edgeStrength: 0.35, edgeScale: 2.2 })
-  }
-
   _setupDebug() {
-    const { debug, renderer } = this.experience
+    const { debug } = this.experience
     if (!debug.active) return
 
     const root = debug.gui.addFolder('City')
 
-    // ── Sky & Fog ──────────────────────────────────────────────────────────
-    const skyF = root.addFolder('Sky & Fog')
+    // ── Sky & Fog ─────────────────────────────────────────────────────────
+    const skyF    = root.addFolder('Sky & Fog')
     const skyProxy = { color: '#' + this.scene.background.getHexString() }
     const fogProxy = { color: '#' + this.scene.fog.color.getHexString() }
     skyF.addColor(skyProxy, 'color').name('sky').onChange(v => this.scene.background.set(v))
@@ -113,63 +111,130 @@ export default class CityWorld {
     // ── Lights ────────────────────────────────────────────────────────────
     const lightsF = root.addFolder('Lights')
 
-    const ambF = lightsF.addFolder('Ambient')
     const ambProxy = { color: '#' + this._ambient.color.getHexString() }
+    const ambF     = lightsF.addFolder('Ambient')
     ambF.addColor(ambProxy, 'color').onChange(v => this._ambient.color.set(v))
     ambF.add(this._ambient, 'intensity', 0, 3, 0.01)
 
-    const sunF = lightsF.addFolder('Sun')
     const sunProxy = { color: '#' + this._sun.color.getHexString() }
+    const sunF     = lightsF.addFolder('Sun')
     sunF.addColor(sunProxy, 'color').onChange(v => this._sun.color.set(v))
     sunF.add(this._sun, 'intensity', 0, 10, 0.1)
-    sunF.add(this._sun.position, 'x', -30, 30, 0.1).name('pos X')
-    sunF.add(this._sun.position, 'y', -2, 20, 0.05).name('elevation')
-    sunF.add(this._sun.position, 'z', -30, 30, 0.1).name('pos Z')
+    sunF.add(this._sun.position, 'x', -30, 30, 0.1 ).name('pos X')
+    sunF.add(this._sun.position, 'y',  -2, 20, 0.05).name('elevation')
+    sunF.add(this._sun.position, 'z', -30, 30, 0.1 ).name('pos Z')
+    const shadowProxy = { resolution: this._sun.shadow.mapSize.x }
+    sunF.add(shadowProxy, 'resolution', [512, 1024, 2048, 4096]).name('shadow map res').onChange(v => {
+      this._sun.shadow.mapSize.set(v, v)
+      this._sun.shadow.map?.dispose()
+      this._sun.shadow.map = null
+    })
 
-    const fillF = lightsF.addFolder('Fill')
     const fillProxy = { color: '#' + this._fill.color.getHexString() }
+    const fillF     = lightsF.addFolder('Fill')
     fillF.addColor(fillProxy, 'color').onChange(v => this._fill.color.set(v))
     fillF.add(this._fill, 'intensity', 0, 3, 0.01)
     fillF.add(this._fill.position, 'x', -30, 30, 0.1).name('pos X')
-    fillF.add(this._fill.position, 'y', 0, 20, 0.1).name('pos Y')
+    fillF.add(this._fill.position, 'y',   0, 20, 0.1).name('pos Y')
     fillF.add(this._fill.position, 'z', -30, 30, 0.1).name('pos Z')
 
-    const hemiF = lightsF.addFolder('Hemisphere')
     const hemiSkyProxy    = { color: '#' + this._hemi.color.getHexString() }
     const hemiGroundProxy = { color: '#' + this._hemi.groundColor.getHexString() }
+    const hemiF           = lightsF.addFolder('Hemisphere')
     hemiF.addColor(hemiSkyProxy,    'color').name('sky').onChange(v => this._hemi.color.set(v))
     hemiF.addColor(hemiGroundProxy, 'color').name('ground').onChange(v => this._hemi.groundColor.set(v))
     hemiF.add(this._hemi, 'intensity', 0, 2, 0.01)
 
-    // ── Post-processing ───────────────────────────────────────────────────
-    const fxF = root.addFolder('Post FX')
-
-    const ssaoF = fxF.addFolder('SSAO')
-    ssaoF.add(renderer.ssaoPass, 'enabled')
-    ssaoF.add(renderer.ssaoPass, 'kernelRadius', 1, 64, 1).name('radius')
-    ssaoF.add(renderer.ssaoPass, 'minDistance', 0.0001, 0.05, 0.0001).name('minDist')
-    ssaoF.add(renderer.ssaoPass, 'maxDistance', 0.01, 0.5, 0.001).name('strength')
-
-    const aoColorProxy = { color: '#' + renderer.aoColorPass.uniforms['aoColor'].value.getHexString() }
-    ssaoF.add(renderer.aoColorPass.uniforms['aoStrength'], 'value', 0, 1, 0.01).name('tint strength')
-    ssaoF.addColor(aoColorProxy, 'color').name('tint color').onChange(v => {
-      renderer.aoColorPass.uniforms['aoColor'].value.set(v)
-      renderer.aoColorPass.enabled = renderer.aoColorPass.uniforms['aoStrength'].value > 0
-    })
-
-    const edgeF = fxF.addFolder('Edge')
-    const edgeU = renderer.edgePass.uniforms
-    const edgeColorProxy = { color: '#' + edgeU.edgeColor.value.getHexString() }
-    edgeF.add(renderer.edgePass, 'enabled')
-    edgeF.add(edgeU.edgeStrength, 'value', 0, 1, 0.01).name('strength')
-    edgeF.add(edgeU.edgeScale,    'value', 0.5, 6, 0.1).name('scale')
-    edgeF.addColor(edgeColorProxy, 'color').name('color').onChange(v => edgeU.edgeColor.value.set(v))
+    root.add({ export: () => this._exportCitySky() }, 'export').name('Export sky ↓')
 
     this._debugFolder = root
   }
 
+  // ── City sky / atmosphere persistence ────────────────────────────────────
+
+  async _loadCitySky() {
+    try {
+      const res = await fetch('/settings/city_sky.json')
+      if (!res.ok) return
+      this._applyCitySky(await res.json())
+    } catch {
+      // file absent or malformed — scene defaults remain
+    }
+  }
+
+  _applyCitySky(s) {
+    if (s.sky) this.scene.background.set(s.sky.color)
+    if (s.fog) {
+      this.scene.fog.color.set(s.fog.color)
+      this.scene.fog.density = s.fog.density
+    }
+    if (s.ambient) {
+      this._ambient.color.set(s.ambient.color)
+      this._ambient.intensity = s.ambient.intensity
+    }
+    if (s.sun) {
+      this._sun.color.set(s.sun.color)
+      this._sun.intensity = s.sun.intensity
+      this._sun.position.set(s.sun.x, s.sun.y, s.sun.z)
+      if (s.sun.shadowRes) {
+        this._sun.shadow.mapSize.set(s.sun.shadowRes, s.sun.shadowRes)
+        this._sun.shadow.map?.dispose()
+        this._sun.shadow.map = null
+      }
+    }
+    if (s.fill) {
+      this._fill.color.set(s.fill.color)
+      this._fill.intensity = s.fill.intensity
+      this._fill.position.set(s.fill.x, s.fill.y, s.fill.z)
+    }
+    if (s.hemi) {
+      this._hemi.color.set(s.hemi.sky)
+      this._hemi.groundColor.set(s.hemi.ground)
+      this._hemi.intensity = s.hemi.intensity
+    }
+  }
+
+  _buildCitySkySettings() {
+    return {
+      sky:  { color: '#' + this.scene.background.getHexString() },
+      fog:  { color: '#' + this.scene.fog.color.getHexString(), density: this.scene.fog.density },
+      ambient: {
+        color:     '#' + this._ambient.color.getHexString(),
+        intensity: this._ambient.intensity,
+      },
+      sun: {
+        color:     '#' + this._sun.color.getHexString(),
+        intensity: this._sun.intensity,
+        x:         this._sun.position.x,
+        y:         this._sun.position.y,
+        z:         this._sun.position.z,
+        shadowRes: this._sun.shadow.mapSize.x,
+      },
+      fill: {
+        color:     '#' + this._fill.color.getHexString(),
+        intensity: this._fill.intensity,
+        x:         this._fill.position.x,
+        y:         this._fill.position.y,
+        z:         this._fill.position.z,
+      },
+      hemi: {
+        sky:       '#' + this._hemi.color.getHexString(),
+        ground:    '#' + this._hemi.groundColor.getHexString(),
+        intensity: this._hemi.intensity,
+      },
+    }
+  }
+
+  _exportCitySky() {
+    const json = JSON.stringify(this._buildCitySkySettings(), null, 2)
+    const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+    const a    = Object.assign(document.createElement('a'), { href: url, download: 'city_sky.json' })
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async _setupChunks() {
-    this._chunks = new CityChunkManager(this.scene, this._material)
+    this._chunks = new CityChunkManager(this.scene, this.experience.renderProfile.material)
     try {
       await this._chunks.init()
       this._chunks.update(SPAWN.x, SPAWN.z)
@@ -196,12 +261,11 @@ export default class CityWorld {
     this._crosshair?.dispose()
     this.experience.interaction.setFpsMode(false)
     this._chunks?.dispose()
-    this._material?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
-    this.experience.renderer.disableEffect('ssao')
-    this.experience.renderer.disableEffect('aoColor')
-    this.experience.renderer.disableEffect('edge')
+    this._sun.castShadow = false
+    this._sun.shadow.map?.dispose()
+    this._sun.shadow.map = null
     this._debugFolder?.destroy()
   }
 }

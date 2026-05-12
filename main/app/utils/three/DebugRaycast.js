@@ -7,7 +7,7 @@
  * Usage (depuis un World, après _setupModel) :
  *   this.experience.debug.watchScene(this.experience)
  */
-import * as THREE from 'three'
+import * as THREE from '/lib/three.js'
 
 export default class DebugRaycast {
   constructor(experience) {

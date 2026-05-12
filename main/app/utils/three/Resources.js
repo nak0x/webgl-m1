@@ -1,6 +1,6 @@
-import * as THREE from 'three'
-import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import * as THREE from '/lib/three.js'
+import { GLTFLoader }  from '/lib/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from '/lib/addons/loaders/DRACOLoader.js'
 import EventEmitter from './EventEmitter.js'
 
 export default class Resources extends EventEmitter {
