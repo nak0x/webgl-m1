@@ -1,3 +1,5 @@
+import * as THREE from '/lib/three.js'
+
 /**
  * ProximityDetector — détecte quand la caméra entre/sort du rayon d'un objet.
  *
@@ -5,6 +7,8 @@
  *   proximity:enter  { id, distance }
  *   proximity:leave  { id }
  */
+const _objWorldPos = new THREE.Vector3()
+
 export default class ProximityDetector {
   constructor(experience, emitter) {
     this._emitter = emitter
@@ -30,7 +34,8 @@ export default class ProximityDetector {
   update() {
     const camPos = this._camera.position
     for (const entry of this._entries) {
-      const dist   = camPos.distanceTo(entry.object3D.position)
+      entry.object3D.getWorldPosition(_objWorldPos)
+      const dist   = camPos.distanceTo(_objWorldPos)
       const inside = dist <= entry.radius
 
       if (inside && !entry.wasInside) {

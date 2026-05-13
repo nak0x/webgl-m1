@@ -66,6 +66,7 @@ async function transitionTo(name) {
   isLoadingScene.value  = true
   loadingProgress.value = 0
   isFading.value = true
+  experience?.sound.fadeOutAndStop(FADE_MS)
 
   await new Promise(r => setTimeout(r, FADE_MS))
   await sceneManager.load(scene.World, scene.sources, makeCallbacks())

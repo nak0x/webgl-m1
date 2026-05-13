@@ -5,6 +5,7 @@ import QuestManager     from '../../quest/QuestManager.js'
 import PcScreen         from '../../PcScreen.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
 import { buildOctree } from '../../buildOctree.js'
+import VoiceBabble   from '../../sound/VoiceBabble.js'
 import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
 
 export default class AtelierWorld {
@@ -13,6 +14,7 @@ export default class AtelierWorld {
     this.scene       = experience.scene
     this.camera      = experience.camera
     this.resources   = experience.resources
+    this.sound       = experience.sound
     this._callbacks  = callbacks
 
     this.scene.background = new THREE.Color(0x1a1a1a)
@@ -32,6 +34,7 @@ export default class AtelierWorld {
     this._setupFps()
     this._setupPcScreen()
     this._setupQuest()
+    this._exempleInteractionProximity()
   }
 
   _setupLights() {
@@ -123,6 +126,10 @@ export default class AtelierWorld {
       this._fps.lock()
     })
 
+    this._voice = new VoiceBabble(this.experience.sound, this.dialogue, {
+      Technicien: { freq: 380 },
+    })
+
     this._callbacks.onFpsReady?.(this._fps)
   }
 
@@ -198,6 +205,25 @@ export default class AtelierWorld {
     this._quest.start()
   }
 
+  _exempleInteractionProximity() {
+    const { interaction } = this.experience
+
+    interaction.on('proximity:enter', e => {
+      console.log('🟢', e)
+      if (e.id === 'npc') {
+        console.log('Launch animation of the npc')
+        this.sound.play('proximity_enter')
+      }
+    })
+    interaction.on('proximity:leave', e => {
+      console.log('🔴', e)
+      if (e.id === 'npc') {
+        console.log('Stop animation of the npc')
+      }
+    })
+    interaction.on('interact',        e => console.log('⚡', e))
+  }
+
   update() {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
@@ -209,7 +235,9 @@ export default class AtelierWorld {
   }
 
   dispose() {
+    this.sound.stopAll()
     this._quest?.dispose()
+    this._voice?.dispose()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()
