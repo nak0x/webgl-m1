@@ -55,6 +55,9 @@ export function useCityGenerator(scene: THREE.Scene): CityGeneratorResult {
     color: COLORS.green,
     roughness: 0.8,
     metalness: 0.0,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
   })
   const greenDarkMat = new THREE.MeshStandardMaterial({
     color: COLORS.greenDark,
@@ -70,6 +73,9 @@ export function useCityGenerator(scene: THREE.Scene): CityGeneratorResult {
     color: COLORS.road,
     roughness: 0.9,
     metalness: 0.0,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
   })
 
   materials.push(buildingMatWhite, buildingMatGrey, greenMat, greenDarkMat, greenLightMat, roadMat)
