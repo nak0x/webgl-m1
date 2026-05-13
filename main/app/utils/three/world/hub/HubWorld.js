@@ -4,7 +4,8 @@ import CrosshairTarget from '../../CrosshairTarget.js'
 import DialogueManager from '../../dialogue/DialogueManager.js'
 import QuestManager    from '../../quest/QuestManager.js'
 import { buildOctree } from '../../buildOctree.js'
-import { OBJECTS, PROXIMITY } from './HubConfig.js'
+import GlassesManager from '../../glasses/GlassesManager.js'
+import { OBJECTS, PROXIMITY, ACT_LABEL, COLLECTIBLES } from './HubConfig.js'
 
 export default class HubWorld {
   constructor(experience, callbacks = {}) {
@@ -18,6 +19,9 @@ export default class HubWorld {
 
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
+
+    this._glasses = new GlassesManager()
+    this._callbacks.onGlassesReady?.(this._glasses)
 
     experience.resources.on('ready', () => this._setup())
   }
@@ -116,6 +120,7 @@ export default class HubWorld {
         onComplete: () => {
           wrench?.removeFromParent()
           interaction.unregister('wrench')
+          this._glasses.collect('pick_wrench')
         },
       },
       {
@@ -126,6 +131,7 @@ export default class HubWorld {
         onComplete: () => {
           screwdriver?.removeFromParent()
           interaction.unregister('screwdriver')
+          this._glasses.collect('pick_screwdriver')
         },
       },
       {
@@ -136,6 +142,7 @@ export default class HubWorld {
         onComplete: () => {
           screwBox?.removeFromParent()
           interaction.unregister('screw_box')
+          this._glasses.collect('pick_screw_box')
         },
       },
       {
@@ -150,9 +157,14 @@ export default class HubWorld {
     ]
 
     this._quest = new QuestManager(this.experience, steps, this._callbacks)
-    this._callbacks.onQuestReady?.(this._quest)
+    this._callbacks.onQuestReady?.(this._quest, { act: ACT_LABEL })
     this._callbacks.onDialogueReady?.(this.dialogue)
     this._quest.start()
+
+    this._glasses.equip()
+    this._glasses.addCollectible('pick_wrench',      COLLECTIBLES.WRENCH)
+    this._glasses.addCollectible('pick_screwdriver', COLLECTIBLES.SCREWDRIVER)
+    this._glasses.addCollectible('pick_screw_box',   COLLECTIBLES.SCREW_BOX)
   }
 
   update() {
@@ -164,6 +176,7 @@ export default class HubWorld {
 
   dispose() {
     this._quest?.dispose()
+    this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()

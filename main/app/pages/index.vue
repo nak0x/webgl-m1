@@ -5,9 +5,17 @@
 
   <template v-if="isStarted">
     <QuestHud
+      :act-label="quest.actLabel.value"
       :current-step="quest.currentStep.value"
       :step-index="quest.stepIndex.value"
       :total-steps="quest.totalSteps.value"
+    />
+
+    <GlassesHud
+      v-if="glasses.glassesActive.value"
+      :battery-level="glasses.batteryLevel.value"
+      :notifications="glasses.notifications.value"
+      :collectibles="glasses.collectibles.value"
     />
 
     <DialogueHud
@@ -55,13 +63,15 @@ import FlowManager   from '~/utils/three/FlowManager.js'
 import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
 import { useQuestState }          from '~/composables/useQuestState.js'
 import { useDialogueState }       from '~/composables/useDialogueState.js'
+import { useGlassesState }        from '~/composables/useGlassesState.js'
 import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
-import { useCinematicState }  from '~/composables/useCinematicState.js'
-import { useTextCinematic }   from '~/composables/useTextCinematic.js'
+import { useCinematicState }      from '~/composables/useCinematicState.js'
+import { useTextCinematic }       from '~/composables/useTextCinematic.js'
 
 const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
 const dialogue      = useDialogueState()
+const glasses       = useGlassesState()
 const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
@@ -78,8 +88,9 @@ let sceneManager = null
 
 function makeCallbacks() {
   return {
-    onQuestReady:    (mgr) => quest.bind(mgr),
+    onQuestReady:    (mgr, meta) => quest.bind(mgr, meta),
     onDialogueReady: (mgr) => dialogue.bind(mgr),
+    onGlassesReady:  (mgr) => glasses.bind(mgr),
     onFpsReady:      (fps) => fps.lock(),
     onIndicatorReady: (ind) => {
       indicator.bindCamera(experience.camera.instance)
