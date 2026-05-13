@@ -1,7 +1,8 @@
 import * as THREE        from '/lib/three.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
-import QuestManager     from '../../quest/QuestManager.js'
+import QuestManager          from '../../quest/QuestManager.js'
+import QuestIndicatorManager from '../../quest/QuestIndicatorManager.js'
 import PcScreen         from '../../PcScreen.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
 import { buildOctree } from '../../buildOctree.js'
@@ -158,10 +159,11 @@ export default class AtelierWorld {
 
     const steps = [
       {
-        id:      'talk_npc',
-        label:   'Parler au technicien',
-        hint:    'Approchez-vous et appuyez sur E',
-        trigger: { type: 'interact', id: 'npc' },
+        id:        'talk_npc',
+        label:     'Parler au technicien',
+        hint:      'Approchez-vous et appuyez sur E',
+        trigger:   { type: 'interact', id: 'npc' },
+        indicator: { type: 'npc' },
         dialogue: [
           { speaker: 'Technicien', text: 'Ah, vous êtes enfin là.' },
           { speaker: 'Technicien', text: 'Votre mission : accéder au PC et récupérer le dossier.' },
@@ -169,19 +171,21 @@ export default class AtelierWorld {
         ],
       },
       {
-        id:      'use_pc',
-        label:   'Accéder au PC de bureau',
-        hint:    'Approchez-vous du PC et appuyez sur E',
-        trigger: { type: 'interact', id: 'pc' },
+        id:        'use_pc',
+        label:     'Accéder au PC de bureau',
+        hint:      'Approchez-vous du PC et appuyez sur E',
+        trigger:   { type: 'interact', id: 'pc' },
+        indicator: { type: 'pc' },
         onComplete: () => {
           this._pcScreen?.enter()
         },
       },
       {
-        id:      'pick_tool',
-        label:   'Récupérer l\'outil',
-        hint:    'L\'outil se trouve dans l\'atelier',
-        trigger: { type: 'interact', id: 'tool' },
+        id:        'pick_tool',
+        label:     'Récupérer l\'outil',
+        hint:      'L\'outil se trouve dans l\'atelier',
+        trigger:   { type: 'interact', id: 'tool' },
+        indicator: { type: 'item' },
         onComplete: () => {
           this.toolPickedUp = true
           tool?.removeFromParent()
@@ -189,18 +193,24 @@ export default class AtelierWorld {
         },
       },
       {
-        id:      'exit_door',
-        label:   'Sortir du bureau',
-        hint:    'Approchez-vous de la porte et appuyez sur E',
-        trigger: { type: 'interact', id: 'door' },
+        id:        'exit_door',
+        label:     'Sortir du bureau',
+        hint:      'Approchez-vous de la porte et appuyez sur E',
+        trigger:   { type: 'interact', id: 'door' },
+        indicator: { type: 'door' },
         onComplete: (callbacks) => {
           callbacks.transitionTo?.('scene_2')
         },
       },
     ]
 
+    const meshMap = { npc, pc, tool, door }
+
     this._quest = new QuestManager(this.experience, steps, this._callbacks)
+    this._indicator = new QuestIndicatorManager(this.experience, this._quest, meshMap)
+
     this._callbacks.onQuestReady?.(this._quest)
+    this._callbacks.onIndicatorReady?.(this._indicator)
     this._callbacks.onDialogueReady?.(this.dialogue)
     this._quest.start()
   }
@@ -228,6 +238,7 @@ export default class AtelierWorld {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
     this._pcScreen?.update(this.experience.time.delta)
+    this._indicator?.update(this.experience.time.delta)
   }
 
   resize() {
@@ -236,6 +247,7 @@ export default class AtelierWorld {
 
   dispose() {
     this.sound.stopAll()
+    this._indicator?.destroy()
     this._quest?.dispose()
     this._voice?.dispose()
     this.dialogue.dispose()

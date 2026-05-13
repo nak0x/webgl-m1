@@ -173,6 +173,8 @@ export default class Renderer {
     this.camera = experience.camera
     this.canvas = experience.canvas
 
+    this.indicatorScene = new THREE.Scene()
+
     this._setInstance()
     this._setComposer()
   }
@@ -255,7 +257,7 @@ export default class Renderer {
     this.bokehPass.enabled = false
     this.composer.addPass(this.bokehPass)
 
-    // 5. Outline — blanc, AdditiveBlending (ne peut pas être noir)
+    // 5a. Outline hover — blanc (CrosshairTarget)
     this.outlinePass = new OutlinePass(
       new THREE.Vector2(sizes.width, sizes.height),
       scene,
@@ -267,6 +269,19 @@ export default class Renderer {
     this.outlinePass.visibleEdgeColor.set('#ffffff')
     this.outlinePass.hiddenEdgeColor.set('#ffffff')
     this.composer.addPass(this.outlinePass)
+
+    // 5b. Outline quête — gold, toujours actif sur la cible du step courant
+    this.questOutlinePass = new OutlinePass(
+      new THREE.Vector2(sizes.width, sizes.height),
+      scene,
+      camera.instance,
+    )
+    this.questOutlinePass.edgeStrength  = 5
+    this.questOutlinePass.edgeThickness = 2
+    this.questOutlinePass.edgeGlow      = 0.5
+    this.questOutlinePass.visibleEdgeColor.set('#FFD700')
+    this.questOutlinePass.hiddenEdgeColor.set('#b8960c')
+    this.composer.addPass(this.questOutlinePass)
 
     // 6. Bloom
     this.bloomPass = new UnrealBloomPass(
@@ -325,7 +340,13 @@ export default class Renderer {
     this.filmPass.enabled = false
     this.composer.addPass(this.filmPass)
 
-    // 15. Conversion linéaire → sRGB (toujours en dernier)
+    // 15. Indicateurs de quête — après tous les effets, clear:false = composite par-dessus
+    this.indicatorPass = new RenderPass(this.indicatorScene, camera.instance)
+    this.indicatorPass.clear      = false
+    this.indicatorPass.clearDepth = true   // reset depth → les indicateurs ne sont jamais occlus
+    this.composer.addPass(this.indicatorPass)
+
+    // 16. Conversion linéaire → sRGB (toujours en dernier)
     this.composer.addPass(new OutputPass())
   }
 
@@ -479,6 +500,7 @@ export default class Renderer {
     this.instance.setPixelRatio(pixelRatio)
     this.composer.setSize(width, height)
     this.outlinePass.resolution.set(width, height)
+    this.questOutlinePass.resolution.set(width, height)
     this.edgePass.uniforms['resolution'].value.set(width, height)
     this.depthTarget.setSize(pw, ph)
     this.smaaPass.setSize(pw, ph)
@@ -486,8 +508,9 @@ export default class Renderer {
 
   /** Appelé par Experience._update() */
   update() {
-    this.renderPass.camera = this.camera.instance
-    this.taaPass.camera    = this.camera.instance
+    this.renderPass.camera    = this.camera.instance
+    this.taaPass.camera       = this.camera.instance
+    this.indicatorPass.camera = this.camera.instance
 
     if (this.edgePass.enabled) {
       const u = this.edgePass.uniforms
