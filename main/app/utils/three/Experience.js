@@ -44,8 +44,6 @@ export default class Experience {
     this.debug.setupRendererDebug(this.renderer, this.camera)
     this.sound          = new SoundManager(this)
     this.cinematic      = new CinematicManager(this)
-    this.flow           = null   // assigné depuis index.vue après SceneManager
-    this.debug.setupRendererDebug(this.renderer, this.camera)
     this.dialogue       = null   // assigné par le World via setDialogue()
 
     // Boucle & resize propagés par Experience
