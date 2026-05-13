@@ -41,8 +41,20 @@ export default class FpsController {
     this._onKeyUp   = this._onKeyUp.bind(this)
     this._onClick   = this._onClick.bind(this)
 
-    this.controls.addEventListener('lock',   () => { this._crosshairEl.style.opacity = '1' })
+    this.controls.addEventListener('lock',   () => { if (!this._cinematicActive) this._crosshairEl.style.opacity = '1' })
     this.controls.addEventListener('unlock', () => { this._crosshairEl.style.opacity = '0' })
+
+    this._cinematicActive = false
+    this._onCinematicStart = () => {
+      this._cinematicActive = true
+      this._crosshairEl.style.opacity = '0'
+    }
+    this._onCinematicEnd = () => {
+      this._cinematicActive = false
+      if (this.controls.isLocked) this._crosshairEl.style.opacity = '1'
+    }
+    experience.cinematic?.on('start', this._onCinematicStart)
+    experience.cinematic?.on('end',   this._onCinematicEnd)
 
     window.addEventListener('keydown', this._onKeyDown)
     window.addEventListener('keyup',   this._onKeyUp)
@@ -156,6 +168,8 @@ export default class FpsController {
   }
 
   dispose() {
+    this._experience.cinematic?.off('start', this._onCinematicStart)
+    this._experience.cinematic?.off('end',   this._onCinematicEnd)
     window.removeEventListener('keydown', this._onKeyDown)
     window.removeEventListener('keyup',   this._onKeyUp)
     this._canvas.removeEventListener('click', this._onClick)

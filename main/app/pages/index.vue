@@ -18,7 +18,24 @@
       :is-last="dialogue.isLast.value"
       @next="dialogue.next()"
     />
+
+    <CinematicHud
+      :active="cinematic.active.value"
+      :is-paused="cinematic.isPaused.value"
+      :current-time="cinematic.currentTime.value"
+      :duration="cinematic.duration.value"
+      @pause="cinematic.pause()"
+      @resume="cinematic.resume()"
+      @skip="cinematic.skip()"
+      @seek="cinematic.seek($event)"
+    />
   </template>
+
+  <TextCinematicHud
+    :active="textCinematic.active.value"
+    :visible="textCinematic.visible.value"
+    :card="textCinematic.card.value"
+  />
 
   <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
 
@@ -27,27 +44,29 @@
 </template>
 
 <script setup>
-import Experience            from '~/utils/three/Experience.js'
-import SceneManager          from '~/utils/three/SceneManager.js'
-import AtelierWorld          from '~/utils/three/world/atelier/AtelierWorld.js'
-import AtelierSources        from '~/utils/three/world/atelier/AtelierSources.js'
+import Experience    from '~/utils/three/Experience.js'
+import SceneManager  from '~/utils/three/SceneManager.js'
+import FlowManager   from '~/utils/three/FlowManager.js'
 import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
-import { useQuestState }    from '~/composables/useQuestState.js'
-import { useDialogueState } from '~/composables/useDialogueState.js'
+import { useQuestState }      from '~/composables/useQuestState.js'
+import { useDialogueState }   from '~/composables/useDialogueState.js'
+import { useCinematicState }  from '~/composables/useCinematicState.js'
+import { useTextCinematic }   from '~/composables/useTextCinematic.js'
 
-const canvas    = useTemplateRef('canvas')
-const quest     = useQuestState()
-const dialogue  = useDialogueState()
-const isFading  = ref(false)
-const isStarted = ref(false)
-
-const isLoadingScene  = ref(false)
+const canvas         = useTemplateRef('canvas')
+const quest          = useQuestState()
+const dialogue       = useDialogueState()
+const cinematic      = useCinematicState()
+const textCinematic  = useTextCinematic()
+const isFading       = ref(false)
+const isStarted      = ref(false)
+const isLoadingScene = ref(false)
 const loadingProgress = ref(0)
 
 const FADE_MS = 400
 
-let experience    = null
-let sceneManager  = null
+let experience   = null
+let sceneManager = null
 
 function makeCallbacks() {
   return {
@@ -59,38 +78,47 @@ function makeCallbacks() {
   }
 }
 
-async function transitionTo(name) {
+function transitionTo(name) {
   const scene = SCENES[name]
   if (!scene) return
-
-  isLoadingScene.value  = true
-  loadingProgress.value = 0
-  isFading.value = true
   experience?.sound.fadeOutAndStop(FADE_MS)
-
-  await new Promise(r => setTimeout(r, FADE_MS))
-  await sceneManager.load(scene.World, scene.sources, makeCallbacks())
-  await nextTick()
-
-  // Hide loading bar before fading the scene back in
-  isLoadingScene.value = false
-  isFading.value = false
+  isFading.value = true
+  setTimeout(() => {
+    experience.flow.run(scene.flow, name)
+  }, FADE_MS)
 }
 
 function startExperience() {
-  isStarted.value       = true
-  isLoadingScene.value  = true
-  loadingProgress.value = 0
+  isStarted.value = true
 
   experience   = new Experience(canvas.value)
   sceneManager = new SceneManager(experience)
-  sceneManager.load(AtelierWorld, AtelierSources, makeCallbacks()).then(() => {
+
+  experience.flow = new FlowManager(experience, sceneManager)
+  cinematic.bind(experience.cinematic)
+
+  experience.flow.bindTextHandler(cards => textCinematic.play(cards))
+  experience.flow.bindSceneResolver(name => ({
+    World:     SCENES[name].World,
+    sources:   SCENES[name].sources,
+    callbacks: makeCallbacks(),
+  }))
+
+  experience.flow.on('flow_start', ({ hasCinematic }) => {
+    isLoadingScene.value  = !hasCinematic
+    loadingProgress.value = 0
+  })
+  experience.flow.on('preload_progress', pct => {
+    loadingProgress.value = pct   // silencieux : loader caché pendant les cinématiques
+  })
+  experience.flow.on('flow_end', () => {
     isLoadingScene.value = false
+    isFading.value = false
   })
 
-  if (experience.debug.active) {
-    _registerDebugSceneSwitcher()
-  }
+  if (experience.debug.active) _registerDebugSceneSwitcher()
+
+  experience.flow.run(SCENES['scene_1'].flow, 'scene_1')
 }
 
 function _registerDebugSceneSwitcher() {
@@ -115,7 +143,7 @@ onUnmounted(() => {
   pointer-events: none;
   opacity: 0;
   transition: opacity 400ms ease;
-  z-index: 1000;
+  z-index: 750;
 }
 
 .fade-overlay--visible {

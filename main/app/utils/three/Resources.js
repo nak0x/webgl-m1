@@ -10,6 +10,7 @@ export default class Resources extends EventEmitter {
     this.items   = {}
     this.toLoad  = sources.length
     this.loaded  = 0
+    this.isReady = sources.length === 0
     this._pct    = {}
 
     if (this.toLoad === 0) {
@@ -107,7 +108,7 @@ export default class Resources extends EventEmitter {
   _sourceLoaded(source, file) {
     this.items[source.name] = file
     this.loaded++
-    if (this.loaded === this.toLoad) this.trigger('ready')
+    if (this.loaded === this.toLoad) { this.isReady = true; this.trigger('ready') }
   }
 
   dispose() {

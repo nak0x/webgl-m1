@@ -127,7 +127,7 @@ export default class AtelierWorld {
     })
 
     this._voice = new VoiceBabble(this.experience.sound, this.dialogue, {
-      Technicien: { freq: 380 },
+      Technicien: { freq: 600 },
     })
 
     this._callbacks.onFpsReady?.(this._fps)
