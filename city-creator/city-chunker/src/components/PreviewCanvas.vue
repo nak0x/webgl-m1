@@ -8,12 +8,12 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { useToast } from '../composables/useToast.js'
 
 const props = defineProps({
-  districts: { type: Array,  default: () => [] },
-  // [{ x, z, angle }, …] — x/z = centroid world position, angle = Y rotation (radians)
-  // null entry = unset, PreviewCanvas will emit the natural centroid on load
-  offsets:   { type: Array,  default: () => [] },
-  chunkSize: { type: Number, default: 64 },
-  manifest:  { type: Object, default: null },
+  districts:        { type: Array,   default: () => [] },
+  offsets:          { type: Array,   default: () => [] },
+  chunkSize:        { type: Number,  default: 64 },
+  manifest:         { type: Object,  default: null },
+  collisionData:    { type: Object,  default: null },  // { bin: ArrayBuffer, meta }
+  showCollisionMap: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['offset-changed'])
@@ -148,6 +148,64 @@ function _clearGroup(g) {
     if (c.isMesh || c.isLine || c.isLineSegments) { c.geometry?.dispose(); c.material?.dispose() }
     g.remove(c)
   }
+}
+
+// ── Collision map overlay ─────────────────────────────────────────────────────
+
+let collisionMesh = null
+
+function _disposeCollisionMesh() {
+  if (!collisionMesh) return
+  scene.value?.remove(collisionMesh)
+  collisionMesh.geometry?.dispose()
+  collisionMesh.material?.map?.dispose()
+  collisionMesh.material?.dispose()
+  collisionMesh = null
+}
+
+function _buildCollisionPlane(data) {
+  _disposeCollisionMesh()
+  if (!data || !scene.value) return
+
+  const { bin, meta } = data
+  const { pixelWidth, pixelHeight, worldMinX, worldMinZ, pfX, pfZ, minY, maxY } = meta
+  const sampleHeight = (minY + maxY) / 2
+
+  const bitfield = new Uint8Array(bin)
+  const imgData  = new ImageData(pixelWidth, pixelHeight)
+  for (let i = 0; i < pixelWidth * pixelHeight; i++) {
+    const bit  = (bitfield[i >> 3] >> (i & 7)) & 1
+    const base = i * 4
+    imgData.data[base    ] = 255
+    imgData.data[base + 1] = 255
+    imgData.data[base + 2] = 255
+    imgData.data[base + 3] = bit ? 140 : 0
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width  = pixelWidth
+  canvas.height = pixelHeight
+  canvas.getContext('2d').putImageData(imgData, 0, 0)
+
+  // Plane size derived from the pixel grid, not the raw world extent:
+  // pixelWidth/pfX == worldW by construction (round(worldW*pf)/pf),
+  // so the plane always matches exactly what the rasteriser covered.
+  const planeW = pixelWidth  / pfX
+  const planeD = pixelHeight / pfZ
+
+  const texture  = new THREE.CanvasTexture(canvas)
+  texture.flipY  = true   // canvas row 0 (worldMinZ) → UV v=1 → worldMinZ in scene
+  const geo      = new THREE.PlaneGeometry(planeW, planeD)
+  const mat      = new THREE.MeshBasicMaterial({
+    map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide,
+  })
+
+  collisionMesh = new THREE.Mesh(geo, mat)
+  collisionMesh.rotation.x  = -Math.PI / 2
+  collisionMesh.position.set(worldMinX + planeW / 2, sampleHeight, worldMinZ + planeD / 2)
+  collisionMesh.renderOrder = 1
+
+  if (props.showCollisionMap) scene.value.add(collisionMesh)
 }
 
 // ── District loading ──────────────────────────────────────────────────────────
@@ -504,9 +562,15 @@ function onPointerUp(e) {
 
 // ── Watchers ──────────────────────────────────────────────────────────────────
 
-watch(() => props.districts, loadDistricts, { immediate: false })
-watch(() => props.chunkSize, rebuildGrid)
-watch(() => props.manifest,  mf => { if (mf) updateHeatmap(mf) })
+watch(() => props.districts,        loadDistricts, { immediate: false })
+watch(() => props.chunkSize,        rebuildGrid)
+watch(() => props.manifest,         mf => { if (mf) updateHeatmap(mf) })
+watch(() => props.collisionData,    data => _buildCollisionPlane(data))
+watch(() => props.showCollisionMap, show => {
+  if (!collisionMesh || !scene.value) return
+  if (show) scene.value.add(collisionMesh)
+  else      scene.value.remove(collisionMesh)
+})
 
 // Sync group transforms when offsets change externally (e.g. parent reset)
 watch(() => props.offsets, newOffsets => {
@@ -533,6 +597,7 @@ onBeforeUnmount(() => {
     dom.removeEventListener('pointerleave', onPointerUp)
   }
   _clearDistrictGroups()
+  _disposeCollisionMesh()
   dracoLoader.dispose()
   renderer.value?.dispose()
 })
