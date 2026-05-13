@@ -187,6 +187,7 @@ export default class Renderer {
       canvas:          this.canvas,
       powerPreference: 'high-performance',
     })
+    this.instance.info.autoReset = true
     this.instance.setPixelRatio(sizes.pixelRatio)
     this.instance.setSize(sizes.width, sizes.height)
     this.instance.outputColorSpace  = THREE.SRGBColorSpace

@@ -38,6 +38,7 @@ export default class Experience {
     this.renderer       = new Renderer(this)
     this.renderProfile  = new RenderProfile(this)
     this.interaction    = new InteractionManager(this)
+    this.debug.setupRendererDebug(this.renderer, this.camera)
     this.dialogue       = null   // assigné par le World via setDialogue()
 
     // Boucle & resize propagés par Experience
@@ -64,6 +65,7 @@ export default class Experience {
     this.interaction.update()
     this.world?.update()
     this.renderer.update()
+    this.debug.updateRenderInfo?.(this.renderer.instance)
     this.debug.stats?.end()
   }
 
