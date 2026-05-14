@@ -21,12 +21,14 @@ import Renderer              from './Renderer.js'
 import RenderProfile         from './RenderProfile.js'
 import InteractionManager    from './interaction/InteractionManager.js'
 import SoundManager          from './sound/SoundManager.js'
+import CinematicManager      from './cinematic/CinematicManager.js'
 import Debug                 from './Debug.js'
 
 export default class Experience {
   constructor(canvas, sources = []) {
     this.canvas = canvas
     this.scene  = new THREE.Scene()
+    this.scene.background = new THREE.Color(0x000000)
     this.debug  = new Debug()
 
     // Utils
@@ -40,6 +42,8 @@ export default class Experience {
     this.renderProfile  = new RenderProfile(this)
     this.interaction    = new InteractionManager(this)
     this.sound          = new SoundManager(this)
+    this.cinematic      = new CinematicManager(this)
+    this.flow           = null   // assigné depuis index.vue après SceneManager
     this.debug.setupRendererDebug(this.renderer, this.camera)
     this.dialogue       = null   // assigné par le World via setDialogue()
 
@@ -85,6 +89,8 @@ export default class Experience {
     this.renderProfile.dispose()   // dispose white material + debug folder
     this.interaction.dispose()     // remove listeners souris/clavier
     this.sound.dispose()           // ferme AudioContext
+    this.cinematic.dispose()       // stoppe la vidéo + nettoie la scène ortho
+    this.flow?.dispose()           // nettoie les handlers FlowManager
     this.debug.dispose()           // destroy GUI si active
     this.world?.dispose?.()        // dispose ressources du world
   }

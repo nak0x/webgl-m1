@@ -23,38 +23,63 @@ export default class SceneManager {
   }
 
   /**
-   * Charge une nouvelle scène.
-   * Retourne une Promise qui se résout quand le World est prêt
-   * (resources chargées + setup() exécuté).
+   * Lance le chargement des assets d'une scène sans instancier de World.
+   * Retourne les Resources pour pouvoir écouter la progression.
+   * Passer ensuite ces Resources à load() pour éviter un double téléchargement.
    */
-  load(WorldClass, sources, callbacks = {}) {
+  preload(sources) {
+    const resources = new Resources(sources)
+    return resources
+  }
+
+  /**
+   * Charge une nouvelle scène.
+   * preloadedResources : Resources déjà lancées par preload() — réutilisées
+   *   pour éviter un double téléchargement.
+   *
+   * Si le World précédent pose deferDispose = true (ex: CinematicWorld), son
+   * dispose() est différé après que le nouveau World soit prêt — l'overlay reste
+   * visible pendant le setup, aucune frame noire.
+   * Pour les game Worlds, dispose() est appelé immédiatement pour éviter les
+   * conflits FPS (PointerLock, event listeners).
+   */
+  load(WorldClass, sources, callbacks = {}, preloadedResources = null) {
     return new Promise((resolve) => {
-      // 1. Dispose du World courant
-      this._world?.dispose?.()
+      const previousWorld = this._world
       this._world = null
       this.experience.setWorld(null)
 
-      // 2. Nettoyage de la scène THREE
-      this._clearScene()
+      const deferDispose = !!previousWorld?.deferDispose
+      if (!deferDispose) previousWorld?.dispose?.()
 
-      // 3. Reset état caméra entre les scènes
+      this._clearScene()
       this._resetCamera()
 
-      // 4. Nouvelles Resources (remplace la ref sur l'Experience)
-      const resources = new Resources(sources)
+      const resources = preloadedResources ?? new Resources(sources)
       this.experience.resources = resources
 
       if (callbacks.onLoadProgress) {
         resources.on('progress', callbacks.onLoadProgress)
       }
 
-      // 5. Nouveau World — il s'abonne à resources.on('ready') en interne
       this._world = new WorldClass(this.experience, callbacks)
       this.experience.setWorld(this._world)
 
-      // 6. On résout APRÈS que le World ait fini son setup()
-      //    (son listener 'ready' est enregistré avant le nôtre)
-      resources.on('ready', () => resolve(this._world))
+      // World._setup() s'est abonné à 'ready' dans son constructeur — il s'exécute
+      // en premier. onReady() est appelé juste après.
+      const onReady = () => {
+        if (deferDispose) previousWorld?.dispose?.()
+        resolve(this._world)
+      }
+
+      if (resources.isReady) {
+        // trigger() est synchrone : _setup() + onReady() dans le même tick que la
+        // fin de la cinématique, avant le prochain RAF — aucune frame noire.
+        resources.trigger('ready')
+        onReady()
+      } else {
+        resources.on('ready', onReady)
+      }
     })
   }
 

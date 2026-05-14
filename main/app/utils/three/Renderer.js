@@ -7,7 +7,7 @@
  *   → RGBShiftPass → FilmPass → OutputPass
  *
  * Toutes les nouvelles passes démarrent avec enabled = false.
- * Utiliser les méthodes setXxx() pour les activer depuis CinematicPlayer.
+ * Utiliser les méthodes setXxx() pour les activer manuellement.
  * disableEffect('all') remet tout à false.
  */
 import * as THREE                       from '/lib/three.js'
@@ -502,6 +502,7 @@ export default class Renderer {
       this.filmPass.uniforms['time'].value += 0.016
     }
     this.composer.render()
+    this.experience.cinematic?.render(this.instance)
   }
 
   dispose() {
