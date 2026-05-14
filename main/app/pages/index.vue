@@ -50,6 +50,14 @@
     :card="textCinematic.card.value"
   />
 
+  <PauseHud
+    :visible="pause.isPaused.value"
+    :volume="volume"
+    @close="closePause"
+    @return-home="returnToHome"
+    @volume-change="onVolumeChange"
+  />
+
   <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
 
   <!-- Overlay de transition fade-to-black -->
@@ -64,6 +72,7 @@ import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
 import { useQuestState }          from '~/composables/useQuestState.js'
 import { useDialogueState }       from '~/composables/useDialogueState.js'
 import { useGlassesState }        from '~/composables/useGlassesState.js'
+import { usePauseState }          from '~/composables/usePauseState.js'
 import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
 import { useCinematicState }      from '~/composables/useCinematicState.js'
 import { useTextCinematic }       from '~/composables/useTextCinematic.js'
@@ -72,11 +81,13 @@ const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
 const dialogue      = useDialogueState()
 const glasses       = useGlassesState()
+const pause         = usePauseState()
 const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
 const isFading  = ref(false)
 const isStarted = ref(false)
+const volume    = ref(1)
 
 const isLoadingScene  = ref(false)
 const loadingProgress = ref(0)
@@ -85,13 +96,14 @@ const FADE_MS = 400
 
 let experience   = null
 let sceneManager = null
+let _fps         = null
 
 function makeCallbacks() {
   return {
     onQuestReady:    (mgr, meta) => quest.bind(mgr, meta),
     onDialogueReady: (mgr) => dialogue.bind(mgr),
     onGlassesReady:  (mgr) => glasses.bind(mgr),
-    onFpsReady:      (fps) => fps.lock(),
+    onFpsReady:      (fps) => { _fps = fps; fps.lock() },
     onIndicatorReady: (ind) => {
       indicator.bindCamera(experience.camera.instance)
       ind.setArrowCallback(indicator.setArrow)
@@ -109,6 +121,36 @@ function transitionTo(name) {
   setTimeout(() => {
     experience.flow.run(scene.flow, name)
   }, FADE_MS)
+}
+
+function openPause() {
+  pause.open()
+}
+
+function closePause() {
+  pause.close()
+  if (!dialogue.active.value) _fps?.lock()
+}
+
+function returnToHome() {
+  pause.close()
+  sceneManager?.dispose()
+  experience?.dispose()
+  sceneManager = null
+  experience   = null
+  _fps         = null
+  isStarted.value = false
+}
+
+function onVolumeChange(v) {
+  volume.value = v
+  experience?.sound.setVolume('master', v)
+}
+
+function _onKeyDown(e) {
+  if (e.code !== 'Escape' || !isStarted.value || dialogue.active.value) return
+  if (pause.isPaused.value) closePause()
+  else openPause()
 }
 
 function startExperience() {
@@ -150,11 +192,15 @@ function _registerDebugSceneSwitcher() {
   folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(transitionTo)
 }
 
+onMounted(()        => window.addEventListener('keydown', _onKeyDown))
+onBeforeUnmount(()  => window.removeEventListener('keydown', _onKeyDown))
+
 onUnmounted(() => {
   sceneManager?.dispose()
   experience?.dispose()
   sceneManager = null
   experience   = null
+  _fps         = null
 })
 </script>
 
