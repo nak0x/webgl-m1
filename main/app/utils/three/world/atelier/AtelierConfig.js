@@ -5,6 +5,8 @@
  * Mettre à jour ici après chaque ré-export Blender.
  */
 
+export const ACT_LABEL = 'Acte 1 - L\'atelier'
+
 /** Noms exacts des meshes dans le fichier GLB */
 export const OBJECTS = {
   NPC:         'coffee_machine',

@@ -7,7 +7,8 @@ import PcScreen         from '../../PcScreen.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
 import { buildOctree } from '../../buildOctree.js'
 import VoiceBabble   from '../../sound/VoiceBabble.js'
-import { OBJECTS, PROXIMITY, SCENE } from './AtelierConfig.js'
+import GlassesManager from '../../glasses/GlassesManager.js'
+import { OBJECTS, PROXIMITY, SCENE, ACT_LABEL } from './AtelierConfig.js'
 
 export default class AtelierWorld {
   constructor(experience, callbacks = {}) {
@@ -24,6 +25,9 @@ export default class AtelierWorld {
     // Le World possède son DialogueManager — Experience en garde la référence
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
+
+    this._glasses = new GlassesManager()
+    this._callbacks.onGlassesReady?.(this._glasses)
 
     this.resources.on('ready', () => this._setup())
   }
@@ -190,6 +194,14 @@ export default class AtelierWorld {
           this.toolPickedUp = true
           tool?.removeFromParent()
           interaction.unregister('tool')
+          this._glasses.equip()
+          this._glasses.notify({
+            id:       'glasses_on',
+            title:    'Lunettes AR activées',
+            text:     'Système opérationnel. Navigation disponible.',
+            permanent: false,
+            duration:  5000,
+          })
         },
       },
       {
@@ -209,7 +221,7 @@ export default class AtelierWorld {
     this._quest = new QuestManager(this.experience, steps, this._callbacks)
     this._indicator = new QuestIndicatorManager(this.experience, this._quest, meshMap)
 
-    this._callbacks.onQuestReady?.(this._quest)
+    this._callbacks.onQuestReady?.(this._quest, { act: ACT_LABEL })
     this._callbacks.onIndicatorReady?.(this._indicator)
     this._callbacks.onDialogueReady?.(this.dialogue)
     this._quest.start()
@@ -249,6 +261,7 @@ export default class AtelierWorld {
     this.sound.stopAll()
     this._indicator?.destroy()
     this._quest?.dispose()
+    this._glasses?.destroy()
     this._voice?.dispose()
     this.dialogue.dispose()
     this._fps?.dispose()

@@ -1,3 +1,11 @@
+export const ACT_LABEL = 'Acte 2 - Le microhub'
+
+export const COLLECTIBLES = {
+  WRENCH:      'Clé à molette',
+  SCREWDRIVER: 'Tournevis',
+  SCREW_BOX:   'Boîte à vis',
+}
+
 export const OBJECTS = {
   WRENCH:      'wrench_uniq',
   SCREWDRIVER: 'screwdrivers_uniq',
