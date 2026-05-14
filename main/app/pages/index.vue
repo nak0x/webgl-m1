@@ -53,21 +53,22 @@ import Experience    from '~/utils/three/Experience.js'
 import SceneManager  from '~/utils/three/SceneManager.js'
 import FlowManager   from '~/utils/three/FlowManager.js'
 import { SCENES, SCENE_NAMES } from '~/utils/three/world/SCENES.js'
-import { useQuestState }            from '~/composables/useQuestState.js'
-import { useDialogueState }         from '~/composables/useDialogueState.js'
+import { useQuestState }          from '~/composables/useQuestState.js'
+import { useDialogueState }       from '~/composables/useDialogueState.js'
 import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
 import { useCinematicState }  from '~/composables/useCinematicState.js'
 import { useTextCinematic }   from '~/composables/useTextCinematic.js'
 
-const canvas         = useTemplateRef('canvas')
-const quest          = useQuestState()
-const dialogue       = useDialogueState()
-const cinematic      = useCinematicState()
-const textCinematic  = useTextCinematic()
-const indicator = useQuestIndicatorState()
-const isFading       = ref(false)
-const isStarted      = ref(false)
-const isLoadingScene = ref(false)
+const canvas        = useTemplateRef('canvas')
+const quest         = useQuestState()
+const dialogue      = useDialogueState()
+const cinematic     = useCinematicState()
+const textCinematic = useTextCinematic()
+const indicator     = useQuestIndicatorState()
+const isFading  = ref(false)
+const isStarted = ref(false)
+
+const isLoadingScene  = ref(false)
 const loadingProgress = ref(0)
 
 const FADE_MS = 400
@@ -77,9 +78,9 @@ let sceneManager = null
 
 function makeCallbacks() {
   return {
-    onQuestReady:     (mgr) => quest.bind(mgr),
-    onDialogueReady:  (mgr) => dialogue.bind(mgr),
-    onFpsReady:       (fps) => fps.lock(),
+    onQuestReady:    (mgr) => quest.bind(mgr),
+    onDialogueReady: (mgr) => dialogue.bind(mgr),
+    onFpsReady:      (fps) => fps.lock(),
     onIndicatorReady: (ind) => {
       indicator.bindCamera(experience.camera.instance)
       ind.setArrowCallback(indicator.setArrow)
