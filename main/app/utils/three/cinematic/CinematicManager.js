@@ -30,6 +30,7 @@ export default class CinematicManager extends EventEmitter {
     this._texture  = null
     this._material = null
     this._mesh     = null
+    this._bgMesh   = null
 
     this._orthoScene  = new THREE.Scene()
     this._orthoCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
@@ -57,12 +58,21 @@ export default class CinematicManager extends EventEmitter {
     texture.colorSpace = THREE.SRGBColorSpace
     this._texture = texture
 
-    this._material = new THREE.MeshBasicMaterial({ map: texture })
+    this._bgMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false })
+    )
+    this._bgMesh.renderOrder = 0
+    this._orthoScene.add(this._bgMesh)
+
+    this._material = new THREE.MeshBasicMaterial({ map: texture, depthTest: false })
     this._mesh     = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this._material)
+    this._mesh.renderOrder = 1
     this._orthoScene.add(this._mesh)
 
     video.addEventListener('ended', () => this._finish())
     video.addEventListener('loadedmetadata', () => {
+      this._updatePlaneScale()
       this.trigger('start', { duration: video.duration })
     })
 
@@ -121,6 +131,22 @@ export default class CinematicManager extends EventEmitter {
     this._cleanupVideo()
   }
 
+  _updatePlaneScale() {
+    if (!this._mesh || !this._video) return
+    const { videoWidth, videoHeight } = this._video
+    if (!videoWidth || !videoHeight) return
+
+    const el = this.experience.renderer.instance.domElement
+    const screenAR = el.width / el.height
+    const videoAR  = videoWidth / videoHeight
+
+    if (videoAR > screenAR) {
+      this._mesh.scale.set(1, screenAR / videoAR, 1)
+    } else {
+      this._mesh.scale.set(videoAR / screenAR, 1, 1)
+    }
+  }
+
   _cleanupVideo() {
     clearInterval(this._progressTimer)
     this._progressTimer = null
@@ -131,6 +157,12 @@ export default class CinematicManager extends EventEmitter {
       this._video.pause()
       this._video.src = ''
       this._video = null
+    }
+    if (this._bgMesh) {
+      this._orthoScene.remove(this._bgMesh)
+      this._bgMesh.geometry.dispose()
+      this._bgMesh.material.dispose()
+      this._bgMesh = null
     }
     if (this._mesh) {
       this._orthoScene.remove(this._mesh)
@@ -147,7 +179,9 @@ export default class CinematicManager extends EventEmitter {
     }
   }
 
-  resize() {}
+  resize() {
+    this._updatePlaneScale()
+  }
 
   dispose() {
     this._cleanupVideo()
