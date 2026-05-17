@@ -116,6 +116,7 @@ function makeCallbacks() {
 function transitionTo(name) {
   const scene = SCENES[name]
   if (!scene) return
+  _fps?.hideCrosshair()
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
   setTimeout(() => {
