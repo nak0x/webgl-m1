@@ -3,42 +3,34 @@
     <div v-if="active" class="cinematic-root">
       <div class="cinematic-bar">
 
-        <!-- Progress -->
-        <div class="cinematic-progress">
-          <span class="cinematic-time">{{ formatTime(currentTime) }}</span>
-          <input
-            class="cinematic-seek"
-            type="range"
-            :min="0"
-            :max="duration || 1"
-            :value="currentTime"
-            step="0.01"
-            @input="onSeek"
-            @mousedown="onSeekStart"
-            @mouseup="onSeekEnd"
-          />
-          <span class="cinematic-time">{{ formatTime(duration) }}</span>
-        </div>
+        <button class="cinematic-icon-btn" @click="togglePause" :aria-label="isPaused ? 'Reprendre' : 'Pause'">
+          <svg v-if="isPaused" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4 2.5l9 5.5-9 5.5z"/>
+          </svg>
+          <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="2.5" y="2" width="4" height="12"/>
+            <rect x="9.5" y="2" width="4" height="12"/>
+          </svg>
+        </button>
 
-        <!-- Controls -->
-        <div class="cinematic-controls">
-          <button class="cinematic-btn" @click="togglePause" :aria-label="isPaused ? 'Reprendre' : 'Pause'">
-            <svg v-if="isPaused" width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-              <path d="M3 2l9 5-9 5z"/>
-            </svg>
-            <svg v-else width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-              <rect x="2" y="2" width="4" height="10"/>
-              <rect x="8" y="2" width="4" height="10"/>
-            </svg>
-          </button>
+        <input
+          class="cinematic-seek"
+          type="range"
+          :min="0"
+          :max="duration || 1"
+          :value="currentTime"
+          step="0.01"
+          @input="onSeek"
+          @mousedown="onSeekStart"
+          @mouseup="onSeekEnd"
+        />
 
-          <button class="cinematic-btn cinematic-skip" @click="skip">
-            Passer
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-              <path d="M2 2l7 4-7 4zM10 2h1.5v8H10z"/>
-            </svg>
-          </button>
-        </div>
+        <button class="cinematic-icon-btn cinematic-skip-btn" @click="skip" aria-label="Passer">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M3 2.5l8 5.5-8 5.5z"/>
+            <rect x="12" y="2.5" width="2" height="11" rx="1"/>
+          </svg>
+        </button>
 
       </div>
     </div>
@@ -65,7 +57,6 @@ function onSeek(e) {
   emit('seek', parseFloat(e.target.value))
 }
 
-// Prevent video from resuming until mouseup when scrubbing
 let _wasPaused = false
 function onSeekStart() {
   _wasPaused = props.isPaused
@@ -74,13 +65,6 @@ function onSeekStart() {
 function onSeekEnd(e) {
   emit('seek', parseFloat(e.target.value))
   if (!_wasPaused) emit('resume')
-}
-
-function formatTime(seconds) {
-  if (!seconds || isNaN(seconds)) return '0:00'
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60).toString().padStart(2, '0')
-  return `${m}:${s}`
 }
 </script>
 
@@ -92,35 +76,41 @@ function formatTime(seconds) {
   right: 0;
   display: flex;
   justify-content: center;
-  padding: 0 0 28px;
+  padding: 0 0 24px;
   z-index: 600;
   pointer-events: none;
 }
 
 .cinematic-bar {
   pointer-events: all;
-  width: min(720px, 90vw);
-  background: rgba(8, 8, 12, 0.85);
+  width: min(680px, 88vw);
+  background: #000;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 10px;
-  padding: 12px 16px;
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.cinematic-progress {
+  border-radius: 8px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
 }
 
-.cinematic-time {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
-  font-variant-numeric: tabular-nums;
-  min-width: 28px;
+.cinematic-icon-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s;
+  padding: 0;
+}
+
+.cinematic-icon-btn:hover {
+  color: #fff;
 }
 
 .cinematic-seek {
@@ -128,7 +118,7 @@ function formatTime(seconds) {
   -webkit-appearance: none;
   appearance: none;
   height: 3px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -137,8 +127,8 @@ function formatTime(seconds) {
 
 .cinematic-seek::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #fff;
   cursor: pointer;
@@ -146,37 +136,7 @@ function formatTime(seconds) {
 }
 
 .cinematic-seek:hover::-webkit-slider-thumb {
-  transform: scale(1.3);
-}
-
-.cinematic-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cinematic-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 12px;
-  padding: 5px 10px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.cinematic-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.cinematic-skip {
-  margin-left: auto;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
+  transform: scale(1.35);
 }
 
 /* Transition */

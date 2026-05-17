@@ -79,6 +79,11 @@ const progressPct = computed(() =>
   border-radius: 4px;
 }
 
+.quest-block:last-child {
+  max-height: 356px;
+  overflow-y: auto;
+}
+
 .quest-prog-header {
   display: flex;
   justify-content: space-between;

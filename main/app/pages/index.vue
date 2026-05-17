@@ -52,7 +52,7 @@
 
   <PauseHud
     :visible="pause.isPaused.value"
-    :volume="volume"
+    :volumes="volumes"
     @close="closePause"
     @return-home="returnToHome"
     @volume-change="onVolumeChange"
@@ -87,7 +87,7 @@ const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
 const isFading  = ref(false)
 const isStarted = ref(false)
-const volume    = ref(1)
+const volumes   = ref({ master: 1, ambient: 0.4, voice: 0.8 })
 
 const isLoadingScene  = ref(false)
 const loadingProgress = ref(0)
@@ -142,9 +142,9 @@ function returnToHome() {
   isStarted.value = false
 }
 
-function onVolumeChange(v) {
-  volume.value = v
-  experience?.sound.setVolume('master', v)
+function onVolumeChange({ category, value }) {
+  volumes.value[category] = value
+  experience?.sound.setVolume(category, value)
 }
 
 function _onKeyDown(e) {
