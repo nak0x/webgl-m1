@@ -234,7 +234,6 @@ export default class AtelierWorld {
       console.log('🟢', e)
       if (e.id === 'npc') {
         console.log('Launch animation of the npc')
-        this.sound.play('proximity_enter')
       }
     })
     interaction.on('proximity:leave', e => {

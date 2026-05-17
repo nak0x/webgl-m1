@@ -67,6 +67,9 @@ export default class FpsController {
   get isLocked() { return this.controls.isLocked }
   lock()         { this.controls.lock() }
 
+  hideCrosshair() { this._crosshairEl.style.opacity = '0' }
+  showCrosshair() { if (this.controls.isLocked && !this._cinematicActive) this._crosshairEl.style.opacity = '1' }
+
   _createCrosshair() {
     const el = document.createElement('div')
     el.style.cssText = `

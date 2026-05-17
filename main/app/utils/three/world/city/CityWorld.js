@@ -2,6 +2,7 @@ import * as THREE        from '/lib/three.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
+import GlassesManager   from '../../glasses/GlassesManager.js'
 import { buildOctree }  from '../../buildOctree.js'
 import CityChunkManager from './CityChunkManager.js'
 import { SPAWN, EYE_HEIGHT } from './CityConfig.js'
@@ -25,6 +26,10 @@ export default class CityWorld {
 
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
+
+    this._glasses = new GlassesManager()
+    this._callbacks.onGlassesReady?.(this._glasses)
+    this._glasses.equip()
 
     // No preloaded resources — start immediately once Resources fires 'ready'.
     experience.resources.on('ready', () => this._setup())
@@ -256,6 +261,7 @@ export default class CityWorld {
   resize() {}
 
   dispose() {
+    this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshair?.dispose()

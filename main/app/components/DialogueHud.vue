@@ -3,13 +3,12 @@
     <div v-if="active" class="dialogue-root">
       <div class="dialogue-box">
 
-        <!-- Speaker -->
-        <p class="dialogue-speaker">{{ current?.speaker }}</p>
+        <p v-if="current?.speaker" class="dialogue-speaker">{{ current.speaker }}</p>
 
-        <!-- Text -->
         <p class="dialogue-text">{{ displayedText }}</p>
 
-        <!-- Footer -->
+        <hr class="dialogue-sep" />
+
         <div class="dialogue-footer">
           <span class="dialogue-dots">
             <span
@@ -20,8 +19,10 @@
             />
           </span>
           <button class="dialogue-btn" @click="next">
-            {{ isTyping ? 'Passer' : isLast ? 'Terminer' : 'Suivant' }}
-            <span class="dialogue-key">[ Espace ]</span>
+            {{ isTyping ? 'Passer' : isLast ? 'Terminer' : 'Continuer' }}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4,2 10,7 4,12"/>
+            </svg>
           </button>
         </div>
 
@@ -75,7 +76,6 @@ watch(() => props.current, (val) => {
   if (val?.text) startTyping(val.text)
 })
 
-// Espace / Entrée pour avancer ou skipper
 function onKey(e) {
   if (!props.active) return
   if (e.code === 'Space' || e.code === 'Enter') {
@@ -96,42 +96,45 @@ onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(
   right: 0;
   display: flex;
   justify-content: center;
-  padding: 0 0 40px;
+  padding: 0 0 36px;
   z-index: 500;
   pointer-events: none;
 }
 
 .dialogue-box {
   pointer-events: all;
-  width: min(680px, 90vw);
-  background: rgba(8, 8, 12, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 20px 24px 16px;
-  backdrop-filter: blur(8px);
+  width: min(720px, 90vw);
+  background: #000;
+  border-radius: 12px;
+  padding: 24px 28px 20px;
 }
 
 .dialogue-speaker {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #88aaff;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 10px;
 }
 
 .dialogue-text {
   font-size: 15px;
-  line-height: 1.65;
-  color: #e8e8e8;
+  line-height: 1.7;
+  color: #fff;
   min-height: 48px;
+}
+
+.dialogue-sep {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 18px 0 14px;
 }
 
 .dialogue-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
 }
 
 .dialogue-dots {
@@ -143,35 +146,31 @@ onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.18);
   transition: background 0.2s;
 }
 
 .dot--active {
-  background: #fff;
+  background: rgba(255,255,255,0.85);
 }
 
 .dialogue-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 999px;
   color: #fff;
   font-size: 13px;
-  padding: 6px 14px;
+  font-weight: 500;
+  padding: 8px 18px 8px 22px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .dialogue-btn:hover {
-  background: rgba(255,255,255,0.14);
-}
-
-.dialogue-key {
-  font-size: 10px;
-  color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.18);
 }
 
 /* Transition */

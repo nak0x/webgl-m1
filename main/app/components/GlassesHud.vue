@@ -7,9 +7,9 @@
       <div class="glasses-status">
         <div class="glasses-battery">
           <svg width="28" height="14" viewBox="0 0 28 14" fill="none">
-            <rect x="0.5" y="0.5" width="24" height="13" rx="2.5" stroke="#1a2a3a" stroke-width="1"/>
-            <rect x="25" y="4" width="3" height="6" rx="1" fill="#1a2a3a"/>
-            <rect x="2" y="2" :width="Math.round(20 * batteryLevel / 100)" height="10" rx="1.5" fill="#1a2a3a"/>
+            <rect x="0.5" y="0.5" width="24" height="13" rx="2.5" stroke="rgba(20, 28, 45, 0.78)" stroke-width="1"/>
+            <rect x="25" y="4" width="3" height="6" rx="1" fill="rgba(20, 28, 45, 0.78)"/>
+            <rect x="2" y="2" :width="Math.round(20 * batteryLevel / 100)" height="10" rx="1.5" fill="rgba(20, 28, 45, 0.78)"/>
           </svg>
           <span>{{ batteryLevel }}%</span>
         </div>
@@ -18,7 +18,7 @@
 
       <div v-if="collectibles.length > 0" class="glasses-card">
         <div class="collect-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a2a3a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0, 0, 0, 0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
           </svg>
           <span>Outils requis</span>
@@ -99,7 +99,8 @@ onBeforeUnmount(() => {
 .glasses-filter {
   position: absolute;
   inset: 0;
-  background: rgba(110, 165, 215, 0.16);
+  background: rgba(0, 185, 253, 0.30);
+  mix-blend-mode: screen;
 }
 
 .glasses-ui {
@@ -116,33 +117,38 @@ onBeforeUnmount(() => {
 .glasses-status {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .glasses-battery {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
   font-weight: 600;
-  color: #1a2a3a;
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .glasses-time {
-  background: #1a2a3a;
-  color: #fff;
-  padding: 4px 14px;
-  border-radius: 4px;
-  font-size: 14px;
+  background: rgba(20, 28, 45, 0.78);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255);
+  padding: 5px 12px;
+  width: 100px;
+  display: flex;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
 }
 
 .glasses-card {
-  background: rgba(195, 220, 240, 0.72);
+  background: rgba(255, 255, 255, 0.80);
   backdrop-filter: blur(10px);
-  border-radius: 4px;
   padding: 14px 16px;
   width: 100%;
   box-sizing: border-box;
@@ -156,14 +162,14 @@ onBeforeUnmount(() => {
   gap: 7px;
   font-size: 11px;
   font-weight: 700;
-  color: #1a2a3a;
+  color: rgba(20, 28, 45, 0.78);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .collect-sep {
   border: none;
-  border-top: 1px solid rgba(26, 42, 58, 0.2);
+  border-top: 1px solid rgba(20, 28, 45, 0.78);
   margin: 10px 0;
 }
 
@@ -182,7 +188,7 @@ onBeforeUnmount(() => {
 .collect-checkbox {
   width: 16px;
   height: 16px;
-  border: 1.5px solid #1a2a3a;
+  border: 1.5px solid rgba(20, 28, 45, 0.78);
   border-radius: 3px;
   flex-shrink: 0;
   display: flex;
@@ -192,19 +198,19 @@ onBeforeUnmount(() => {
 }
 
 .collect-item--done .collect-checkbox {
-  background: #1a2a3a;
-  border-color: #1a2a3a;
+  background: rgba(80, 130, 255, 0.7);
+  border-color: rgba(80, 130, 255, 0.7);
 }
 
 .collect-label {
   font-size: 13px;
-  color: #1a2a3a;
+  color: rgba(20, 28, 45, 0.78);
   transition: opacity 0.2s;
 }
 
 .collect-item--done .collect-label {
   text-decoration: line-through;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* ── Notifications ── */
@@ -222,14 +228,14 @@ onBeforeUnmount(() => {
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #1a2a3a;
+  color: rgba(20, 28, 45, 0.78);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .notif-body {
   font-size: 12px;
-  color: #1a2a3a;
+  color: rgba(20, 28, 45, 0.78);
   line-height: 1.55;
 }
 

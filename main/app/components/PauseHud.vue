@@ -65,16 +65,41 @@
 
           <div class="panel-content">
             <div class="param-row">
-              <label class="param-label">Volume</label>
+              <label class="param-label">Volume général</label>
               <div class="param-control">
                 <input
-                  type="range"
-                  min="0" max="1" step="0.01"
-                  :value="volume"
-                  @input="onVolume"
+                  type="range" min="0" max="1" step="0.01"
+                  :value="volumes.master"
+                  @input="e => $emit('volume-change', { category: 'master', value: parseFloat(e.target.value) })"
                   class="param-slider"
                 />
-                <span class="param-value">{{ Math.round(volume * 100) }}%</span>
+                <span class="param-value">{{ Math.round(volumes.master * 100) }}%</span>
+              </div>
+            </div>
+
+            <div class="param-row">
+              <label class="param-label">Ambiance</label>
+              <div class="param-control">
+                <input
+                  type="range" min="0" max="1" step="0.01"
+                  :value="volumes.ambient"
+                  @input="e => $emit('volume-change', { category: 'ambient', value: parseFloat(e.target.value) })"
+                  class="param-slider"
+                />
+                <span class="param-value">{{ Math.round(volumes.ambient * 100) }}%</span>
+              </div>
+            </div>
+
+            <div class="param-row">
+              <label class="param-label">Voix</label>
+              <div class="param-control">
+                <input
+                  type="range" min="0" max="1" step="0.01"
+                  :value="volumes.voice"
+                  @input="e => $emit('volume-change', { category: 'voice', value: parseFloat(e.target.value) })"
+                  class="param-slider"
+                />
+                <span class="param-value">{{ Math.round(volumes.voice * 100) }}%</span>
               </div>
             </div>
           </div>
@@ -89,8 +114,8 @@
 const emit = defineEmits(['close', 'return-home', 'volume-change'])
 
 const props = defineProps({
-  visible: { type: Boolean, default: false },
-  volume:  { type: Number,  default: 1     },
+  visible:  { type: Boolean, default: false },
+  volumes:  { type: Object,  default: () => ({ master: 1, ambient: 0.4, voice: 0.8 }) },
 })
 
 const activePanel = ref(null)
@@ -99,10 +124,6 @@ const activeTab   = ref('touches')
 watch(() => props.visible, (v) => {
   if (!v) { activePanel.value = null; activeTab.value = 'touches' }
 })
-
-function onVolume(e) {
-  emit('volume-change', parseFloat(e.target.value))
-}
 
 const KEYS = [
   { key: 'Z / W',  desc: 'Avancer'            },
@@ -140,9 +161,9 @@ const UI_ITEMS = [
   background: #e8e8e8;
   border-radius: 8px;
   padding: 32px 28px;
-  width: 300px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 12px;
 }
 
@@ -177,11 +198,11 @@ const UI_ITEMS = [
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 14px 20px;
+  padding: 16px 32px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
-  width: 100%;
+  width: 256px;
   transition: background 0.15s;
 }
 
@@ -197,6 +218,7 @@ const UI_ITEMS = [
   font-weight: 700;
   color: #111;
   margin-bottom: 4px;
+  width: 256px;
 }
 
 .panel-back {
@@ -218,6 +240,8 @@ const UI_ITEMS = [
   border-radius: 6px;
   padding: 3px;
   gap: 3px;
+  width: 256px;
+  box-sizing: border-box;
 }
 
 .tab-btn {
@@ -244,6 +268,7 @@ const UI_ITEMS = [
   gap: 10px;
   max-height: 280px;
   overflow-y: auto;
+  width: 256px;
 }
 
 /* ── Touches ── */
@@ -290,8 +315,8 @@ const UI_ITEMS = [
   margin-top: 2px;
 }
 
-.ui-tag--left  { background: #000;        color: #fff; }
-.ui-tag--right { background: #4a7fa5;     color: #fff; }
+.ui-tag--left  { background: #000;    color: #fff; }
+.ui-tag--right { background: #4a7fa5; color: #fff; }
 
 .ui-label { font-size: 13px; font-weight: 600; color: #111; }
 .ui-desc  { font-size: 11px; color: #555; margin-top: 2px; line-height: 1.4; }
@@ -301,11 +326,11 @@ const UI_ITEMS = [
 .param-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .param-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #111;
 }
