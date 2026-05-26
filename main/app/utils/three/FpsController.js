@@ -42,7 +42,10 @@ export default class FpsController {
     this._onClick   = this._onClick.bind(this)
 
     this.controls.addEventListener('lock',   () => { this._crosshairEl.style.opacity = '1' })
-    this.controls.addEventListener('unlock', () => { this._crosshairEl.style.opacity = '0' })
+    this.controls.addEventListener('unlock', () => {
+      this._crosshairEl.style.opacity = '0'
+      this._stopFootsteps()
+    })
 
     window.addEventListener('keydown', this._onKeyDown)
     window.addEventListener('keyup',   this._onKeyUp)
@@ -52,8 +55,12 @@ export default class FpsController {
     experience.camera.controls.enabled = false
   }
 
-  get isLocked() { return this.controls.isLocked }
-  lock()         { this.controls.lock() }
+  get isLocked()  { return this.controls.isLocked }
+  get isMoving()  {
+    return this.controls.isLocked && this.enabled && this._onFloor &&
+      (this._keys.w || this._keys.a || this._keys.s || this._keys.d)
+  }
+  lock() { this.controls.lock() }
 
   _createCrosshair() {
     const el = document.createElement('div')
@@ -137,12 +144,34 @@ export default class FpsController {
     if (!this.controls.isLocked) this.controls.lock()
   }
 
+  _isAnyDirKey(code) {
+    return code === 'KeyW' || code === 'ArrowUp'  ||
+           code === 'KeyS' || code === 'ArrowDown' ||
+           code === 'KeyA' || code === 'ArrowLeft' ||
+           code === 'KeyD' || code === 'ArrowRight'
+  }
+
+  _hasAnyDirKey() {
+    return this._keys.w || this._keys.s || this._keys.a || this._keys.d
+  }
+
+  _stopFootsteps() {
+    if (this._footstepsPlaying) {
+      this._experience.sound?.stop('footsteps')
+      this._footstepsPlaying = false
+    }
+  }
+
   _onKeyDown(e) {
     switch (e.code) {
       case 'KeyW': case 'ArrowUp':    this._keys.w = true; break
       case 'KeyS': case 'ArrowDown':  this._keys.s = true; break
       case 'KeyA': case 'ArrowLeft':  this._keys.a = true; break
       case 'KeyD': case 'ArrowRight': this._keys.d = true; break
+    }
+    if (this._isAnyDirKey(e.code) && !this._footstepsPlaying && this.controls.isLocked && this.enabled) {
+      this._experience.sound?.play('footsteps')
+      this._footstepsPlaying = true
     }
   }
 
@@ -153,9 +182,13 @@ export default class FpsController {
       case 'KeyA': case 'ArrowLeft':  this._keys.a = false; break
       case 'KeyD': case 'ArrowRight': this._keys.d = false; break
     }
+    if (this._isAnyDirKey(e.code) && !this._hasAnyDirKey()) {
+      this._stopFootsteps()
+    }
   }
 
   dispose() {
+    this._stopFootsteps()
     window.removeEventListener('keydown', this._onKeyDown)
     window.removeEventListener('keyup',   this._onKeyUp)
     this._canvas.removeEventListener('click', this._onClick)

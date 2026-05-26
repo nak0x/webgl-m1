@@ -107,6 +107,7 @@ export default class HubWorld {
     if (screwBox)    interaction.registerProximity(screwBox,    'screw_box',   PROXIMITY.SCREW_BOX)
     if (door)        interaction.registerProximity(door,        'door',        PROXIMITY.DOOR)
 
+    const sound = this.experience.sound
     const steps = [
       {
         id:      'pick_wrench',
@@ -114,6 +115,8 @@ export default class HubWorld {
         hint:    'Approchez-vous et appuyez sur E',
         trigger: { type: 'interact', id: 'wrench' },
         onComplete: () => {
+          sound.play('pick_tool')
+          sound.play('quest_validate')
           wrench?.removeFromParent()
           interaction.unregister('wrench')
         },
@@ -124,6 +127,8 @@ export default class HubWorld {
         hint:    'Approchez-vous du tournevis et appuyez sur E',
         trigger: { type: 'interact', id: 'screwdriver' },
         onComplete: () => {
+          sound.play('pick_object')
+          sound.play('quest_validate')
           screwdriver?.removeFromParent()
           interaction.unregister('screwdriver')
         },
@@ -134,6 +139,8 @@ export default class HubWorld {
         hint:    'Approchez-vous de la boîte de vis et appuyez sur E',
         trigger: { type: 'interact', id: 'screw_box' },
         onComplete: () => {
+          sound.play('pick_object')
+          sound.play('quest_validate')
           screwBox?.removeFromParent()
           interaction.unregister('screw_box')
         },
@@ -144,6 +151,7 @@ export default class HubWorld {
         hint:    'Approchez-vous de la porte et appuyez sur E',
         trigger: { type: 'interact', id: 'door' },
         onComplete: (callbacks) => {
+          sound.play('door_open')
           callbacks.transitionTo?.('scene_3')
         },
       },
@@ -158,11 +166,22 @@ export default class HubWorld {
   update() {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
+
+    const moving = this._fps?.isMoving
+    if (moving && !this._footstepsPlaying) {
+      this._footstepsHandle  = this.experience.sound.play('footsteps')
+      this._footstepsPlaying = true
+    } else if (!moving && this._footstepsPlaying) {
+      this._footstepsHandle?.stop()
+      this._footstepsPlaying = false
+    }
   }
 
   resize() {}
 
   dispose() {
+    this._footstepsHandle?.stop()
+    this.experience.sound.stopAll()
     this._quest?.dispose()
     this.dialogue.dispose()
     this._fps?.dispose()

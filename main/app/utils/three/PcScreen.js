@@ -119,6 +119,12 @@ export default class PcScreen {
 <body>
   <p>CSS3D FRONT<br><span>dalle_css3d</span></p>
   <button onclick="window.parent.postMessage({type:'pcscreen:exit'},'*')">Quitter</button>
+  <script>
+    document.addEventListener('mousedown', () => window.parent.postMessage({type:'pcscreen:click'}, '*'))
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') window.parent.postMessage({type:'pcscreen:keydown'}, '*')
+    })
+  </script>
 </body>
 </html>`
     }
@@ -358,6 +364,8 @@ export default class PcScreen {
     this._tProg = 0
     this._trans = true
 
+    this._exp.sound?.stop('pc_keyboard')
+
     const el = this._cssRenderer.domElement
     el.style.pointerEvents = 'none'
     el.style.opacity = '0'
@@ -372,7 +380,24 @@ export default class PcScreen {
   }
 
   _onKey(e) { if (e.key === 'Escape') this.exit() }
-  _onMsg(e) { if (e.data?.type === 'pcscreen:exit') this.exit() }
+
+  _onMsg(e) {
+    const type = e.data?.type
+    if (type === 'pcscreen:exit') {
+      this.exit()
+      return
+    }
+    if (!this._active) return
+    if (type === 'pcscreen:click') {
+      this._exp.sound?.play('click')
+    } else if (type === 'pcscreen:keydown') {
+      const now = Date.now()
+      if (now - (this._lastKeySnd ?? 0) > 150) {
+        this._exp.sound?.play('pc_keyboard')
+        this._lastKeySnd = now
+      }
+    }
+  }
 
   _onTransitionEnd() {
     this._trans = false

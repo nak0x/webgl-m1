@@ -35,6 +35,7 @@ export default class AtelierWorld {
     this._setupPcScreen()
     this._setupQuest()
     this._exempleInteractionProximity()
+    this.sound.play('repair_ambient')
   }
 
   _setupLights() {
@@ -130,6 +131,16 @@ export default class AtelierWorld {
       Technicien: { freq: 380 },
     })
 
+    // Lunettes AR — son one-shot au premier lock (entrée dans la scène)
+    this._glassesPickPlayed = false
+    const onFirstLock = () => {
+      if (this._glassesPickPlayed) return
+      this._glassesPickPlayed = true
+      setTimeout(() => this.sound?.play('glasses_pick'), 300)
+      this._fps.controls.removeEventListener('lock', onFirstLock)
+    }
+    this._fps.controls.addEventListener('lock', onFirstLock)
+
     this._callbacks.onFpsReady?.(this._fps)
   }
 
@@ -167,6 +178,9 @@ export default class AtelierWorld {
           { speaker: 'Technicien', text: 'Votre mission : accéder au PC et récupérer le dossier.' },
           { speaker: 'Technicien', text: 'L\'outil dont vous aurez besoin est dans l\'atelier.' },
         ],
+        onComplete: () => {
+          this.sound.play('quest_validate')
+        },
       },
       {
         id:      'use_pc',
@@ -174,7 +188,9 @@ export default class AtelierWorld {
         hint:    'Approchez-vous du PC et appuyez sur E',
         trigger: { type: 'interact', id: 'pc' },
         onComplete: () => {
+          this.sound.play('pc_keyboard')
           this._pcScreen?.enter()
+          this.sound.play('quest_validate')
         },
       },
       {
@@ -183,6 +199,8 @@ export default class AtelierWorld {
         hint:    'L\'outil se trouve dans l\'atelier',
         trigger: { type: 'interact', id: 'tool' },
         onComplete: () => {
+          this.sound.play('pick_object')
+          this.sound.play('quest_validate')
           this.toolPickedUp = true
           tool?.removeFromParent()
           interaction.unregister('tool')
@@ -194,6 +212,7 @@ export default class AtelierWorld {
         hint:    'Approchez-vous de la porte et appuyez sur E',
         trigger: { type: 'interact', id: 'door' },
         onComplete: (callbacks) => {
+          this.sound.play('door_open')
           callbacks.transitionTo?.('scene_2')
         },
       },
@@ -209,25 +228,30 @@ export default class AtelierWorld {
     const { interaction } = this.experience
 
     interaction.on('proximity:enter', e => {
-      console.log('🟢', e)
       if (e.id === 'npc') {
-        console.log('Launch animation of the npc')
-        this.sound.play('proximity_enter')
+        this.sound.play('notification')
       }
     })
-    interaction.on('proximity:leave', e => {
-      console.log('🔴', e)
-      if (e.id === 'npc') {
-        console.log('Stop animation of the npc')
+    interaction.on('interact', e => {
+      if (e.id !== 'npc' && e.id !== 'pc' && e.id !== 'tool' && e.id !== 'door') {
+        this.sound.play('click')
       }
     })
-    interaction.on('interact',        e => console.log('⚡', e))
   }
 
   update() {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
     this._pcScreen?.update(this.experience.time.delta)
+
+    const moving = this._fps?.isMoving
+    if (moving && !this._footstepsPlaying) {
+      this._footstepsHandle  = this.sound.play('footsteps')
+      this._footstepsPlaying = true
+    } else if (!moving && this._footstepsPlaying) {
+      this._footstepsHandle?.stop()
+      this._footstepsPlaying = false
+    }
   }
 
   resize() {
@@ -235,6 +259,7 @@ export default class AtelierWorld {
   }
 
   dispose() {
+    this._footstepsHandle?.stop()
     this.sound.stopAll()
     this._quest?.dispose()
     this._voice?.dispose()

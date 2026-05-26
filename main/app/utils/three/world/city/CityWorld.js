@@ -37,6 +37,7 @@ export default class CityWorld {
     this._setupDebug()
     this._loadCitySky()    // async, applies atmosphere overrides after lights are ready
     this._setupChunks()    // async, fire-and-forget — chunks load progressively
+    this.experience.sound.play('city_ambient')
   }
 
   _setupLights() {
@@ -251,11 +252,22 @@ export default class CityWorld {
       const { x, z } = this.camera.instance.position
       this._chunks.update(x, z)
     }
+
+    const moving = this._fps?.isMoving
+    if (moving && !this._footstepsPlaying) {
+      this._footstepsHandle  = this.experience.sound.play('footsteps')
+      this._footstepsPlaying = true
+    } else if (!moving && this._footstepsPlaying) {
+      this._footstepsHandle?.stop()
+      this._footstepsPlaying = false
+    }
   }
 
   resize() {}
 
   dispose() {
+    this._footstepsHandle?.stop()
+    this.experience.sound.stopAll()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshair?.dispose()
