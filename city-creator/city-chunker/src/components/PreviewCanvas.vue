@@ -152,60 +152,63 @@ function _clearGroup(g) {
 
 // ── Collision map overlay ─────────────────────────────────────────────────────
 
-let collisionMesh = null
+let collisionMeshes = []
 
-function _disposeCollisionMesh() {
-  if (!collisionMesh) return
-  scene.value?.remove(collisionMesh)
-  collisionMesh.geometry?.dispose()
-  collisionMesh.material?.map?.dispose()
-  collisionMesh.material?.dispose()
-  collisionMesh = null
+function _disposeCollisionMeshes() {
+  for (const mesh of collisionMeshes) {
+    scene.value?.remove(mesh)
+    mesh.geometry?.dispose()
+    mesh.material?.map?.dispose()
+    mesh.material?.dispose()
+  }
+  collisionMeshes = []
 }
 
 function _buildCollisionPlane(data) {
-  _disposeCollisionMesh()
+  _disposeCollisionMeshes()
   if (!data || !scene.value) return
 
-  const { bin, meta } = data
-  const { pixelWidth, pixelHeight, worldMinX, worldMinZ, pfX, pfZ, minY, maxY } = meta
+  const { chunks, meta } = data
+  const { resolution, chunkSize, minY, maxY } = meta
   const sampleHeight = (minY + maxY) / 2
+  const pf = resolution / chunkSize
 
-  const bitfield = new Uint8Array(bin)
-  const imgData  = new ImageData(pixelWidth, pixelHeight)
-  for (let i = 0; i < pixelWidth * pixelHeight; i++) {
-    const bit  = (bitfield[i >> 3] >> (i & 7)) & 1
-    const base = i * 4
-    imgData.data[base    ] = 255
-    imgData.data[base + 1] = 255
-    imgData.data[base + 2] = 255
-    imgData.data[base + 3] = bit ? 140 : 0
+  for (const [chunkId, { bin }] of chunks) {
+    const [col, row] = chunkId.split('_').map(Number)
+    const worldMinX  = col * chunkSize
+    const worldMinZ  = row * chunkSize
+
+    const bitfield = new Uint8Array(bin)
+    const imgData  = new ImageData(resolution, resolution)
+    for (let i = 0; i < resolution * resolution; i++) {
+      const bit  = (bitfield[i >> 3] >> (i & 7)) & 1
+      const base = i * 4
+      imgData.data[base    ] = 255
+      imgData.data[base + 1] = 255
+      imgData.data[base + 2] = 255
+      imgData.data[base + 3] = bit ? 140 : 0
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width  = resolution
+    canvas.height = resolution
+    canvas.getContext('2d').putImageData(imgData, 0, 0)
+
+    const texture  = new THREE.CanvasTexture(canvas)
+    texture.flipY  = true
+    const geo      = new THREE.PlaneGeometry(chunkSize, chunkSize)
+    const mat      = new THREE.MeshBasicMaterial({
+      map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide,
+    })
+
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.position.set(worldMinX + chunkSize / 2, sampleHeight, worldMinZ + chunkSize / 2)
+    mesh.renderOrder = 1
+
+    collisionMeshes.push(mesh)
+    if (props.showCollisionMap) scene.value.add(mesh)
   }
-
-  const canvas = document.createElement('canvas')
-  canvas.width  = pixelWidth
-  canvas.height = pixelHeight
-  canvas.getContext('2d').putImageData(imgData, 0, 0)
-
-  // Plane size derived from the pixel grid, not the raw world extent:
-  // pixelWidth/pfX == worldW by construction (round(worldW*pf)/pf),
-  // so the plane always matches exactly what the rasteriser covered.
-  const planeW = pixelWidth  / pfX
-  const planeD = pixelHeight / pfZ
-
-  const texture  = new THREE.CanvasTexture(canvas)
-  texture.flipY  = true   // canvas row 0 (worldMinZ) → UV v=1 → worldMinZ in scene
-  const geo      = new THREE.PlaneGeometry(planeW, planeD)
-  const mat      = new THREE.MeshBasicMaterial({
-    map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide,
-  })
-
-  collisionMesh = new THREE.Mesh(geo, mat)
-  collisionMesh.rotation.x  = -Math.PI / 2
-  collisionMesh.position.set(worldMinX + planeW / 2, sampleHeight, worldMinZ + planeD / 2)
-  collisionMesh.renderOrder = 1
-
-  if (props.showCollisionMap) scene.value.add(collisionMesh)
 }
 
 // ── District loading ──────────────────────────────────────────────────────────
@@ -567,9 +570,11 @@ watch(() => props.chunkSize,        rebuildGrid)
 watch(() => props.manifest,         mf => { if (mf) updateHeatmap(mf) })
 watch(() => props.collisionData,    data => _buildCollisionPlane(data))
 watch(() => props.showCollisionMap, show => {
-  if (!collisionMesh || !scene.value) return
-  if (show) scene.value.add(collisionMesh)
-  else      scene.value.remove(collisionMesh)
+  for (const mesh of collisionMeshes) {
+    if (!scene.value) continue
+    if (show) scene.value.add(mesh)
+    else      scene.value.remove(mesh)
+  }
 })
 
 // Sync group transforms when offsets change externally (e.g. parent reset)

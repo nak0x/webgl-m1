@@ -67,6 +67,8 @@ export default class FpsController {
   get isLocked() { return this.controls.isLocked }
   lock()         { this.controls.lock() }
 
+  setCollisionManager(cm) { this._collisionManager = cm }
+
   hideCrosshair() { this._crosshairEl.style.opacity = '0' }
   showCrosshair() { if (this.controls.isLocked && !this._cinematicActive) this._crosshairEl.style.opacity = '1' }
 
@@ -126,7 +128,17 @@ export default class FpsController {
       this._velocity.y -= GRAVITY * dt
     }
 
-    this._capsule.translate(this._velocity.clone().multiplyScalar(dt))
+    const delta = this._velocity.clone().multiplyScalar(dt)
+    if (this._collisionManager) {
+      const { x, z } = this._capsule.end
+      const { dx, dz } = this._collisionManager.resolveMovement(x, z, delta.x, delta.z)
+      // Zero velocity on blocked axes so it doesn't accumulate while pressing into a wall
+      if (dx === 0 && delta.x !== 0) this._velocity.x = 0
+      if (dz === 0 && delta.z !== 0) this._velocity.z = 0
+      delta.x = dx
+      delta.z = dz
+    }
+    this._capsule.translate(delta)
     this._resolveCollisions()
     this._camera.position.copy(this._capsule.end)
   }

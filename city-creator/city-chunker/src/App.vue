@@ -19,11 +19,11 @@ const config = ref({
   lodErrors:   [0, 0.01, 0.05],
   previewOnly: false,
   collisionMap: {
-    enabled:         false,
-    minY:            0,
-    maxY:            2,
-    sliceCount:      10,
-    precisionFactor: 5,
+    enabled:    false,
+    minY:       0,
+    maxY:       2,
+    sliceCount: 10,
+    resolution: 1024,
   },
 })
 
@@ -44,19 +44,16 @@ const worldBounds = computed(() => {
   return { minX, minZ, maxX, maxZ }
 })
 
+const COLLISION_RESOLUTIONS = [256, 512, 1024, 2048, 4096, 8192, 16384, 24576]
+
 const collisionMapSizeEstimate = computed(() => {
-  if (!worldBounds.value) return null
-  const { minX, minZ, maxX, maxZ } = worldBounds.value
-  const f = config.value.collisionMap.precisionFactor
-  const w = Math.ceil((maxX - minX) * f)
-  const h = Math.ceil((maxZ - minZ) * f)
-  const binKB = Math.ceil((w * h) / 8 / 1024)
-  return { w, h, binKB }
+  const res = config.value.collisionMap.resolution
+  const binKB = Math.ceil((res * res) / 8 / 1024)
+  return { w: res, h: res, binKB }
 })
 
 const collisionMapTooLarge = computed(() => {
-  const est = collisionMapSizeEstimate.value
-  return est && est.w * est.h > 16_000_000
+  return config.value.collisionMap.resolution > 8192
 })
 
 function onFilesAdded(files) {
@@ -117,16 +114,17 @@ function onProcess() {
               v-model.number="config.collisionMap.sliceCount" />
           </div>
           <div class="field">
-            <label>Precision</label>
-            <input type="number" step="0.5" min="0.1" max="20"
-              v-model.number="config.collisionMap.precisionFactor" />
+            <label>Resolution</label>
+            <select v-model.number="config.collisionMap.resolution">
+              <option v-for="r in COLLISION_RESOLUTIONS" :key="r" :value="r">{{ r }}</option>
+            </select>
           </div>
-          <p v-if="collisionMapSizeEstimate" class="cmap-estimate">
-            {{ collisionMapSizeEstimate.w }} × {{ collisionMapSizeEstimate.h }} px —
+          <p class="cmap-estimate">
+            {{ collisionMapSizeEstimate.w }} × {{ collisionMapSizeEstimate.h }} px per chunk —
             .bin ≈ {{ collisionMapSizeEstimate.binKB }} KB
           </p>
           <p v-if="collisionMapTooLarge" class="cmap-warning">
-            ⚠ Bitmap exceeds 16 Mpx — consider reducing precision.
+            ⚠ Maps above 8192 px may be very large.
           </p>
         </template>
 

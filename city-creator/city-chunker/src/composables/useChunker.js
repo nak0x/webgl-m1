@@ -8,7 +8,7 @@ export function useChunker() {
   const error        = ref(null)
   const manifest     = ref(null)
   const totalChunks  = ref(0)
-  const collisionData = ref(null)  // { bin: ArrayBuffer, meta } — for viewport preview
+  const collisionData = ref(null)  // { chunks: Map<chunkId,{bin}>, meta } — for viewport preview
 
   const districtMap  = reactive(new Map())
   const lodCounts    = reactive({ 0: 0, 1: 0, 2: 0 })
@@ -30,23 +30,30 @@ export function useChunker() {
   let worker = null
 
   // State accumulated across messages before zipping
-  let _manifestObj     = null
-  let _collisionBin    = null
-  let _collisionBmp    = null
-  let _collisionMeta   = null
+  let _manifestObj      = null
+  let _collisionChunks  = null  // Map<chunkId, { bin: ArrayBuffer, bmp: ArrayBuffer }>
+  let _collisionMeta    = null
   let _collisionEnabled = false
 
   function _maybeZip() {
     if (!_manifestObj) return
-    if (_collisionEnabled && (!_collisionBin || !_collisionBmp)) return
+    // _collisionMeta arrives with 'collision_done' (after all 'collision_chunk_done' messages)
+    if (_collisionEnabled && !_collisionMeta) return
 
     const mf = { ..._manifestObj }
-    if (_collisionEnabled && _collisionMeta) {
+    if (_collisionEnabled && _collisionMeta && _collisionChunks) {
       mf.collisionMap = {
-        bin: 'collision.bin',
-        bmp: 'collision_debug.bmp',
-        ..._collisionMeta,
+        resolution: _collisionMeta.resolution,
+        minY:       _collisionMeta.minY,
+        maxY:       _collisionMeta.maxY,
+        sliceCount: _collisionMeta.sliceCount,
       }
+      mf.chunks = mf.chunks.map(chunk => {
+        if (_collisionChunks.has(chunk.id)) {
+          return { ...chunk, collision: { bin: `collision_${chunk.col}_${chunk.row}.bin` } }
+        }
+        return chunk
+      })
     }
 
     manifest.value    = mf
@@ -54,7 +61,7 @@ export function useChunker() {
     isRunning.value   = false
     worker            = null
 
-    _downloadZip(mf, _collisionBin, _collisionBmp)
+    _downloadZip(mf, _collisionChunks)
   }
 
   function start(files, config, offsets = []) {
@@ -68,8 +75,7 @@ export function useChunker() {
     districtMap.clear()
     lodCounts[0] = lodCounts[1] = lodCounts[2] = 0
     _manifestObj      = null
-    _collisionBin     = null
-    _collisionBmp     = null
+    _collisionChunks  = null
     _collisionMeta    = null
     _collisionEnabled = config.collisionMap?.enabled ?? false
 
@@ -93,11 +99,12 @@ export function useChunker() {
       } else if (msg.type === 'done') {
         _manifestObj = msg.manifest
         _maybeZip()
+      } else if (msg.type === 'collision_chunk_done') {
+        if (!_collisionChunks) _collisionChunks = new Map()
+        _collisionChunks.set(msg.chunkId, { bin: msg.bin, bmp: msg.bmp })
       } else if (msg.type === 'collision_done') {
-        _collisionBin  = msg.bin
-        _collisionBmp  = msg.bmp
         _collisionMeta = msg.meta
-        collisionData.value = { bin: msg.bin, meta: msg.meta }
+        collisionData.value = { chunks: _collisionChunks, meta: msg.meta }
         _maybeZip()
       } else if (msg.type === 'error') {
         error.value     = msg.message
@@ -142,21 +149,25 @@ export function useChunker() {
     chunks.value        = []
     isRunning.value     = false
     _manifestObj        = null
-    _collisionBin       = null
-    _collisionBmp       = null
+    _collisionChunks    = null
     _collisionMeta      = null
     _collisionEnabled   = false
   }
 
-  function _downloadZip(mf, collisionBin, collisionBmp) {
+  function _downloadZip(mf, collisionChunks) {
     const entries = {}
     for (const chunk of chunks.value) {
       entries[chunk.gltfFilename] = new TextEncoder().encode(chunk.gltf)
     }
     entries['manifest.json'] = new TextEncoder().encode(JSON.stringify(mf, null, 2))
 
-    if (collisionBin) entries['collision.bin']       = new Uint8Array(collisionBin)
-    if (collisionBmp) entries['collision_debug.bmp'] = new Uint8Array(collisionBmp)
+    if (collisionChunks) {
+      for (const [chunkId, { bin, bmp }] of collisionChunks) {
+        const [col, row] = chunkId.split('_').map(Number)
+        entries[`collision_${col}_${row}.bin`]       = new Uint8Array(bin)
+        entries[`collision_${col}_${row}_debug.bmp`] = new Uint8Array(bmp)
+      }
+    }
 
     const zipped = zipSync(entries)
     const blob   = new Blob([zipped], { type: 'application/zip' })

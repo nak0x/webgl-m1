@@ -360,87 +360,9 @@ function rasteriseTriangleXZ(
   }
 }
 
-function generateCollisionBitmap(
-  globalBuckets,    // Map<string, Float32Array[]>
-  minY, maxY, sliceCount,
-  precisionFactor,
-  minCol, minRow,   // signed grid extents derived from bucket keys
-  maxCol, maxRow,
-  chunkSize,
-  onProgress
-) {
-  const worldMinX = minCol * chunkSize
-  const worldMinZ = minRow * chunkSize
-  const worldMaxX = (maxCol + 1) * chunkSize
-  const worldMaxZ = (maxRow + 1) * chunkSize
-  const worldW = worldMaxX - worldMinX
-  const worldD = worldMaxZ - worldMinZ
-
-  // Round pixel dimensions to the nearest integer then derive exact per-axis
-  // factors from those integers.  This guarantees that the rasteriser and the
-  // texture-plane display share an identical pixel grid regardless of what
-  // precisionFactor the user entered — eliminates all ceil/floor stretch.
-  const pixelWidth  = Math.max(1, Math.round(worldW * precisionFactor))
-  const pixelHeight = Math.max(1, Math.round(worldD * precisionFactor))
-  const pfX = pixelWidth  / worldW
-  const pfZ = pixelHeight / worldD
-
-  const bitmap = new Uint8Array(pixelWidth * pixelHeight)
-
-  // Pre-compute slice heights (linspace from minY to maxY).
-  // sliceCount=1 → single slice at the midpoint.
-  const slices = new Float64Array(sliceCount)
-  if (sliceCount === 1) {
-    slices[0] = (minY + maxY) / 2
-  } else {
-    const step = (maxY - minY) / (sliceCount - 1)
-    for (let s = 0; s < sliceCount; s++) slices[s] = minY + s * step
-  }
-
-  let totalTriangles = 0
-  for (const arrays of globalBuckets.values())
-    for (const arr of arrays) totalTriangles += arr.length / 9
-
-  let processed = 0
-
-  for (const arrays of globalBuckets.values()) {
-    for (const arr of arrays) {
-      const count = arr.length
-      for (let i = 0; i < count; i += 9) {
-        const y0 = arr[i+1], y1 = arr[i+4], y2 = arr[i+7]
-        const yMin = Math.min(y0, y1, y2)
-        const yMax = Math.max(y0, y1, y2)
-
-        // Quick range reject before the inner slice scan.
-        if (yMax >= minY && yMin <= maxY) {
-          // Find the first slice that intersects this triangle and rasterize once.
-          // Break immediately — bitmap is binary OR so re-rasterizing is redundant.
-          for (let s = 0; s < sliceCount; s++) {
-            if (yMin <= slices[s] && yMax >= slices[s]) {
-              rasteriseTriangleXZ(
-                arr[i],   arr[i+2],
-                arr[i+3], arr[i+5],
-                arr[i+6], arr[i+8],
-                worldMinX, worldMinZ, pfX, pfZ,
-                pixelWidth, pixelHeight, bitmap
-              )
-              break
-            }
-          }
-        }
-
-        processed++
-        if (processed % 100_000 === 0 && onProgress)
-          onProgress(processed / totalTriangles)
-      }
-    }
-  }
-
-  return {
-    bitmap,
-    meta: { worldMinX, worldMinZ, worldMaxX, worldMaxZ, pixelWidth, pixelHeight, minY, maxY, sliceCount, pfX, pfZ }
-  }
-}
+// BMP export threshold — at resolutions above this, the 24-bit BMP would be
+// hundreds of MB per chunk and cause OOM; skip it and only export the .bin.
+const BMP_MAX_RESOLUTION = 2048
 
 function packBitfield(bitmap, pixelWidth, pixelHeight) {
   const bitfieldSize = Math.ceil((pixelWidth * pixelHeight) / 8)
@@ -574,38 +496,81 @@ self.onmessage = async function ({ data }) {
       indices   = null
     }
 
-    // --- Collision bitmap (generated while globalBuckets is fully intact) ---
+    // --- Per-chunk collision bitmaps (generated while globalBuckets is fully intact) ---
+    // Each chunk is transferred immediately after rasterisation to avoid accumulating
+    // all bitmaps in memory simultaneously (192 MB/chunk at 8192 px would OOM quickly).
     if (collisionMapConfig.enabled && globalBuckets.size > 0) {
       self.postMessage({ type: 'progress', stage: 'collision', pct: 0 })
 
-      let minCol = Infinity, minRow = Infinity, maxCol = -Infinity, maxRow = -Infinity
-      for (const key of globalBuckets.keys()) {
-        const [c, r] = key.split('_').map(Number)
-        if (c < minCol) minCol = c
-        if (r < minRow) minRow = r
-        if (c > maxCol) maxCol = c
-        if (r > maxRow) maxRow = r
+      const resolution  = collisionMapConfig.resolution  ?? 1024
+      const minY        = collisionMapConfig.minY        ?? 0
+      const maxY        = collisionMapConfig.maxY        ?? 2
+      const sliceCount  = collisionMapConfig.sliceCount  ?? 10
+      const pf          = resolution / chunkSize
+      const wantBmp     = resolution <= BMP_MAX_RESOLUTION
+
+      const slices = new Float64Array(sliceCount)
+      if (sliceCount === 1) {
+        slices[0] = (minY + maxY) / 2
+      } else {
+        const step = (maxY - minY) / (sliceCount - 1)
+        for (let s = 0; s < sliceCount; s++) slices[s] = minY + s * step
       }
 
-      let { bitmap, meta } = generateCollisionBitmap(
-        globalBuckets,
-        collisionMapConfig.minY        ?? 0,
-        collisionMapConfig.maxY        ?? 2,
-        collisionMapConfig.sliceCount  ?? 10,
-        collisionMapConfig.precisionFactor ?? 5,
-        minCol, minRow,
-        maxCol, maxRow, chunkSize,
-        (pct) => self.postMessage({ type: 'progress', stage: 'collision', pct })
-      )
+      let totalTriangles = 0
+      for (const arrays of globalBuckets.values())
+        for (const arr of arrays) totalTriangles += arr.length / 9
+      let processed = 0
 
-      const binBuffer = packBitfield(bitmap, meta.pixelWidth, meta.pixelHeight)
-      const bmpBuffer = buildBMP(bitmap, meta.pixelWidth, meta.pixelHeight)
-      bitmap = null  // allow GC before buffer transfers
+      for (const [chunkId, arrays] of globalBuckets) {
+        const [col, row] = chunkId.split('_').map(Number)
+        const worldMinX  = col * chunkSize
+        const worldMinZ  = row * chunkSize
 
-      self.postMessage(
-        { type: 'collision_done', bin: binBuffer, bmp: bmpBuffer, meta },
-        [binBuffer, bmpBuffer]
-      )
+        let bitmap = new Uint8Array(resolution * resolution)
+
+        for (const arr of arrays) {
+          const count = arr.length
+          for (let i = 0; i < count; i += 9) {
+            const y0 = arr[i+1], y1 = arr[i+4], y2 = arr[i+7]
+            const yMin = Math.min(y0, y1, y2)
+            const yMax = Math.max(y0, y1, y2)
+
+            if (yMax >= minY && yMin <= maxY) {
+              for (let s = 0; s < sliceCount; s++) {
+                if (yMin <= slices[s] && yMax >= slices[s]) {
+                  rasteriseTriangleXZ(
+                    arr[i],   arr[i+2],
+                    arr[i+3], arr[i+5],
+                    arr[i+6], arr[i+8],
+                    worldMinX, worldMinZ, pf, pf,
+                    resolution, resolution, bitmap
+                  )
+                  break
+                }
+              }
+            }
+
+            processed++
+            if (processed % 100_000 === 0)
+              self.postMessage({ type: 'progress', stage: 'collision', pct: processed / totalTriangles })
+          }
+        }
+
+        const binBuffer = packBitfield(bitmap, resolution, resolution)
+        const bmpBuffer = wantBmp ? buildBMP(bitmap, resolution, resolution) : null
+        bitmap = null  // allow GC before transfer
+
+        const transferList = [binBuffer]
+        if (bmpBuffer) transferList.push(bmpBuffer)
+
+        self.postMessage(
+          { type: 'collision_chunk_done', chunkId, bin: binBuffer, bmp: bmpBuffer },
+          transferList
+        )
+      }
+
+      self.postMessage({ type: 'collision_done', meta: { resolution, chunkSize, pf, minY, maxY, sliceCount } })
     }
 
     // --- Simplify + export pass ---
