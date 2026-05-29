@@ -99,8 +99,10 @@ onBeforeUnmount(() => {
 .glasses-filter {
   position: absolute;
   inset: 0;
-  background: rgba(0, 185, 253, 0.30);
-  mix-blend-mode: screen;
+  background-image: url('/images/filtre-vue-ar.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.15;
 }
 
 .glasses-ui {

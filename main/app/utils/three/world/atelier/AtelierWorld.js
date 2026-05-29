@@ -27,6 +27,7 @@ export default class AtelierWorld {
     experience.setDialogue(this.dialogue)
 
     this._glasses = new GlassesManager()
+    experience.setGlasses(this._glasses)
     this._callbacks.onGlassesReady?.(this._glasses)
 
     this.resources.on('ready', () => this._setup())

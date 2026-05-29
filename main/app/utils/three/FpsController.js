@@ -158,6 +158,7 @@ export default class FpsController {
       case 'KeyS': case 'ArrowDown':  this._keys.s = true; break
       case 'KeyA': case 'ArrowLeft':  this._keys.a = true; break
       case 'KeyD': case 'ArrowRight': this._keys.d = true; break
+      case 'KeyG': this._experience.glasses?.toggle(); break
     }
   }
 
