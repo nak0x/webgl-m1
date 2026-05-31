@@ -8,8 +8,8 @@ export function useChunker() {
   const error        = ref(null)
   const manifest     = ref(null)
   const totalChunks  = ref(0)
-  const collisionData = ref(null)  // { chunks: Map<chunkId,{bin}>, meta } — for viewport preview
 
+  // Keyed by district index; updated on each progress message with district field
   const districtMap  = reactive(new Map())
   const lodCounts    = reactive({ 0: 0, 1: 0, 2: 0 })
 
@@ -29,55 +29,15 @@ export function useChunker() {
 
   let worker = null
 
-  // State accumulated across messages before zipping
-  let _manifestObj      = null
-  let _collisionChunks  = null  // Map<chunkId, { bin: ArrayBuffer, bmp: ArrayBuffer }>
-  let _collisionMeta    = null
-  let _collisionEnabled = false
-
-  function _maybeZip() {
-    if (!_manifestObj) return
-    // _collisionMeta arrives with 'collision_done' (after all 'collision_chunk_done' messages)
-    if (_collisionEnabled && !_collisionMeta) return
-
-    const mf = { ..._manifestObj }
-    if (_collisionEnabled && _collisionMeta && _collisionChunks) {
-      mf.collisionMap = {
-        resolution: _collisionMeta.resolution,
-        minY:       _collisionMeta.minY,
-        maxY:       _collisionMeta.maxY,
-        sliceCount: _collisionMeta.sliceCount,
-      }
-      mf.chunks = mf.chunks.map(chunk => {
-        if (_collisionChunks.has(chunk.id)) {
-          return { ...chunk, collision: { bin: `collision_${chunk.col}_${chunk.row}.bin` } }
-        }
-        return chunk
-      })
-    }
-
-    manifest.value    = mf
-    totalChunks.value = mf.chunks.length
-    isRunning.value   = false
-    worker            = null
-
-    _downloadZip(mf, _collisionChunks)
-  }
-
   function start(files, config, offsets = []) {
     cancel()
-    chunks.value       = []
-    error.value        = null
-    manifest.value     = null
-    totalChunks.value  = 0
-    collisionData.value = null
-    isRunning.value    = true
+    chunks.value      = []
+    error.value       = null
+    manifest.value    = null
+    totalChunks.value = 0
+    isRunning.value   = true
     districtMap.clear()
     lodCounts[0] = lodCounts[1] = lodCounts[2] = 0
-    _manifestObj      = null
-    _collisionChunks  = null
-    _collisionMeta    = null
-    _collisionEnabled = config.collisionMap?.enabled ?? false
 
     worker = new ChunkerWorker()
 
@@ -97,15 +57,11 @@ export function useChunker() {
         }]
         lodCounts[msg.lod]++
       } else if (msg.type === 'done') {
-        _manifestObj = msg.manifest
-        _maybeZip()
-      } else if (msg.type === 'collision_chunk_done') {
-        if (!_collisionChunks) _collisionChunks = new Map()
-        _collisionChunks.set(msg.chunkId, { bin: msg.bin, bmp: msg.bmp })
-      } else if (msg.type === 'collision_done') {
-        _collisionMeta = msg.meta
-        collisionData.value = { chunks: _collisionChunks, meta: msg.meta }
-        _maybeZip()
+        manifest.value    = msg.manifest
+        totalChunks.value = msg.manifest.chunks.length
+        isRunning.value   = false
+        worker            = null
+        _downloadZip(msg.manifest)
       } else if (msg.type === 'error') {
         error.value     = msg.message
         isRunning.value = false
@@ -123,16 +79,15 @@ export function useChunker() {
       if (!worker) return
       worker.postMessage(
         {
-          type:         'start',
-          districts:    buffers,
-          offsets:      offsets.map(o => ({ x: o?.x ?? 0, z: o?.z ?? 0, angle: o?.angle ?? 0 })),
-          chunkSize:    config.chunkSize,
-          lodRatios:    [...(config.lodRatios   ?? [1.0, 0.25, 0.06])],
-          lodErrors:    [...(config.lodErrors   ?? [0, 0.01, 0.05])],
-          previewOnly:  config.previewOnly ?? false,
-          collisionMap: { ...(config.collisionMap ?? { enabled: false }) },
+          type:        'start',
+          districts:   buffers,
+          offsets:     offsets.map(o => ({ x: o?.x ?? 0, z: o?.z ?? 0 })),
+          chunkSize:   config.chunkSize,
+          lodRatios:   [...(config.lodRatios   ?? [1.0, 0.25, 0.06])],
+          lodErrors:   [...(config.lodErrors   ?? [0, 0.01, 0.05])],
+          previewOnly: config.previewOnly ?? false,
         },
-        buffers
+        buffers  // only ArrayBuffers are transferred; offsets are plain objects (structured clone)
       )
     }).catch(err => {
       error.value     = err.message
@@ -146,28 +101,17 @@ export function useChunker() {
       worker.terminate()
       worker = null
     }
-    chunks.value        = []
-    isRunning.value     = false
-    _manifestObj        = null
-    _collisionChunks    = null
-    _collisionMeta      = null
-    _collisionEnabled   = false
+    chunks.value    = []
+    isRunning.value = false
   }
 
-  function _downloadZip(mf, collisionChunks) {
+  function _downloadZip(mf) {
+    // Each .gltf is self-contained (binary embedded as base64 data URI) — one file per chunk
     const entries = {}
     for (const chunk of chunks.value) {
       entries[chunk.gltfFilename] = new TextEncoder().encode(chunk.gltf)
     }
     entries['manifest.json'] = new TextEncoder().encode(JSON.stringify(mf, null, 2))
-
-    if (collisionChunks) {
-      for (const [chunkId, { bin, bmp }] of collisionChunks) {
-        const [col, row] = chunkId.split('_').map(Number)
-        entries[`collision_${col}_${row}.bin`]       = new Uint8Array(bin)
-        entries[`collision_${col}_${row}_debug.bmp`] = new Uint8Array(bmp)
-      }
-    }
 
     const zipped = zipSync(entries)
     const blob   = new Blob([zipped], { type: 'application/zip' })
@@ -180,5 +124,5 @@ export function useChunker() {
     chunks.value = []
   }
 
-  return { isRunning, chunks, error, manifest, collisionData, districtProgress, lodProgress, start, cancel }
+  return { isRunning, chunks, error, manifest, districtProgress, lodProgress, start, cancel }
 }

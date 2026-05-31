@@ -8,12 +8,12 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { useToast } from '../composables/useToast.js'
 
 const props = defineProps({
-  districts:        { type: Array,   default: () => [] },
-  offsets:          { type: Array,   default: () => [] },
-  chunkSize:        { type: Number,  default: 64 },
-  manifest:         { type: Object,  default: null },
-  collisionData:    { type: Object,  default: null },  // { bin: ArrayBuffer, meta }
-  showCollisionMap: { type: Boolean, default: false },
+  districts: { type: Array,  default: () => [] },
+  // [{ x, z, angle }, …] — x/z = centroid world position, angle = Y rotation (radians)
+  // null entry = unset, PreviewCanvas will emit the natural centroid on load
+  offsets:   { type: Array,  default: () => [] },
+  chunkSize: { type: Number, default: 64 },
+  manifest:  { type: Object, default: null },
 })
 
 const emit = defineEmits(['offset-changed'])
@@ -147,67 +147,6 @@ function _clearGroup(g) {
     const c = g.children[0]
     if (c.isMesh || c.isLine || c.isLineSegments) { c.geometry?.dispose(); c.material?.dispose() }
     g.remove(c)
-  }
-}
-
-// ── Collision map overlay ─────────────────────────────────────────────────────
-
-let collisionMeshes = []
-
-function _disposeCollisionMeshes() {
-  for (const mesh of collisionMeshes) {
-    scene.value?.remove(mesh)
-    mesh.geometry?.dispose()
-    mesh.material?.map?.dispose()
-    mesh.material?.dispose()
-  }
-  collisionMeshes = []
-}
-
-function _buildCollisionPlane(data) {
-  _disposeCollisionMeshes()
-  if (!data || !scene.value) return
-
-  const { chunks, meta } = data
-  const { resolution, chunkSize, minY, maxY } = meta
-  const sampleHeight = (minY + maxY) / 2
-  const pf = resolution / chunkSize
-
-  for (const [chunkId, { bin }] of chunks) {
-    const [col, row] = chunkId.split('_').map(Number)
-    const worldMinX  = col * chunkSize
-    const worldMinZ  = row * chunkSize
-
-    const bitfield = new Uint8Array(bin)
-    const imgData  = new ImageData(resolution, resolution)
-    for (let i = 0; i < resolution * resolution; i++) {
-      const bit  = (bitfield[i >> 3] >> (i & 7)) & 1
-      const base = i * 4
-      imgData.data[base    ] = 255
-      imgData.data[base + 1] = 255
-      imgData.data[base + 2] = 255
-      imgData.data[base + 3] = bit ? 140 : 0
-    }
-
-    const canvas = document.createElement('canvas')
-    canvas.width  = resolution
-    canvas.height = resolution
-    canvas.getContext('2d').putImageData(imgData, 0, 0)
-
-    const texture  = new THREE.CanvasTexture(canvas)
-    texture.flipY  = true
-    const geo      = new THREE.PlaneGeometry(chunkSize, chunkSize)
-    const mat      = new THREE.MeshBasicMaterial({
-      map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide,
-    })
-
-    const mesh = new THREE.Mesh(geo, mat)
-    mesh.rotation.x = -Math.PI / 2
-    mesh.position.set(worldMinX + chunkSize / 2, sampleHeight, worldMinZ + chunkSize / 2)
-    mesh.renderOrder = 1
-
-    collisionMeshes.push(mesh)
-    if (props.showCollisionMap) scene.value.add(mesh)
   }
 }
 
@@ -565,17 +504,9 @@ function onPointerUp(e) {
 
 // ── Watchers ──────────────────────────────────────────────────────────────────
 
-watch(() => props.districts,        loadDistricts, { immediate: false })
-watch(() => props.chunkSize,        rebuildGrid)
-watch(() => props.manifest,         mf => { if (mf) updateHeatmap(mf) })
-watch(() => props.collisionData,    data => _buildCollisionPlane(data))
-watch(() => props.showCollisionMap, show => {
-  for (const mesh of collisionMeshes) {
-    if (!scene.value) continue
-    if (show) scene.value.add(mesh)
-    else      scene.value.remove(mesh)
-  }
-})
+watch(() => props.districts, loadDistricts, { immediate: false })
+watch(() => props.chunkSize, rebuildGrid)
+watch(() => props.manifest,  mf => { if (mf) updateHeatmap(mf) })
 
 // Sync group transforms when offsets change externally (e.g. parent reset)
 watch(() => props.offsets, newOffsets => {
@@ -602,7 +533,6 @@ onBeforeUnmount(() => {
     dom.removeEventListener('pointerleave', onPointerUp)
   }
   _clearDistrictGroups()
-  _disposeCollisionMesh()
   dracoLoader.dispose()
   renderer.value?.dispose()
 })

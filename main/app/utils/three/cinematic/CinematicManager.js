@@ -155,7 +155,8 @@ export default class CinematicManager extends EventEmitter {
 
     if (this._video) {
       this._video.pause()
-      this._video.src = ''
+      this._video.removeAttribute('src')
+      this._video.load()
       this._video = null
     }
     if (this._bgMesh) {

@@ -15,8 +15,7 @@ html, body, #app {
   line-height: 1.5;
 }
 
-input[type="number"],
-select {
+input[type="number"] {
   background: #161b22;
   border: 1px solid #30363d;
   color: #c9d1d9;
@@ -26,8 +25,7 @@ select {
   font-size: 13px;
   font-family: inherit;
 }
-input[type="number"]:focus,
-select:focus {
+input[type="number"]:focus {
   outline: none;
   border-color: #3d9eff;
 }

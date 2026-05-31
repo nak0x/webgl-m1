@@ -6,6 +6,7 @@ import CityWorld              from './city/CityWorld.js'
 import CitySources            from './city/CitySources.js'
 import AtelierEndSceneWorld   from './atelier_end/AtelierEndSceneWorld.js'
 import AtelierEndSceneSources from './atelier_end/AtelierEndSceneSources.js'
+import { assetPath }  from '../../assetPath.js'
 
 export const SCENES = {
   'scene_1': {
@@ -22,7 +23,7 @@ export const SCENES = {
         ],
       },
       // Décommenter quand la vidéo Blender est prête :
-      { type: 'video', src: '/videos/intro_atelier.mp4' },
+      { type: 'video', src: assetPath('/videos/intro_atelier.mp4') },
     ],
   },
 

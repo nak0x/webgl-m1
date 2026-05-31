@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import DropZone from './components/DropZone.vue'
 import ChunkConfig from './components/ChunkConfig.vue'
 import PreviewCanvas from './components/PreviewCanvas.vue'
@@ -7,11 +7,14 @@ import ProgressPanel from './components/ProgressPanel.vue'
 import ToastStack from './components/ToastStack.vue'
 import { useChunker } from './composables/useChunker.js'
 
+// Colour palette — must match PreviewCanvas DISTRICT_COLORS order
 const DISTRICT_COLORS = ['#3d9eff', '#f0a742', '#2ea043', '#e25555', '#c9a0ff']
 
 const districts       = ref([])
-const districtOffsets = ref([])
-const _offsetByName   = new Map()
+const districtOffsets = ref([])   // [{ x, z }, …] — parallel to districts
+
+// Persist offsets by filename so reorder/re-add keeps the last known position
+const _offsetByName = new Map()
 
 const config = ref({
   chunkSize:   64,
@@ -19,42 +22,15 @@ const config = ref({
   lodErrors:   [0, 0.01, 0.05],
   previewOnly: false,
   collisionMap: {
-    enabled:    false,
+    enabled:    true,
+    resolution: 1024,
     minY:       0,
     maxY:       2,
     sliceCount: 10,
-    resolution: 1024,
   },
 })
 
-const { isRunning, error, manifest, collisionData, districtProgress, lodProgress, start, cancel } = useChunker()
-
-const showCollisionMap = ref(false)
-
-// World bounds derived from manifest chunk AABBs (available after processing)
-const worldBounds = computed(() => {
-  if (!manifest.value?.chunks?.length) return null
-  let minX = Infinity, minZ = Infinity, maxX = -Infinity, maxZ = -Infinity
-  for (const c of manifest.value.chunks) {
-    if (c.aabb.min[0] < minX) minX = c.aabb.min[0]
-    if (c.aabb.min[2] < minZ) minZ = c.aabb.min[2]
-    if (c.aabb.max[0] > maxX) maxX = c.aabb.max[0]
-    if (c.aabb.max[2] > maxZ) maxZ = c.aabb.max[2]
-  }
-  return { minX, minZ, maxX, maxZ }
-})
-
-const COLLISION_RESOLUTIONS = [256, 512, 1024, 2048, 4096, 8192, 16384, 24576]
-
-const collisionMapSizeEstimate = computed(() => {
-  const res = config.value.collisionMap.resolution
-  const binKB = Math.ceil((res * res) / 8 / 1024)
-  return { w: res, h: res, binKB }
-})
-
-const collisionMapTooLarge = computed(() => {
-  return config.value.collisionMap.resolution > 8192
-})
+const { isRunning, error, manifest, districtProgress, lodProgress, start, cancel } = useChunker()
 
 function onFilesAdded(files) {
   districts.value = files
@@ -71,10 +47,6 @@ function onOffsetChanged({ index, x, z, angle }) {
   districtOffsets.value = districtOffsets.value.map((o, i) => i === index ? off : o)
 }
 
-function onChunkConfigUpdate(cfg) {
-  config.value = { ...config.value, ...cfg }
-}
-
 function onProcess() {
   if (!districts.value.length) return
   start(districts.value, config.value, districtOffsets.value)
@@ -86,53 +58,7 @@ function onProcess() {
     <aside class="left-panel">
       <div class="logo">City Chunker</div>
       <DropZone @files-added="onFilesAdded" />
-      <ChunkConfig @update:config="onChunkConfigUpdate" />
-
-      <!-- Collision Map settings -->
-      <div class="section">
-        <div class="section-title">Collision Map</div>
-
-        <label class="toggle-row">
-          <input type="checkbox" v-model="config.collisionMap.enabled" />
-          <span>Generate collision map</span>
-        </label>
-
-        <template v-if="config.collisionMap.enabled">
-          <div class="field">
-            <label>Min Y (m)</label>
-            <input type="number" step="0.1" min="-50" max="50"
-              v-model.number="config.collisionMap.minY" />
-          </div>
-          <div class="field">
-            <label>Max Y (m)</label>
-            <input type="number" step="0.1" min="-50" max="50"
-              v-model.number="config.collisionMap.maxY" />
-          </div>
-          <div class="field">
-            <label>Slices</label>
-            <input type="number" step="1" min="1" max="64"
-              v-model.number="config.collisionMap.sliceCount" />
-          </div>
-          <div class="field">
-            <label>Resolution</label>
-            <select v-model.number="config.collisionMap.resolution">
-              <option v-for="r in COLLISION_RESOLUTIONS" :key="r" :value="r">{{ r }}</option>
-            </select>
-          </div>
-          <p class="cmap-estimate">
-            {{ collisionMapSizeEstimate.w }} × {{ collisionMapSizeEstimate.h }} px per chunk —
-            .bin ≈ {{ collisionMapSizeEstimate.binKB }} KB
-          </p>
-          <p v-if="collisionMapTooLarge" class="cmap-warning">
-            ⚠ Maps above 8192 px may be very large.
-          </p>
-        </template>
-
-        <label v-if="collisionData" class="toggle-row">
-          <input type="checkbox" v-model="showCollisionMap" />
-          <span>Show collision overlay</span>
-        </label>
-      </div>
+      <ChunkConfig @update:config="cfg => config = cfg" />
 
       <div class="action-row">
         <button v-if="!isRunning" class="process-btn" :disabled="!districts.length" @click="onProcess">
@@ -156,11 +82,10 @@ function onProcess() {
         :offsets="districtOffsets"
         :chunk-size="config.chunkSize"
         :manifest="manifest"
-        :collision-data="collisionData"
-        :show-collision-map="showCollisionMap"
         @offset-changed="onOffsetChanged"
       />
 
+      <!-- Offset legend — shows each district's current XZ position -->
       <div v-if="districts.length" class="offset-legend">
         <div v-for="(d, i) in districts" :key="d.name" class="legend-row">
           <span class="legend-dot" :style="{ background: DISTRICT_COLORS[i % DISTRICT_COLORS.length] }"></span>
@@ -254,58 +179,7 @@ function onProcess() {
   word-break: break-word;
 }
 
-/* Collision map section */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.section-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #6e7681;
-}
-
-.field {
-  display: grid;
-  grid-template-columns: 80px 1fr;
-  align-items: center;
-  gap: 8px;
-}
-
-.field label {
-  color: #8b949e;
-  font-size: 12px;
-}
-
-.toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  color: #8b949e;
-}
-
-.toggle-row input[type="checkbox"] {
-  accent-color: #3d9eff;
-}
-
-.cmap-estimate {
-  margin: 0;
-  font-size: 11px;
-  color: #6e7681;
-}
-
-.cmap-warning {
-  margin: 0;
-  font-size: 11px;
-  color: #e3b341;
-}
-
-/* Offset legend */
+/* Offset legend — bottom-left of the 3D canvas */
 .offset-legend {
   position: absolute;
   bottom: 12px;

@@ -310,123 +310,13 @@ function _filterNaNTriangles(src) {
 }
 
 // ---------------------------------------------------------------------------
-// Collision bitmap — rasterisation, packing, BMP export
-// ---------------------------------------------------------------------------
-
-function rasteriseTriangleXZ(
-  x0, z0, x1, z1, x2, z2,
-  worldMinX, worldMinZ, pfX, pfZ,
-  pixelWidth, pixelHeight, bitmap
-) {
-  let px0 = Math.floor((x0 - worldMinX) * pfX)
-  let pz0 = Math.floor((z0 - worldMinZ) * pfZ)
-  let px1 = Math.floor((x1 - worldMinX) * pfX)
-  let pz1 = Math.floor((z1 - worldMinZ) * pfZ)
-  let px2 = Math.floor((x2 - worldMinX) * pfX)
-  let pz2 = Math.floor((z2 - worldMinZ) * pfZ)
-
-  // Sort vertices by pz ascending (bubble sort — 3 elements)
-  if (pz0 > pz1) { let t=px0;px0=px1;px1=t; t=pz0;pz0=pz1;pz1=t }
-  if (pz1 > pz2) { let t=px1;px1=px2;px2=t; t=pz1;pz1=pz2;pz2=t }
-  if (pz0 > pz1) { let t=px0;px0=px1;px1=t; t=pz0;pz0=pz1;pz1=t }
-
-  const totalHeight = pz2 - pz0
-  if (totalHeight === 0) return
-
-  for (let pz = pz0; pz <= pz2; pz++) {
-    if (pz < 0 || pz >= pixelHeight) continue
-
-    const secondHalf = pz >= pz1
-    const segHeight  = secondHalf ? (pz2 - pz1) : (pz1 - pz0)
-
-    const alpha = (pz - pz0) / totalHeight
-    const beta  = segHeight === 0 ? 0
-                : secondHalf ? (pz - pz1) / segHeight
-                             : (pz - pz0) / segHeight
-
-    let xA = px0 + (px2 - px0) * alpha
-    let xB = secondHalf
-      ? px1 + (px2 - px1) * beta
-      : px0 + (px1 - px0) * beta
-
-    if (xA > xB) { let t = xA; xA = xB; xB = t }
-
-    const xLeft  = Math.max(0, Math.floor(xA))
-    const xRight = Math.min(pixelWidth - 1, Math.ceil(xB))
-
-    for (let px = xLeft; px <= xRight; px++) {
-      bitmap[pz * pixelWidth + px] = 1
-    }
-  }
-}
-
-// BMP export threshold — at resolutions above this, the 24-bit BMP would be
-// hundreds of MB per chunk and cause OOM; skip it and only export the .bin.
-const BMP_MAX_RESOLUTION = 2048
-
-function packBitfield(bitmap, pixelWidth, pixelHeight) {
-  const bitfieldSize = Math.ceil((pixelWidth * pixelHeight) / 8)
-  const bitfield = new Uint8Array(bitfieldSize)
-  for (let i = 0; i < pixelWidth * pixelHeight; i++) {
-    if (bitmap[i]) bitfield[i >> 3] |= (1 << (i & 7))
-  }
-  return bitfield.buffer
-}
-
-function buildBMP(bitmap, width, height) {
-  const rowStride    = (width * 3 + 3) & ~3
-  const pixelDataSize = rowStride * height
-  const fileSize     = 54 + pixelDataSize
-
-  const buf  = new ArrayBuffer(fileSize)
-  const view = new DataView(buf)
-
-  // File header (14 bytes)
-  view.setUint16(0, 0x4D42, true)
-  view.setUint32(2, fileSize, true)
-  view.setUint32(6, 0, true)
-  view.setUint32(10, 54, true)
-
-  // DIB header — BITMAPINFOHEADER (40 bytes)
-  view.setUint32(14, 40, true)
-  view.setInt32(18, width, true)
-  view.setInt32(22, height, true)
-  view.setUint16(26, 1, true)
-  view.setUint16(28, 24, true)
-  view.setUint32(30, 0, true)
-  view.setUint32(34, pixelDataSize, true)
-  view.setInt32(38, 2835, true)
-  view.setInt32(42, 2835, true)
-  view.setUint32(46, 0, true)
-  view.setUint32(50, 0, true)
-
-  // Pixel data — BMP is bottom-to-top
-  const bytes = new Uint8Array(buf)
-  for (let row = 0; row < height; row++) {
-    const bmpRow = height - 1 - row
-    const srcBase = row * width
-    const dstBase = 54 + bmpRow * rowStride
-    for (let col = 0; col < width; col++) {
-      const val = bitmap[srcBase + col] ? 255 : 0
-      bytes[dstBase + col * 3    ] = val
-      bytes[dstBase + col * 3 + 1] = val
-      bytes[dstBase + col * 3 + 2] = val
-    }
-  }
-  return buf
-}
-
-// ---------------------------------------------------------------------------
 // Worker entry point
 // ---------------------------------------------------------------------------
 
 self.onmessage = async function ({ data }) {
   if (data.type !== 'start') return
 
-  const {
-    districts, offsets = [], chunkSize, lodRatios, lodErrors, previewOnly = false,
-    collisionMap: collisionMapConfig = { enabled: false },
-  } = data
+  const { districts, offsets = [], chunkSize, lodRatios, lodErrors, previewOnly = false } = data
 
   try {
     await initMeshopt()
@@ -447,17 +337,15 @@ self.onmessage = async function ({ data }) {
 
       self.postMessage({ type: 'progress', stage: 'merge', district: i, pct: 1 })
 
-      // Bounding-box centre — matches the pivot PreviewCanvas uses (Box3.getCenter).
-      // Using vertex average instead would drift from the visual preview for
-      // any geometry that isn't perfectly symmetric.
-      let bbMinX = Infinity, bbMaxX = -Infinity, bbMinZ = Infinity, bbMaxZ = -Infinity
+      // Compute geometry centroid — used as rotation pivot and default position
+      let sumX = 0, sumZ = 0
+      const vCount = positions.length / 3
       for (let j = 0; j < positions.length; j += 3) {
-        const x = positions[j], z = positions[j + 2]
-        if (x < bbMinX) bbMinX = x; if (x > bbMaxX) bbMaxX = x
-        if (z < bbMinZ) bbMinZ = z; if (z > bbMaxZ) bbMaxZ = z
+        sumX += positions[j]
+        sumZ += positions[j + 2]
       }
-      const cx = (bbMinX + bbMaxX) / 2
-      const cz = (bbMinZ + bbMaxZ) / 2
+      const cx = sumX / vCount
+      const cz = sumZ / vCount
 
       // Apply placement transform: rotate around centroid, then translate centroid to world position.
       // Default (no offset): wx=cx, wz=cz, angle=0 → identity (district stays at original GLB position).
@@ -494,83 +382,6 @@ self.onmessage = async function ({ data }) {
       // Hint to the engine that the parsed geometry can be collected now
       positions = null
       indices   = null
-    }
-
-    // --- Per-chunk collision bitmaps (generated while globalBuckets is fully intact) ---
-    // Each chunk is transferred immediately after rasterisation to avoid accumulating
-    // all bitmaps in memory simultaneously (192 MB/chunk at 8192 px would OOM quickly).
-    if (collisionMapConfig.enabled && globalBuckets.size > 0) {
-      self.postMessage({ type: 'progress', stage: 'collision', pct: 0 })
-
-      const resolution  = collisionMapConfig.resolution  ?? 1024
-      const minY        = collisionMapConfig.minY        ?? 0
-      const maxY        = collisionMapConfig.maxY        ?? 2
-      const sliceCount  = collisionMapConfig.sliceCount  ?? 10
-      const pf          = resolution / chunkSize
-      const wantBmp     = resolution <= BMP_MAX_RESOLUTION
-
-      const slices = new Float64Array(sliceCount)
-      if (sliceCount === 1) {
-        slices[0] = (minY + maxY) / 2
-      } else {
-        const step = (maxY - minY) / (sliceCount - 1)
-        for (let s = 0; s < sliceCount; s++) slices[s] = minY + s * step
-      }
-
-      let totalTriangles = 0
-      for (const arrays of globalBuckets.values())
-        for (const arr of arrays) totalTriangles += arr.length / 9
-      let processed = 0
-
-      for (const [chunkId, arrays] of globalBuckets) {
-        const [col, row] = chunkId.split('_').map(Number)
-        const worldMinX  = col * chunkSize
-        const worldMinZ  = row * chunkSize
-
-        let bitmap = new Uint8Array(resolution * resolution)
-
-        for (const arr of arrays) {
-          const count = arr.length
-          for (let i = 0; i < count; i += 9) {
-            const y0 = arr[i+1], y1 = arr[i+4], y2 = arr[i+7]
-            const yMin = Math.min(y0, y1, y2)
-            const yMax = Math.max(y0, y1, y2)
-
-            if (yMax >= minY && yMin <= maxY) {
-              for (let s = 0; s < sliceCount; s++) {
-                if (yMin <= slices[s] && yMax >= slices[s]) {
-                  rasteriseTriangleXZ(
-                    arr[i],   arr[i+2],
-                    arr[i+3], arr[i+5],
-                    arr[i+6], arr[i+8],
-                    worldMinX, worldMinZ, pf, pf,
-                    resolution, resolution, bitmap
-                  )
-                  break
-                }
-              }
-            }
-
-            processed++
-            if (processed % 100_000 === 0)
-              self.postMessage({ type: 'progress', stage: 'collision', pct: processed / totalTriangles })
-          }
-        }
-
-        const binBuffer = packBitfield(bitmap, resolution, resolution)
-        const bmpBuffer = wantBmp ? buildBMP(bitmap, resolution, resolution) : null
-        bitmap = null  // allow GC before transfer
-
-        const transferList = [binBuffer]
-        if (bmpBuffer) transferList.push(bmpBuffer)
-
-        self.postMessage(
-          { type: 'collision_chunk_done', chunkId, bin: binBuffer, bmp: bmpBuffer },
-          transferList
-        )
-      }
-
-      self.postMessage({ type: 'collision_done', meta: { resolution, chunkSize, pf, minY, maxY, sliceCount } })
     }
 
     // --- Simplify + export pass ---

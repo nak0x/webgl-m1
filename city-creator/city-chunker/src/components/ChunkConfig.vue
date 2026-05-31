@@ -10,6 +10,11 @@ const cfg = reactive({
   lod1Error:   0.01,
   lod2Error:   0.05,
   previewOnly: false,
+  collisionEnabled:    true,
+  collisionResolution: 1024,
+  collisionMinY:       0,
+  collisionMaxY:       2,
+  collisionSlices:     10,
 })
 
 const advancedOpen = ref(false)
@@ -20,6 +25,13 @@ watch(cfg, () => {
     lodRatios:   [1.0, cfg.lod1Ratio, cfg.lod2Ratio],
     lodErrors:   [0,   cfg.lod1Error, cfg.lod2Error],
     previewOnly: cfg.previewOnly,
+    collisionMap: {
+      enabled:    cfg.collisionEnabled,
+      resolution: cfg.collisionResolution,
+      minY:       cfg.collisionMinY,
+      maxY:       cfg.collisionMaxY,
+      sliceCount: cfg.collisionSlices,
+    },
   })
 }, { immediate: true })
 </script>
@@ -72,6 +84,30 @@ watch(cfg, () => {
         <input type="number" value="1.0" disabled />
         <input type="number" value="0" disabled />
       </div>
+
+      <div class="adv-group">
+        <div class="adv-label">Collision Map</div>
+        <label class="collision-toggle">
+          <input type="checkbox" v-model="cfg.collisionEnabled" />
+          <span>Generate collision maps</span>
+        </label>
+        <div v-if="cfg.collisionEnabled" class="field">
+          <label>Resolution</label>
+          <input type="number" v-model.number="cfg.collisionResolution" min="256" max="8192" step="256" />
+        </div>
+        <div v-if="cfg.collisionEnabled" class="field">
+          <label>Min Y</label>
+          <input type="number" v-model.number="cfg.collisionMinY" step="0.1" />
+        </div>
+        <div v-if="cfg.collisionEnabled" class="field">
+          <label>Max Y</label>
+          <input type="number" v-model.number="cfg.collisionMaxY" step="0.1" />
+        </div>
+        <div v-if="cfg.collisionEnabled" class="field">
+          <label>Slices</label>
+          <input type="number" v-model.number="cfg.collisionSlices" min="1" max="20" step="1" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -111,8 +147,18 @@ watch(cfg, () => {
   color: #8b949e;
 }
 
-.preview-toggle input[type="checkbox"] {
+.preview-toggle input[type="checkbox"],
+.collision-toggle input[type="checkbox"] {
   accent-color: #3d9eff;
+}
+
+.collision-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #8b949e;
 }
 
 .adv-toggle {

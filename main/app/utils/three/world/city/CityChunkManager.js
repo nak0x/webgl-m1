@@ -32,11 +32,8 @@ export default class CityChunkManager {
     this._currentRow = Infinity
   }
 
-  get manifest() { return this._manifest }
-
   async init() {
     const r = await fetch(CHUNK_DIR + 'manifest.json')
-    if (!r.ok) throw new Error(`manifest fetch failed: HTTP ${r.status}`)
     this._manifest = await r.json()
     this._chunkMap = new Map(this._manifest.chunks.map(c => [c.id, c]))
   }

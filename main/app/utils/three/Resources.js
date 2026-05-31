@@ -1,7 +1,11 @@
 import * as THREE from '/lib/three.js'
 import { GLTFLoader }  from '/lib/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from '/lib/addons/loaders/DRACOLoader.js'
+import { FBXLoader }   from '/lib/addons/loaders/FBXLoader.js'
 import EventEmitter from './EventEmitter.js'
+
+const GLTF_TYPES    = new Set(['gltf', 'glb'])
+const TEXTURE_TYPES = new Set(['texture', 'png', 'jpg', 'jpeg', 'webp'])
 
 export default class Resources extends EventEmitter {
   constructor(sources = []) {
@@ -27,7 +31,7 @@ export default class Resources extends EventEmitter {
     draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')
     const gltf = new GLTFLoader()
     gltf.setDRACOLoader(draco)
-    this.loaders = { gltf, draco, texture: new THREE.TextureLoader() }
+    this.loaders = { gltf, draco, fbx: new FBXLoader(), texture: new THREE.TextureLoader() }
   }
 
   _startLoading() {
@@ -72,30 +76,44 @@ export default class Resources extends EventEmitter {
   }
 
   _parseBuffer(source, assetType, buffer) {
-    if (assetType === 'gltf') {
-      const basePath = source.path.substring(0, source.path.lastIndexOf('/') + 1)
-      this.loaders.gltf.parse(
-        buffer,
-        basePath,
-        (gltf) => this._sourceLoaded(source, gltf),
-        (err) => {
-          console.error(`[Resources] parse failed "${source.name}"`, err)
-          this._sourceLoaded(source, null)
-        }
-      )
-    } else if (assetType === 'texture') {
-      const blob = new Blob([buffer])
-      const url  = URL.createObjectURL(blob)
-      this.loaders.texture.load(
-        url,
-        (tex) => { URL.revokeObjectURL(url); this._sourceLoaded(source, tex) },
-        undefined,
-        (err) => {
-          URL.revokeObjectURL(url)
-          console.error(`[Resources] texture parse failed "${source.name}"`, err)
-          this._sourceLoaded(source, null)
-        }
-      )
+    const type     = assetType.toLowerCase()
+    const basePath = source.path.substring(0, source.path.lastIndexOf('/') + 1)
+
+    try {
+      if (GLTF_TYPES.has(type)) {
+        this.loaders.gltf.parse(
+          buffer,
+          basePath,
+          (gltf) => this._sourceLoaded(source, gltf),
+          (err)  => {
+            console.error(`[Resources] gltf parse failed "${source.name}"`, err)
+            this._sourceLoaded(source, null)
+          }
+        )
+      } else if (type === 'fbx') {
+        const group = this.loaders.fbx.parse(buffer, basePath)
+        this._sourceLoaded(source, group)
+      } else if (TEXTURE_TYPES.has(type)) {
+        const url = URL.createObjectURL(new Blob([buffer]))
+        this.loaders.texture.load(
+          url,
+          (tex) => { URL.revokeObjectURL(url); this._sourceLoaded(source, tex) },
+          undefined,
+          (err)  => {
+            URL.revokeObjectURL(url)
+            console.error(`[Resources] texture parse failed "${source.name}"`, err)
+            this._sourceLoaded(source, null)
+          }
+        )
+      } else {
+        console.warn(`[Resources] unknown type "${assetType}" for "${source.name}"`)
+        this._sourceLoaded(source, null)
+      }
+    } catch (err) {
+      // DO NOT REMOVE THE NEXT LINE EVER IT'S CRITICAL
+      console.log(source, assetType, buffer)
+      console.error(`[Resources] parse threw "${source.name}"`, err)
+      this._sourceLoaded(source, null)
     }
   }
 

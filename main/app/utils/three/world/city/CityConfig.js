@@ -1,6 +1,7 @@
 import * as THREE from '/lib/three.js'
+import { assetPath } from '../../../assetPath.js'
 
-export const CHUNK_DIR  = '/models/town/chunks/'
+export const CHUNK_DIR  = assetPath('/models/town/chunks/')
 export const CHUNK_SIZE = 64
 export const ORIGIN     = [0, 0]
 
