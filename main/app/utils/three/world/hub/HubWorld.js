@@ -116,8 +116,8 @@ export default class HubWorld {
     const steps = [
       {
         id:        'pick_wrench',
-        label:     'Récupérer la clé à molette',
-        hint:      'Approchez-vous et appuyez sur E',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
         trigger:   { type: 'interact', id: 'wrench' },
         indicator: { type: 'item' },
         onComplete: () => {
@@ -128,8 +128,8 @@ export default class HubWorld {
       },
       {
         id:        'pick_screwdriver',
-        label:     'Récupérer le tournevis',
-        hint:      'Approchez-vous du tournevis et appuyez sur E',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
         trigger:   { type: 'interact', id: 'screwdriver' },
         indicator: { type: 'item' },
         onComplete: () => {
@@ -140,8 +140,8 @@ export default class HubWorld {
       },
       {
         id:        'pick_screw_box',
-        label:     'Récupérer la boîte de vis',
-        hint:      'Approchez-vous de la boîte de vis et appuyez sur E',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
         trigger:   { type: 'interact', id: 'screw_box' },
         indicator: { type: 'item' },
         onComplete: () => {
@@ -152,8 +152,8 @@ export default class HubWorld {
       },
       {
         id:        'exit_door',
-        label:     'Sortir par la porte',
-        hint:      'Approchez-vous de la porte et appuyez sur E',
+        label:     'Sortir du microhub',
+        hint:      'Dirigez-vous vers la porte pour vous rendre sur le lieu de la réparation.',
         trigger:   { type: 'interact', id: 'door' },
         indicator: { type: 'door' },
         onComplete: (callbacks) => {

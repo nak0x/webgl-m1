@@ -3,7 +3,7 @@
 
   <StartHud v-if="!isStarted" @start="startExperience" />
 
-  <template v-if="isStarted">
+  <template v-if="isStarted && !pc.isActive.value">
     <QuestHud
       :act-label="quest.actLabel.value"
       :current-step="quest.currentStep.value"
@@ -71,6 +71,14 @@
 
   <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
 
+  <button
+    v-if="pc.isActive.value && pc.tutoDone.value"
+    class="pc-exit-btn"
+    @click="exitPc"
+  >
+    Quitter
+  </button>
+
   <!-- Overlay de transition fade-to-black -->
   <div class="fade-overlay" :class="{ 'fade-overlay--visible': isFading }" />
 </template>
@@ -87,6 +95,7 @@ import { usePauseState }          from '~/composables/usePauseState.js'
 import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
 import { useCinematicState }      from '~/composables/useCinematicState.js'
 import { useTextCinematic }       from '~/composables/useTextCinematic.js'
+import { usePcState }             from '~/composables/usePcState.js'
 
 const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
@@ -96,6 +105,7 @@ const pause         = usePauseState()
 const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
+const pc            = usePcState()
 const isFading      = ref(false)
 const isStarted     = ref(false)
 const isPcRecap     = ref(false)
@@ -143,6 +153,10 @@ function transitionTo(name) {
   setTimeout(() => {
     experience.flow.run(scene.flow, name)
   }, FADE_MS)
+}
+
+function exitPc() {
+  window.postMessage({ type: 'pcscreen:exit' }, '*')
 }
 
 function openPause() {
@@ -255,4 +269,26 @@ onUnmounted(() => {
 .fade-overlay--visible {
   opacity: 1;
 }
+
+.pc-exit-btn {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-orange);
+  color: var(--color-black);
+  border: none;
+  padding: 14px 48px;
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 0 3px rgba(45, 29, 27, 0.25);
+  z-index: 760;
+  transition: filter 0.15s;
+}
+
+.pc-exit-btn:hover { filter: brightness(1.08); }
 </style>
