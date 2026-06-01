@@ -3,6 +3,7 @@ import { GLTFLoader }  from '/lib/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from '/lib/addons/loaders/DRACOLoader.js'
 import { FBXLoader }   from '/lib/addons/loaders/FBXLoader.js'
 import EventEmitter from './EventEmitter.js'
+import { reportAssetError } from '../assetError.js'
 
 const GLTF_TYPES    = new Set(['gltf', 'glb'])
 const TEXTURE_TYPES = new Set(['texture', 'png', 'jpg', 'jpeg', 'webp'])
@@ -60,7 +61,12 @@ export default class Resources extends EventEmitter {
         }
 
         case 'error': {
-          console.error(`[Resources] fetch failed "${data.name}": ${data.message}`)
+          reportAssetError('Resources', {
+            name:   data.name,
+            url:    data.url,
+            status: data.status,
+            error:  new Error(data.message ?? 'unknown fetch failure'),
+          })
           this._pct[data.name] = 1
           this._emitProgress()
           this._sourceLoaded(sourceMap[data.name], null)
@@ -86,7 +92,7 @@ export default class Resources extends EventEmitter {
           basePath,
           (gltf) => this._sourceLoaded(source, gltf),
           (err)  => {
-            console.error(`[Resources] gltf parse failed "${source.name}"`, err)
+            reportAssetError('Resources', { name: source.name, url: source.path, verb: 'gltf parse failed', error: err })
             this._sourceLoaded(source, null)
           }
         )
@@ -101,18 +107,18 @@ export default class Resources extends EventEmitter {
           undefined,
           (err)  => {
             URL.revokeObjectURL(url)
-            console.error(`[Resources] texture parse failed "${source.name}"`, err)
+            reportAssetError('Resources', { name: source.name, url: source.path, verb: 'texture parse failed', error: err })
             this._sourceLoaded(source, null)
           }
         )
       } else {
-        console.warn(`[Resources] unknown type "${assetType}" for "${source.name}"`)
+        reportAssetError('Resources', { name: source.name, url: source.path, verb: `unknown type "${assetType}"`, level: 'warn' })
         this._sourceLoaded(source, null)
       }
     } catch (err) {
       // DO NOT REMOVE THE NEXT LINE EVER IT'S CRITICAL
       console.log(source, assetType, buffer)
-      console.error(`[Resources] parse threw "${source.name}"`, err)
+      reportAssetError('Resources', { name: source.name, url: source.path, verb: 'parse threw', error: err })
       this._sourceLoaded(source, null)
     }
   }

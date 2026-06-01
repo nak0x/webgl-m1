@@ -26,18 +26,20 @@
       </div>
 
       <table class="vehicle-hud__table">
-        <tr>
-          <td class="vehicle-hud__key">Année</td>
-          <td class="vehicle-hud__val">{{ vehicle.year }}</td>
-        </tr>
-        <tr>
-          <td class="vehicle-hud__key">Immatriculation</td>
-          <td class="vehicle-hud__val">{{ vehicle.immatriculation }}</td>
-        </tr>
-        <tr>
-          <td class="vehicle-hud__key">KM</td>
-          <td class="vehicle-hud__val">{{ vehicle.km.toLocaleString('fr-FR') }}</td>
-        </tr>
+		    <tbody>
+		    	<tr>
+		    		<td class="vehicle-hud__key">Année</td>
+		    		<td class="vehicle-hud__val">{{ vehicle.year }}</td>
+		    	</tr>
+		    	<tr>
+		    		<td class="vehicle-hud__key">Immatriculation</td>
+		    		<td class="vehicle-hud__val">{{ vehicle.immatriculation }}</td>
+		    	</tr>
+		    	<tr>
+		    		<td class="vehicle-hud__key">KM</td>
+		    		<td class="vehicle-hud__val">{{ vehicle.km.toLocaleString('fr-FR') }}</td>
+		    	</tr>
+		    </tbody>
       </table>
 
       <template v-if="meta?.available_parts?.length">

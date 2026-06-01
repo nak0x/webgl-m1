@@ -6,6 +6,7 @@ import RepairParser     from './RepairParser.js'
 import RepairBuilder    from './RepairBuilder.js'
 import RepairMarkerManager from './RepairMarkerManager.js'
 import { SCENE }        from './CarRepairConfig.js'
+import { safeFetch }    from '../../../assetError.js'
 
 export default class CarRepairWorld {
   constructor(experience, callbacks = {}) {
@@ -47,18 +48,18 @@ export default class CarRepairWorld {
   }
 
   async _loadRepairData() {
-    try {
-      const res  = await fetch('/data/car_repair_sample.json')
-      const json = await res.json()
-      const parser = new RepairParser()
-      this._repairData = {
-        vehicle: parser.parseVehicle(json),
-        meta:    parser.parseMeta(json),
-        repairs: parser.parse(json),
-      }
-    } catch (e) {
-      console.warn('[CarRepairWorld] Impossible de charger car_repair_sample.json', e)
+    const url = '/data/car_repair_sample.json'
+    const res = await safeFetch(url, { context: 'CarRepairWorld', name: 'car_repair_sample.json', verb: 'repair data fetch failed', level: 'warn' })
+    if (!res) {
       this._repairData = { vehicle: null, meta: null, repairs: [] }
+      return
+    }
+    const json = await res.json()
+    const parser = new RepairParser()
+    this._repairData = {
+      vehicle: parser.parseVehicle(json),
+      meta:    parser.parseMeta(json),
+      repairs: parser.parse(json),
     }
   }
 
@@ -110,6 +111,7 @@ export default class CarRepairWorld {
       }
     })
     this.scene.add(this._model)
+    this.experience.renderProfile.apply(this.scene)
 
     if (gltf.cameras?.length > 0) {
       const gltfCam = gltf.cameras[0]
@@ -223,10 +225,13 @@ export default class CarRepairWorld {
     this._placeholderMat?.dispose()
 
     if (this._model) {
+      this.experience.renderProfile.restore(this.scene)
       this._model.traverse(c => {
         c.geometry?.dispose()
-        const mats = Array.isArray(c.material) ? c.material : [c.material]
-        mats.forEach(m => m?.dispose?.())
+        if (c.material && c.material !== this.experience.renderProfile.material) {
+          const mats = Array.isArray(c.material) ? c.material : [c.material]
+          mats.forEach(m => m?.dispose?.())
+        }
       })
     }
   }

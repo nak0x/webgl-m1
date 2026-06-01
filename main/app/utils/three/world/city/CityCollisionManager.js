@@ -1,5 +1,6 @@
 import { CHUNK_SIZE } from './CityConfig.js'
 import { assetPath } from '../../../assetPath.js'
+import { reportAssetError } from '../../../assetError.js'
 
 const SAMPLE_COUNT = 16
 const CACHE_MAX    = 16      // TTL eviction activates only above this entry count
@@ -73,15 +74,29 @@ export default class CityCollisionManager {
 
   _fetchBin(chunkId, file) {
     this._loading.add(chunkId)
-    fetch(assetPath('/models/town/chunks/' + file))
+    const url = assetPath('/models/town/chunks/' + file)
+    fetch(url)
       .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        if (!r.ok) {
+          const e = new Error(`HTTP ${r.status} ${r.statusText || ''}`.trim())
+          e.status = r.status
+          throw e
+        }
         return r.arrayBuffer()
       })
       .then(buf => {
         this._cache.set(chunkId, { data: new Uint8Array(buf), lastUsed: Date.now() })
       })
-      .catch(() => {})
+      .catch(err => {
+        reportAssetError('CityCollisionManager', {
+          name:   file,
+          url,
+          status: err.status,
+          verb:   'collision bin failed',
+          error:  err,
+          level:  'warn',
+        })
+      })
       .finally(() => this._loading.delete(chunkId))
   }
 

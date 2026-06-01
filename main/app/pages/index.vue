@@ -159,14 +159,15 @@ function makeCallbacks() {
   }
 }
 
-function transitionTo(name) {
+function transitionTo(name, { skipFlow = false } = {}) {
   const scene = SCENES[name]
   if (!scene) return
   _fps?.hideCrosshair()
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
+  const steps = skipFlow ? [] : scene.flow
   setTimeout(() => {
-    experience.flow.run(scene.flow, name)
+    experience.flow.run(steps, name)
   }, FADE_MS)
 }
 
@@ -255,7 +256,7 @@ function startExperience() {
 function _registerDebugSceneSwitcher() {
   const state  = { scene: SCENE_NAMES[0] }
   const folder = experience.debug.gui.addFolder('Scènes')
-  folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(transitionTo)
+  folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(name => transitionTo(name, { skipFlow: true }))
 }
 
 onMounted(()        => window.addEventListener('keydown', _onKeyDown))
