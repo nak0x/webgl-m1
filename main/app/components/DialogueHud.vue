@@ -1,30 +1,19 @@
 <template>
   <Transition name="dialogue">
     <div v-if="active" class="dialogue-root">
-      <div class="dialogue-box">
+      <div class="dialogue-wrap">
 
-        <p v-if="current?.speaker" class="dialogue-speaker">{{ current.speaker }}</p>
-
-        <p class="dialogue-text">{{ displayedText }}</p>
-
-        <hr class="dialogue-sep" />
-
-        <div class="dialogue-footer">
-          <span class="dialogue-dots">
-            <span
-              v-for="i in total"
-              :key="i"
-              class="dot"
-              :class="{ 'dot--active': i - 1 === index }"
-            />
-          </span>
-          <button class="dialogue-btn" @click="next">
-            {{ isTyping ? 'Passer' : isLast ? 'Terminer' : 'Continuer' }}
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4,2 10,7 4,12"/>
-            </svg>
-          </button>
+        <div class="dialogue-box">
+          <p v-if="current?.speaker" class="dialogue-speaker">{{ current.speaker }}</p>
+          <p class="dialogue-text">{{ displayedText }}</p>
         </div>
+
+        <button class="dialogue-btn" @click="next">
+          <span>{{ isTyping ? 'Passer' : isLast ? 'Terminer' : current?.cta ?? 'Continuer' }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9,18 15,12 9,6"/>
+          </svg>
+        </button>
 
       </div>
     </div>
@@ -101,76 +90,57 @@ onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(
   pointer-events: none;
 }
 
-.dialogue-box {
+.dialogue-wrap {
   pointer-events: all;
   width: min(720px, 90vw);
-  background: #000;
-  border-radius: 12px;
-  padding: 24px 28px 20px;
+  display: flex;
+  gap: 14px;
+  flex-direction: column;
+}
+
+.dialogue-box {
+  background: var(--color-black);
+  padding: 24px 28px;
 }
 
 .dialogue-speaker {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(239, 234, 223, 0.5);
   margin-bottom: 10px;
 }
 
 .dialogue-text {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--color-white);
   min-height: 48px;
-}
-
-.dialogue-sep {
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  margin: 18px 0 14px;
-}
-
-.dialogue-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dialogue-dots {
-  display: flex;
-  gap: 5px;
-}
-
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  transition: background 0.2s;
-}
-
-.dot--active {
-  background: rgba(255,255,255,0.85);
 }
 
 .dialogue-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.1);
+  justify-content: center;
+  gap: 12px;
+  background: var(--color-orange);
   border: none;
-  border-radius: 999px;
-  color: #fff;
-  font-size: 13px;
+  color: var(--color-black);
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-size: 14px;
   font-weight: 500;
-  padding: 8px 18px 8px 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 16px 28px;
   cursor: pointer;
-  transition: background 0.15s;
+  width: 100%;
+  transition: filter 0.15s;
 }
 
 .dialogue-btn:hover {
-  background: rgba(255,255,255,0.18);
+  filter: brightness(1.08);
 }
 
 /* Transition */

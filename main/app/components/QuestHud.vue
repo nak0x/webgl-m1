@@ -18,11 +18,7 @@
 
       <div class="quest-block">
         <div class="quest-meta">
-          <span class="quest-icon">ⓘ</span>
-          <div>
-            <div class="quest-meta-title">Quêtes</div>
-            <div class="quest-meta-sub">Missions à accomplir</div>
-          </div>
+          <span class="quest-meta-title">Quêtes</span>
         </div>
         <hr class="quest-sep" />
         <div class="quest-name">{{ currentStep.label }}</div>
@@ -55,28 +51,31 @@ const progressPct = computed(() =>
   left: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: 300px;
+  gap: 24px;
+  width: 333px;
   pointer-events: none;
   z-index: 400;
 }
 
 .quest-act {
-  background: #000;
-  padding: 16px 20px;
-  border-radius: 4px;
+  background: var(--color-white);
+  padding: 20px;
+  box-shadow: 0 0 5px rgba(142, 184, 184, 0.75);
 }
 
 .quest-act-label {
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 25px;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .quest-block {
-  background: #000;
-  padding: 16px 20px;
-  border-radius: 4px;
+  background: var(--color-white);
+  padding: 20px;
+  box-shadow: 0 0 5px rgba(142, 184, 184, 0.75);
 }
 
 .quest-block:last-child {
@@ -88,68 +87,61 @@ const progressPct = computed(() =>
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .quest-bar-track {
   height: 8px;
-  background: #444;
-  border-radius: 4px;
+  background: rgba(255, 96, 56, 0.25);
   overflow: hidden;
 }
 
 .quest-bar-fill {
   height: 100%;
-  background: #fff;
-  border-radius: 4px;
+  background: var(--color-orange);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   transition: width 0.6s ease;
 }
 
 .quest-meta {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.quest-icon {
-  font-size: 18px;
-  color: #fff;
-  flex-shrink: 0;
-  margin-top: 1px;
+  margin-bottom: 0;
 }
 
 .quest-meta-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.quest-meta-sub {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .quest-sep {
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  margin: 14px 0;
+  border-top: 1px solid var(--color-black);
+  margin: 18px 0;
+  opacity: 0.2;
 }
 
 .quest-name {
   font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--color-orange);
+  margin-bottom: 12px;
 }
 
 .quest-hint {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.55;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--color-black);
 }
 
 .quest-enter-active { transition: opacity 0.35s ease, transform 0.35s ease; }

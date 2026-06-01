@@ -184,9 +184,7 @@ export default class AtelierEndSceneWorld {
       this._fps.lock()
     })
 
-    this._voice = new VoiceBabble(this.experience.sound, this.dialogue, {
-      Technicien: { freq: 600 },
-    })
+    this._voice = new VoiceBabble(this.experience.sound, this.dialogue, {})
 
     this._callbacks.onFpsReady?.(this._fps)
   }

@@ -8,6 +8,7 @@ import DialogueManager  from '../../dialogue/DialogueManager.js'
 import { buildOctree } from '../../buildOctree.js'
 import VoiceBabble   from '../../sound/VoiceBabble.js'
 import GlassesManager from '../../glasses/GlassesManager.js'
+import { usePcState } from '~/composables/usePcState.js'
 import { OBJECTS, PROXIMITY, SCENE, ACT_LABEL } from './AtelierConfig.js'
 
 export default class AtelierWorld {
@@ -133,7 +134,9 @@ export default class AtelierWorld {
     })
 
     this._voice = new VoiceBabble(this.experience.sound, this.dialogue, {
-      Technicien: { freq: 600 },
+      'Collègue 1':           { freq: 480 },
+      'Collègue 2':           { freq: 380 },
+      'Le personnage (Vous)': { freq: 520 },
     })
 
     this._callbacks.onFpsReady?.(this._fps)
@@ -145,8 +148,11 @@ export default class AtelierWorld {
       console.warn(`AtelierWorld: mesh "${OBJECTS.SCREEN}" introuvable`)
       return
     }
+    mesh.raycast = () => {}
     this._pcScreen = new PcScreen(this.experience, mesh, '/crm-scenario.html')
     this._pcScreen.setFpsController(this._fps)
+    const pc = usePcState()
+    this._pcScreen.setCallbacks({ onEnter: pc.enter, onExit: pc.exit, onTutoDone: pc.setTutoDone })
   }
 
   _setupQuest() {
@@ -165,20 +171,20 @@ export default class AtelierWorld {
     const steps = [
       {
         id:        'talk_npc',
-        label:     'Parler au technicien',
-        hint:      'Approchez-vous et appuyez sur E',
+        label:     'Discuter avec ses collègues',
+        hint:      'Allez à la rencontre de l\'équipe pour prendre les nouvelles du matin.',
         trigger:   { type: 'interact', id: 'npc' },
         indicator: { type: 'npc' },
         dialogue: [
-          { speaker: 'Technicien', text: 'Ah, vous êtes enfin là.' },
-          { speaker: 'Technicien', text: 'Votre mission : accéder au PC et récupérer le dossier.' },
-          { speaker: 'Technicien', text: 'L\'outil dont vous aurez besoin est dans l\'atelier.' },
+          { speaker: 'Collègue 1', text: "Salut ! Alors, prêt à tester les nouvelles lunettes ce matin ? Nous avons déjà plusieurs alertes qui sont priorisées en fonction de l’urgence sociale." },
+          { speaker: 'Le personnage (Vous)', text: "Salut ! Oui, curieux de voir ce que ça donne. C’est vrai que la réception des alertes était un peu compliquée jusque là." },
+          { speaker: 'Collègue 2', text: "Tu vas voir, les lunettes combinées au CRM fluidifient pas mal les choses. Prends ton café, connecte-toi à l'interface de l'Atelier, et dis-nous si la prise en main est aussi intuitive qu'ils le disent !" }
         ],
       },
       {
         id:        'use_pc',
-        label:     'Accéder au PC de bureau',
-        hint:      'Approchez-vous du PC et appuyez sur E',
+        label:     'Se connecter à l\'ordinateur pour voir le planning de la journée',
+        hint:      'Ouvrez le CRM sur l\'ordinateur de l\'atelier pour consulter les alertes en cours.',
         trigger:   { type: 'interact', id: 'pc' },
         indicator: { type: 'pc' },
         onComplete: () => {
@@ -187,8 +193,8 @@ export default class AtelierWorld {
       },
       {
         id:        'pick_tool',
-        label:     'Récupérer l\'outil',
-        hint:      'L\'outil se trouve dans l\'atelier',
+        label:     'Prendre ses lunettes de réalité augmentée',
+        hint:      'Récupérez vos lunettes de réalité augmentée sur l\'établi avant de partir en intervention.',
         trigger:   { type: 'interact', id: 'tool' },
         indicator: { type: 'item' },
         onComplete: () => {
@@ -207,8 +213,8 @@ export default class AtelierWorld {
       },
       {
         id:        'exit_door',
-        label:     'Sortir du bureau',
-        hint:      'Approchez-vous de la porte et appuyez sur E',
+        label:     'Sortir de l\'atelier',
+        hint:      'Dirigez-vous vers la porte principale pour vous rendre sur le terrain.',
         trigger:   { type: 'interact', id: 'door' },
         indicator: { type: 'door' },
         onComplete: (callbacks) => {
