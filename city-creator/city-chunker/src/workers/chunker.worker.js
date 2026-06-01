@@ -556,16 +556,16 @@ self.onmessage = async function ({ data }) {
         const bmpBuffer = wantBmp ? buildBMP(bitmap, resolution, resolution) : null
         bitmap = null
 
-        collisionChunks.set(chunkId, {
-          bin: `chunk_${col}_${row}_collision.bin`,
-          bmp: wantBmp ? `chunk_${col}_${row}_collision.bmp` : null
-        })
+        const binFile = `chunk_${col}_${row}_collision.bin`
+        const bmpFile = wantBmp ? `chunk_${col}_${row}_collision.bmp` : null
+
+        collisionChunks.set(chunkId, { bin: binFile, bmp: bmpFile })
 
         const transferList = [binBuffer]
         if (bmpBuffer) transferList.push(bmpBuffer)
 
         self.postMessage(
-          { type: 'collision_chunk_done', chunkId, bin: binBuffer, bmp: bmpBuffer },
+          { type: 'collision_chunk_done', chunkId, bin: binBuffer, bmp: bmpBuffer, binFile, bmpFile },
           transferList
         )
       }

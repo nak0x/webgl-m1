@@ -60,9 +60,11 @@ export function useChunker() {
         lodCounts[msg.lod]++
       } else if (msg.type === 'collision_chunk_done') {
         collisions.value = [...collisions.value, {
-          chunkId:      msg.chunkId,
-          bin:          msg.bin,
-          bmp:          msg.bmp,
+          chunkId: msg.chunkId,
+          bin:     msg.bin,
+          bmp:     msg.bmp,
+          binFile: msg.binFile,
+          bmpFile: msg.bmpFile,
         }]
       } else if (msg.type === 'done') {
         manifest.value    = msg.manifest
@@ -94,7 +96,7 @@ export function useChunker() {
           lodRatios:   [...(config.lodRatios   ?? [1.0, 0.25, 0.06])],
           lodErrors:   [...(config.lodErrors   ?? [0, 0.01, 0.05])],
           previewOnly: config.previewOnly ?? false,
-          collisionMap: config.collisionMap ?? { enabled: false },
+          collisionMap: { ...(config.collisionMap ?? { enabled: false }) },
         },
         buffers  // only ArrayBuffers are transferred; offsets are plain objects (structured clone)
       )
@@ -121,10 +123,8 @@ export function useChunker() {
       entries[chunk.gltfFilename] = new TextEncoder().encode(chunk.gltf)
     }
     for (const col of collisions.value) {
-      entries[`collision/${col.chunkId}.bin`] = new Uint8Array(col.bin)
-      if (col.bmp) {
-        entries[`collision/${col.chunkId}.bmp`] = new Uint8Array(col.bmp)
-      }
+      entries[col.binFile] = new Uint8Array(col.bin)
+      if (col.bmp && col.bmpFile) entries[col.bmpFile] = new Uint8Array(col.bmp)
     }
     entries['manifest.json'] = new TextEncoder().encode(JSON.stringify(mf, null, 2))
 

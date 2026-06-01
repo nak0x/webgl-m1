@@ -34,6 +34,8 @@ export default class CityChunkManager {
     this._currentRow = Infinity
   }
 
+  get manifest() { return this._manifest }
+
   async init() {
     const url = assetPath('/models/town/chunks/manifest.json')
     const res = await safeFetch(url, { context: 'CityChunkManager', name: 'manifest.json', verb: 'manifest fetch failed' })

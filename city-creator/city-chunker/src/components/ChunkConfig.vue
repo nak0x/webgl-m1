@@ -85,30 +85,42 @@ watch(cfg, () => {
         <input type="number" value="0" disabled />
       </div>
 
-      <div class="adv-group">
-        <div class="adv-label">Collision Map</div>
-        <label class="collision-toggle">
-          <input type="checkbox" v-model="cfg.collisionEnabled" />
-          <span>Generate collision maps</span>
-        </label>
-        <div v-if="cfg.collisionEnabled" class="field">
-          <label>Resolution</label>
-          <input type="number" v-model.number="cfg.collisionResolution" min="256" max="8192" step="256" />
-        </div>
-        <div v-if="cfg.collisionEnabled" class="field">
-          <label>Min Y</label>
-          <input type="number" v-model.number="cfg.collisionMinY" step="0.1" />
-        </div>
-        <div v-if="cfg.collisionEnabled" class="field">
-          <label>Max Y</label>
-          <input type="number" v-model.number="cfg.collisionMaxY" step="0.1" />
-        </div>
-        <div v-if="cfg.collisionEnabled" class="field">
-          <label>Slices</label>
-          <input type="number" v-model.number="cfg.collisionSlices" min="1" max="20" step="1" />
-        </div>
-      </div>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Collision Map</div>
+
+    <label class="collision-toggle">
+      <input type="checkbox" v-model="cfg.collisionEnabled" />
+      <span>Generate collision maps</span>
+    </label>
+
+    <template v-if="cfg.collisionEnabled">
+      <div class="field">
+        <label>Resolution</label>
+        <select v-model.number="cfg.collisionResolution">
+          <option :value="256">256</option>
+          <option :value="512">512</option>
+          <option :value="1024">1024</option>
+          <option :value="2048">2048</option>
+          <option :value="4096">4096</option>
+          <option :value="8192">8192</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Min Y</label>
+        <input type="number" v-model.number="cfg.collisionMinY" step="0.1" />
+      </div>
+      <div class="field">
+        <label>Max Y</label>
+        <input type="number" v-model.number="cfg.collisionMaxY" step="0.1" />
+      </div>
+      <div class="field">
+        <label>Slices</label>
+        <input type="number" v-model.number="cfg.collisionSlices" min="1" max="20" step="1" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -205,5 +217,16 @@ watch(cfg, () => {
 input:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+select {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #e6edf3;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 6px;
+  width: 100%;
 }
 </style>
