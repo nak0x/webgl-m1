@@ -41,9 +41,9 @@ export default class CityWorld {
     this._setupLights()
     this._setupFloor()
     this._setupFps()
+    this._registerAtmosphere()   // also loads city_sky.json + adds Atmosphere lil-gui folder
     this._setupDebug()
-    this._loadCitySky()    // async, applies atmosphere overrides after lights are ready
-    this._setupChunks()    // async, fire-and-forget — chunks load progressively
+    this._setupChunks()          // async, fire-and-forget — chunks load progressively
   }
 
   _setupLights() {
@@ -101,30 +101,33 @@ export default class CityWorld {
     this._callbacks.onFpsReady?.(this._fps)
   }
 
-  _setupDebug() {
-    const { debug } = this.experience
-    if (!debug.active) return
+  _registerAtmosphere() {
+    this.experience.renderProfile.registerAtmosphere({
+      key:   'city',
+      file:  'city_sky.json',          // preserved filename — existing tuning survives
+      getSettings:   () => this._buildAtmosphere(),
+      applySettings: s  => this._applyAtmosphere(s),
+      setupDebug:    folder => this._setupAtmosphereDebug(folder),
+    })
+  }
 
-    const root = debug.gui.addFolder('City')
-
-    // ── Sky & Fog ─────────────────────────────────────────────────────────
-    const skyF    = root.addFolder('Sky & Fog')
+  _setupAtmosphereDebug(root) {
+    const skyF    = root.addFolder('Sky & Fog'); skyF.close()
     const skyProxy = { color: '#' + this.scene.background.getHexString() }
     const fogProxy = { color: '#' + this.scene.fog.color.getHexString() }
     skyF.addColor(skyProxy, 'color').name('sky').onChange(v => this.scene.background.set(v))
     skyF.addColor(fogProxy, 'color').name('fog').onChange(v => this.scene.fog.color.set(v))
     skyF.add(this.scene.fog, 'density', 0, 0.05, 0.001).name('density')
 
-    // ── Lights ────────────────────────────────────────────────────────────
-    const lightsF = root.addFolder('Lights')
+    const lightsF = root.addFolder('Lights'); lightsF.close()
 
     const ambProxy = { color: '#' + this._ambient.color.getHexString() }
-    const ambF     = lightsF.addFolder('Ambient')
+    const ambF     = lightsF.addFolder('Ambient'); ambF.close()
     ambF.addColor(ambProxy, 'color').onChange(v => this._ambient.color.set(v))
     ambF.add(this._ambient, 'intensity', 0, 3, 0.01)
 
     const sunProxy = { color: '#' + this._sun.color.getHexString() }
-    const sunF     = lightsF.addFolder('Sun')
+    const sunF     = lightsF.addFolder('Sun'); sunF.close()
     sunF.addColor(sunProxy, 'color').onChange(v => this._sun.color.set(v))
     sunF.add(this._sun, 'intensity', 0, 10, 0.1)
     sunF.add(this._sun.position, 'x', -30, 30, 0.1 ).name('pos X')
@@ -138,7 +141,7 @@ export default class CityWorld {
     })
 
     const fillProxy = { color: '#' + this._fill.color.getHexString() }
-    const fillF     = lightsF.addFolder('Fill')
+    const fillF     = lightsF.addFolder('Fill'); fillF.close()
     fillF.addColor(fillProxy, 'color').onChange(v => this._fill.color.set(v))
     fillF.add(this._fill, 'intensity', 0, 3, 0.01)
     fillF.add(this._fill.position, 'x', -30, 30, 0.1).name('pos X')
@@ -147,13 +150,17 @@ export default class CityWorld {
 
     const hemiSkyProxy    = { color: '#' + this._hemi.color.getHexString() }
     const hemiGroundProxy = { color: '#' + this._hemi.groundColor.getHexString() }
-    const hemiF           = lightsF.addFolder('Hemisphere')
+    const hemiF           = lightsF.addFolder('Hemisphere'); hemiF.close()
     hemiF.addColor(hemiSkyProxy,    'color').name('sky').onChange(v => this._hemi.color.set(v))
     hemiF.addColor(hemiGroundProxy, 'color').name('ground').onChange(v => this._hemi.groundColor.set(v))
     hemiF.add(this._hemi, 'intensity', 0, 2, 0.01)
+  }
 
-    root.add({ export: () => this._exportCitySky() }, 'export').name('Export sky ↓')
+  _setupDebug() {
+    const { debug } = this.experience
+    if (!debug.active) return
 
+    const root = debug.gui.addFolder('City'); root.close()
     this._debugFolder = root
   }
 
@@ -250,19 +257,9 @@ export default class CityWorld {
     ctx.strokeRect(HW - 2, HH - 2, 4, 4)
   }
 
-  // ── City sky / atmosphere persistence ────────────────────────────────────
+  // ── Atmosphere import/export (delegated to RenderProfile) ────────────────
 
-  async _loadCitySky() {
-    try {
-      const res = await fetch('/settings/city_sky.json')
-      if (!res.ok) return
-      this._applyCitySky(await res.json())
-    } catch {
-      // file absent or malformed — scene defaults remain
-    }
-  }
-
-  _applyCitySky(s) {
+  _applyAtmosphere(s) {
     if (s.sky) this.scene.background.set(s.sky.color)
     if (s.fog) {
       this.scene.fog.color.set(s.fog.color)
@@ -294,7 +291,7 @@ export default class CityWorld {
     }
   }
 
-  _buildCitySkySettings() {
+  _buildAtmosphere() {
     return {
       sky:  { color: '#' + this.scene.background.getHexString() },
       fog:  { color: '#' + this.scene.fog.color.getHexString(), density: this.scene.fog.density },
@@ -323,14 +320,6 @@ export default class CityWorld {
         intensity: this._hemi.intensity,
       },
     }
-  }
-
-  _exportCitySky() {
-    const json = JSON.stringify(this._buildCitySkySettings(), null, 2)
-    const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'city_sky.json' })
-    a.click()
-    URL.revokeObjectURL(url)
   }
 
   async _setupChunks() {
@@ -392,8 +381,12 @@ export default class CityWorld {
       this._debugCollisionSphere.material?.dispose()
     }
     if (this._debugMapCanvas) {
-      this._debugMapCanvas.remove()
+      document.body.removeChild(this._debugMapCanvas)
     }
-    this._debugFolder?.destroy()
+    if (this._debugFolder) {
+      this._debugFolder.destroy()
+      this._debugFolder = null
+    }
+    this.experience.renderProfile.unregisterAtmosphere()
   }
 }

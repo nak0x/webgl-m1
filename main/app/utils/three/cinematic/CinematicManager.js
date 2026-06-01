@@ -73,15 +73,12 @@ export default class CinematicManager extends EventEmitter {
     video.addEventListener('ended', () => this._finish())
     video.addEventListener('loadedmetadata', () => {
       this._updatePlaneScale()
+      this._active = true
       this.trigger('start', { duration: video.duration })
     })
 
     video.play().catch(() => {})
-    this._active = false  // true after 'start' fires from loadedmetadata
     this._paused = false
-
-    // Mark active immediately so render() starts drawing
-    this._active = true
 
     this._progressTimer = setInterval(() => {
       if (!this._video) return
