@@ -58,6 +58,16 @@
     @volume-change="onVolumeChange"
   />
 
+  <PcRecapHud
+    :visible="isPcRecap"
+    @confirm="onGameEnd"
+  />
+
+  <EndHud
+    :visible="isGameEnded"
+    @replay="onReplay"
+  />
+
   <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
 
   <!-- Overlay de transition fade-to-black -->
@@ -85,12 +95,20 @@ const pause         = usePauseState()
 const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
-const isFading  = ref(false)
-const isStarted = ref(false)
-const volumes   = ref({ master: 1, ambient: 0.4, voice: 0.8 })
+const isFading      = ref(false)
+const isStarted     = ref(false)
+const isPcRecap     = ref(false)
+const isGameEnded   = ref(false)
+const volumes       = ref({ master: 1, ambient: 0.4, voice: 0.8 })
 
 const isLoadingScene  = ref(false)
 const loadingProgress = ref(0)
+
+const endCreditsCards = [
+  { title: 'MISSION ACCOMPLIE',                                                        duration: 3000 },
+  { text: 'Tous les systèmes de l\'atelier ont été remis en service.\nRapport transmis à la hiérarchie.', duration: 4500 },
+  { text: 'Merci d\'avoir joué.',                                                       duration: 3500 },
+]
 
 const FADE_MS = 400
 
@@ -109,6 +127,8 @@ function makeCallbacks() {
       ind.setArrowCallback(indicator.setArrow)
     },
     transitionTo,
+    onPcRecap:       () => { isPcRecap.value = true },
+    onGameEnd,
     onLoadProgress:  (pct) => { loadingProgress.value = pct },
   }
 }
@@ -141,6 +161,21 @@ function returnToHome() {
   experience   = null
   _fps         = null
   isStarted.value = false
+}
+
+async function onGameEnd() {
+  isPcRecap.value = false
+  experience?.sound.fadeOutAndStop(FADE_MS)
+  isFading.value = true
+  await new Promise(r => setTimeout(r, FADE_MS))
+  await textCinematic.play(endCreditsCards)
+  isFading.value = false
+  isGameEnded.value = true
+}
+
+function onReplay() {
+  isGameEnded.value = false
+  returnToHome()
 }
 
 function onVolumeChange({ category, value }) {

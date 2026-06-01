@@ -1,9 +1,11 @@
-import AtelierWorld   from './atelier/AtelierWorld.js'
-import AtelierSources from './atelier/AtelierSources.js'
-import HubWorld       from './hub/HubWorld.js'
-import HubSources     from './hub/HubSources.js'
-import CityWorld      from './city/CityWorld.js'
-import CitySources    from './city/CitySources.js'
+import AtelierWorld           from './atelier/AtelierWorld.js'
+import AtelierSources         from './atelier/AtelierSources.js'
+import HubWorld               from './hub/HubWorld.js'
+import HubSources             from './hub/HubSources.js'
+import CityWorld              from './city/CityWorld.js'
+import CitySources            from './city/CitySources.js'
+import AtelierEndSceneWorld   from './atelier_end/AtelierEndSceneWorld.js'
+import AtelierEndSceneSources from './atelier_end/AtelierEndSceneSources.js'
 
 export const SCENES = {
   'scene_1': {
@@ -40,6 +42,12 @@ export const SCENES = {
     ],
   },
   'scene_3': { World: CityWorld, sources: CitySources, flow: [] },
+
+  'scene_4': {
+    World:   AtelierEndSceneWorld,
+    sources: AtelierEndSceneSources,
+    flow: [],
+  },
 }
 
 export const SCENE_NAMES = Object.keys(SCENES)

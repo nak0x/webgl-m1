@@ -69,6 +69,13 @@
 - `useDialogueState.js` — singleton réactif bridgé sur DialogueManager
 - `pages/index.vue` — monte Experience + AtelierWorld, passe les callbacks Vue
 
+### Scène Fin d'atelier (`world/atelier_end/`)
+- `AtelierEndSceneWorld.js` — même structure qu'AtelierWorld, réutilise le GLB `atelier_1.4.0.glb`
+- `AtelierEndSceneSources.js` — asset `atelier`
+- `AtelierEndSceneConfig.js` — mêmes noms d'objets qu'AtelierConfig (à ajuster si besoin)
+- Enregistrée dans `SCENES.js` comme `scene_4`
+- Quête vide — interactions à définir par l'utilisateur
+
 ---
 
 ## Fichiers à nettoyer / supprimer
