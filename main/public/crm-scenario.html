@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1440px; height: 1024px; overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; }
+
+  /* ── Login ── */
+  #screen-login {
+    position: relative; width: 1440px; height: 1024px; background: #fff;
+  }
+  #screen-login .half-gray {
+    position: absolute; right: 0; top: 0; width: 710px; height: 1024px; background: #d9d9d9;
+  }
+  #screen-login .logo-badge {
+    position: absolute; left: 143px; top: 26px;
+    background: #d9d9d9; padding: 8px 27px;
+    font-size: 24px; font-weight: 400; color: #000;
+  }
+  #screen-login .field {
+    position: absolute; left: 143px; top: 352px; width: 450px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  #screen-login .field label {
+    font-size: 16px; font-weight: 600; color: #000;
+  }
+  #screen-login .field input {
+    height: 35px; background: #d9d9d9; border: none; outline: none; width: 100%;
+  }
+  #screen-login .btn-connect {
+    position: absolute; left: 240px; top: 558px;
+    background: #000; color: #fff; border: none; cursor: pointer;
+    padding: 16px 32px; font-size: 20px; font-weight: 500; font-family: 'Inter', sans-serif;
+    box-shadow: 0 0 15px rgba(255,255,255,0.2);
+  }
+
+  /* ── Dashboard ── */
+  #screen-dashboard {
+    display: none; position: relative; width: 1440px; height: 1024px; background: #fff;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: absolute; left: 0; top: 0; width: 256px; height: 1024px;
+    background: #fff; border-right: 1px solid #f3f4f6;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-logo {
+    height: 89px; border-bottom: 1px solid #f9fafb;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .sidebar-logo .badge {
+    background: #d9d9d9; padding: 8px 27px;
+    font-size: 24px; font-weight: 400; color: #000;
+  }
+  .sidebar-menu {
+    flex: 1; padding: 24px 16px 0; display: flex; flex-direction: column; gap: 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  }
+  .nav-item.active { background: #ecfdf5; }
+  .nav-item.active .nav-label { color: #007a55; }
+  .nav-item .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .nav-item .nav-label { font-size: 14px; font-weight: 500; color: #4a5565; }
+  .sidebar-profile {
+    height: 85px; border-top: 1px solid #f3f4f6;
+    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+  }
+  .profile-avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: #009966;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .profile-name { font-size: 14px; font-weight: 500; color: #1e2939; }
+  .profile-role { font-size: 12px; font-weight: 400; color: #6a7282; }
+
+  /* Main area */
+  .main {
+    position: absolute; left: 256px; top: 0; width: 1184px; height: 1024px;
+  }
+
+  /* Header */
+  .dash-header {
+    position: absolute; left: 0; top: 0; width: 1184px; height: 105px;
+    background: #fff; border-bottom: 1px solid #f3f4f6;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px;
+  }
+  .dash-header .title-main { font-size: 24px; font-weight: 700; color: #101828; line-height: 32px; }
+  .dash-header .title-sub { font-size: 14px; font-weight: 400; color: #6a7282; margin-top: 4px; }
+  .search-box {
+    width: 360px; border: 1px solid #e5e7eb; border-radius: 10px;
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px; overflow: hidden;
+  }
+  .search-box img { width: 18px; height: 18px; flex-shrink: 0; }
+  .search-box span { font-size: 14px; color: rgba(30,41,57,0.5); white-space: nowrap; }
+
+  /* Body */
+  .dash-body {
+    position: absolute; top: 105px; left: 0; right: 0; bottom: 0;
+    display: flex; gap: 24px; padding: 52px 40px;
+    overflow: hidden;
+  }
+
+  /* Cards */
+  .card {
+    background: #fff; border: 1px solid #f3f4f6; border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+    overflow: hidden;
+  }
+  .card-head {
+    background: #fff; border-bottom: 1px solid #f9fafb;
+    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    height: 78px; flex-shrink: 0;
+  }
+  .card-title { font-size: 18px; font-weight: 600; color: #101828; line-height: 27px; }
+  .card-sub { font-size: 12px; font-weight: 400; color: #6a7282; margin-top: 2px; }
+  .card-body { padding: 20px; }
+
+  /* Left column */
+  .left-col { width: 734px; display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
+
+  /* Quartier row */
+  .quartier-row {
+    background: rgba(249,250,251,0.5); border: 1px solid #f3f4f6;
+    border-radius: 10px; padding: 13px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .q-left { display: flex; align-items: center; gap: 12px; }
+  .q-icon-wrap {
+    width: 34px; height: 34px; background: #fff; border: 1px solid #f3f4f6;
+    border-radius: 8px; box-shadow: 0 1px 1.5px rgba(0,0,0,.1), 0 1px 1px rgba(0,0,0,.1);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .q-icon-wrap img { width: 16px; height: 16px; }
+  .q-name { font-size: 14px; font-weight: 600; color: #101828; line-height: 20px; }
+  .q-time { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .q-time img { width: 12px; height: 12px; }
+  .q-time span { font-size: 12px; font-weight: 500; color: #364153; }
+  .q-right { display: flex; align-items: center; gap: 24px; }
+  .q-persons { display: flex; flex-direction: column; align-items: flex-end; }
+  .q-persons-val { display: flex; align-items: center; gap: 2px; }
+  .q-persons-val span { font-size: 12px; font-weight: 700; color: #101828; }
+  .q-persons-val img { width: 12px; height: 12px; }
+  .q-persons-label { font-size: 10px; color: #6a7282; letter-spacing: .25px; text-transform: uppercase; }
+  .q-capacity { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .q-capacity-label { font-size: 12px; font-weight: 700; color: #364153; }
+  .q-capacity-label span { font-weight: 400; color: #99a1af; }
+  .gauge { width: 109px; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+  .gauge-fill { height: 6px; border-radius: 9999px; }
+  .gauge-red { background: #fb2c36; }
+  .gauge-orange { background: #fe9a00; }
+  .btn-green {
+    background: #ecfdf5; border-radius: 10px; padding: 8px;
+    text-align: center; font-size: 12px; font-weight: 500; color: #007a55;
+    cursor: pointer; width: 100%;
+  }
+
+  /* Réparations récentes */
+  .rep-filter { display: flex; gap: 32px; align-items: center; }
+  .filter-sel {
+    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px;
+    padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+    width: 132px;
+  }
+  .filter-sel span { font-size: 12px; font-weight: 500; color: #6a7282; }
+  .filter-sel img { width: 16px; height: 16px; }
+  .rep-row { display: flex; align-items: flex-end; justify-content: space-between; }
+  .rep-icon-circle {
+    width: 32px; height: 32px; background: #ecfdf5; border: 1px solid #d0fae5;
+    border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .rep-icon-circle img { width: 14px; height: 14px; }
+  .rep-desc { flex: 1; margin-left: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .rep-title { font-size: 14px; font-weight: 600; color: #101828; line-height: 19.25px; }
+  .rep-title span { font-weight: 400; color: #6a7282; }
+  .rep-loc { display: flex; align-items: center; gap: 4px; }
+  .rep-loc img { width: 10px; height: 10px; }
+  .rep-loc span { font-size: 12px; color: #6a7282; }
+  .rep-date { font-size: 10px; font-weight: 500; color: #99a1af; letter-spacing: .25px; text-transform: uppercase; }
+  .rep-link { font-size: 12px; font-weight: 500; color: #007a55; text-decoration: underline; white-space: nowrap; }
+  .sep-line { height: 1px; background: #f3f4f6; margin: 4px 0; }
+
+  /* Right col — Alertes */
+  .right-col { flex: 1; min-width: 0; }
+  .alerts-badge {
+    background: #f3f4f6; border-radius: 9999px;
+    padding: 8px 16px; display: flex; align-items: center; gap: 6px;
+  }
+  .alerts-badge .dot { width: 6px; height: 6px; background: #99a1af; border-radius: 50%; }
+  .alerts-badge span { font-size: 10px; font-weight: 700; color: #364153; letter-spacing: .25px; text-transform: uppercase; }
+  .alerts-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .alert-card {
+    background: #fff; border: 1px solid #f3f4f6; border-left: 4px solid #e5e7eb;
+    border-radius: 10px; padding: 13px 13px 13px 36px; position: relative;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .alert-card .drag-icon { position: absolute; left: 7px; top: 16px; width: 14px; height: 14px; }
+  .alert-card .drag-icon img { width: 100%; height: 100%; }
+  .alert-info { display: flex; align-items: center; justify-content: space-between; }
+  .badge-pill { border-radius: 9999px; padding: 4px 10px; display: flex; align-items: center; gap: 6px; }
+  .badge-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .badge-pill span { font-size: 10px; font-weight: 700; letter-spacing: .25px; text-transform: uppercase; }
+  .badge-red { background: #ffe2e2; } .badge-red .dot { background: #e7000b; } .badge-red span { color: #9f0712; }
+  .badge-orange { background: #fffbeb; } .badge-orange .dot { background: #fe9a00; } .badge-orange span { color: #bb4d00; }
+  .badge-blue { background: #eff6ff; } .badge-blue .dot { background: #2b7fff; } .badge-blue span { color: #1447e6; }
+  .badge-green { background: #ecfdf5; } .badge-green .dot { background: #00bc7d; } .badge-green span { color: #007a55; }
+  .alert-time { font-size: 10px; font-weight: 500; color: #6a7282; }
+  .alert-title { font-size: 14px; font-weight: 600; color: #101828; line-height: 20px; }
+  .alert-desc { font-size: 12px; color: #6a7282; line-height: 16px; }
+  .alert-loc { display: flex; align-items: center; gap: 4px; }
+  .alert-loc img { width: 12px; height: 12px; }
+  .alert-loc span { font-size: 11px; color: #4a5565; text-decoration: underline; }
+  .alerts-card-wrap { display: flex; flex-direction: column; height: 720px; overflow: hidden; }
+
+  /* Prévisions filtres */
+  .prev-filters { display: flex; align-items: center; gap: 16px; }
+  .filter-heure {
+    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 4px; width: 100px;
+  }
+  .filter-heure span { font-size: 12px; font-weight: 500; color: #6a7282; flex: 1; }
+  .filter-heure img { width: 16px; height: 16px; }
+  .tab-group { display: flex; gap: 8px; }
+  .tab { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .tab-inactive { background: rgba(255,255,255,0); box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.1); color: #464b54; }
+  .tab-active { background: #f3f4f6; box-shadow: 0 1px 1.5px rgba(0,0,0,.1), 0 1px 1px rgba(0,0,0,.1); color: #6a7282; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="screen-login">
+  <div class="half-gray"></div>
+  <div class="logo-badge">Logo</div>
+  <div class="field">
+    <label>Identifiant</label>
+    <input type="text" id="id-input">
+  </div>
+  <button class="btn-connect" onclick="login()">Se connecter</button>
+</div>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="screen-dashboard">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo"><div class="badge">Logo</div></div>
+    <div class="sidebar-menu">
+      <div class="nav-item active">
+        <img class="nav-icon" src="https://www.figma.com/api/mcp/asset/e4e33425-af40-4913-b2eb-e22e05cc7343" alt="">
+        <span class="nav-label" style="color:#007a55">Dashboard</span>
+      </div>
+      <div class="nav-item">
+        <img class="nav-icon" src="https://www.figma.com/api/mcp/asset/16b594fb-c175-4fca-bb64-83327b15b6be" alt="">
+        <span class="nav-label">Affluence</span>
+      </div>
+      <div class="nav-item">
+        <img class="nav-icon" src="https://www.figma.com/api/mcp/asset/4d5bb049-a708-44bc-a6a2-a1fe5b8c716c" alt="">
+        <span class="nav-label">Réparations</span>
+      </div>
+      <div class="nav-item">
+        <img class="nav-icon" src="https://www.figma.com/api/mcp/asset/6d1fec1a-765e-4269-913e-e8700c7951eb" alt="">
+        <span class="nav-label">Flotte &amp; Véhicules</span>
+      </div>
+      <div class="nav-item">
+        <img class="nav-icon" src="https://www.figma.com/api/mcp/asset/7dece5e1-02ed-494d-9abf-3d6cd5246fd6" alt="">
+        <span class="nav-label">Stocks &amp; Pièces</span>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="profile-avatar">LM</div>
+      <div>
+        <div class="profile-name">Lisa M.</div>
+        <div class="profile-role">Artisan Maintenance</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Header -->
+    <div class="dash-header">
+      <div>
+        <div class="title-main">Dashboard</div>
+        <div class="title-sub">Vue d'ensemble de la flotte communautaire &amp; maintenance</div>
+      </div>
+      <div class="search-box">
+        <img src="https://www.figma.com/api/mcp/asset/a22758a6-6907-4547-b417-ea2e8d9f0d20" alt="">
+        <span>Rechercher un véhicule, un hub...</span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="dash-body">
+
+      <!-- Left column -->
+      <div class="left-col">
+
+        <!-- Prévisions d'affluence -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Prévisions d'affluence par quartier</div>
+              <div class="card-sub">Basé sur l'historique et les évènements planifiés</div>
+            </div>
+            <div class="prev-filters">
+              <div class="filter-heure">
+                <span>Par Heure</span>
+                <img src="https://www.figma.com/api/mcp/asset/8f5bbb55-61a4-49af-b221-d77866a87ace" alt="">
+              </div>
+              <div class="tab-group">
+                <div class="tab tab-inactive">Carte</div>
+                <div class="tab tab-active">Liste</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <!-- Résidentiel -->
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon-wrap"><img src="https://www.figma.com/api/mcp/asset/0498fab1-6ee1-497c-b5df-a905b7afc893" alt=""></div>
+                <div>
+                  <div class="q-name">Résidentiel</div>
+                  <div class="q-time"><img src="https://www.figma.com/api/mcp/asset/c15b9838-94d2-4f9e-b03f-577505ca8ee0" alt=""><span>08:00 - 09:30</span></div>
+                </div>
+              </div>
+              <div class="q-right">
+                <div class="q-persons">
+                  <div class="q-persons-val"><span>1 000</span><img src="https://www.figma.com/api/mcp/asset/adc5d552-9a8c-4f02-8b8d-28b802543ad1" alt=""></div>
+                  <div class="q-persons-label">Personnes est.</div>
+                </div>
+                <div class="q-capacity">
+                  <div class="q-capacity-label">90% <span>capacité</span></div>
+                  <div class="gauge"><div class="gauge-fill gauge-red" style="width:90%"></div></div>
+                </div>
+              </div>
+            </div>
+            <!-- Santé -->
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon-wrap"><img src="https://www.figma.com/api/mcp/asset/0498fab1-6ee1-497c-b5df-a905b7afc893" alt=""></div>
+                <div>
+                  <div class="q-name">Santé</div>
+                  <div class="q-time"><img src="https://www.figma.com/api/mcp/asset/c15b9838-94d2-4f9e-b03f-577505ca8ee0" alt=""><span>08:00 - 09:30</span></div>
+                </div>
+              </div>
+              <div class="q-right">
+                <div class="q-persons">
+                  <div class="q-persons-val"><span>700</span><img src="https://www.figma.com/api/mcp/asset/adc5d552-9a8c-4f02-8b8d-28b802543ad1" alt=""></div>
+                  <div class="q-persons-label">Personnes est.</div>
+                </div>
+                <div class="q-capacity">
+                  <div class="q-capacity-label">85% <span>capacité</span></div>
+                  <div class="gauge"><div class="gauge-fill gauge-red" style="width:85%"></div></div>
+                </div>
+              </div>
+            </div>
+            <!-- Ressources -->
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon-wrap"><img src="https://www.figma.com/api/mcp/asset/0498fab1-6ee1-497c-b5df-a905b7afc893" alt=""></div>
+                <div>
+                  <div class="q-name">Ressources</div>
+                  <div class="q-time"><img src="https://www.figma.com/api/mcp/asset/c15b9838-94d2-4f9e-b03f-577505ca8ee0" alt=""><span>08:00 - 09:30</span></div>
+                </div>
+              </div>
+              <div class="q-right">
+                <div class="q-persons">
+                  <div class="q-persons-val"><span>600</span><img src="https://www.figma.com/api/mcp/asset/adc5d552-9a8c-4f02-8b8d-28b802543ad1" alt=""></div>
+                  <div class="q-persons-label">Personnes est.</div>
+                </div>
+                <div class="q-capacity">
+                  <div class="q-capacity-label">75% <span>capacité</span></div>
+                  <div class="gauge"><div class="gauge-fill gauge-red" style="width:75%"></div></div>
+                </div>
+              </div>
+            </div>
+            <!-- Centre -->
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon-wrap"><img src="https://www.figma.com/api/mcp/asset/fffa9a06-d90b-4707-9820-d36ecc6840f4" alt=""></div>
+                <div>
+                  <div class="q-name">Centre</div>
+                  <div class="q-time"><img src="https://www.figma.com/api/mcp/asset/c15b9838-94d2-4f9e-b03f-577505ca8ee0" alt=""><span>08:00 - 09:30</span></div>
+                </div>
+              </div>
+              <div class="q-right">
+                <div class="q-persons">
+                  <div class="q-persons-val"><span>200</span><img src="https://www.figma.com/api/mcp/asset/adc5d552-9a8c-4f02-8b8d-28b802543ad1" alt=""></div>
+                  <div class="q-persons-label">Personnes est.</div>
+                </div>
+                <div class="q-capacity">
+                  <div class="q-capacity-label">60% <span>capacité</span></div>
+                  <div class="gauge"><div class="gauge-fill gauge-orange" style="width:60%"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-green">Voir plus de quartiers</div>
+          </div>
+        </div>
+
+        <!-- Réparations récentes -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Réparations récentes</div>
+            <div class="rep-filter">
+              <div class="filter-sel">
+                <span>Cette semaine</span>
+                <img src="https://www.figma.com/api/mcp/asset/8f5bbb55-61a4-49af-b221-d77866a87ace" alt="">
+              </div>
+              <div class="filter-sel">
+                <span>Lisa.M</span>
+                <img src="https://www.figma.com/api/mcp/asset/8f5bbb55-61a4-49af-b221-d77866a87ace" alt="">
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="rep-row" style="align-items:flex-start;">
+              <div class="rep-icon-circle"><img src="https://www.figma.com/api/mcp/asset/3e5891f2-7f9f-4464-94ae-16d014af3e56" alt=""></div>
+              <div class="rep-desc">
+                <div class="rep-title">Remplacement batterie <span>(Vélo Cargo)</span></div>
+                <div class="rep-loc"><img src="https://www.figma.com/api/mcp/asset/70727d5b-e882-4d6b-b80c-fb1489bbf687" alt=""><span>Quartier résidentiel</span></div>
+                <div class="rep-date">LUN 12 JUIN - 18:30</div>
+              </div>
+              <span class="rep-link">Rapport</span>
+            </div>
+            <div class="sep-line"></div>
+            <div class="rep-row" style="align-items:flex-start;">
+              <div class="rep-icon-circle"><img src="https://www.figma.com/api/mcp/asset/3e5891f2-7f9f-4464-94ae-16d014af3e56" alt=""></div>
+              <div class="rep-desc">
+                <div class="rep-title">Changement pneu <span>(Vélo Electrique)</span></div>
+                <div class="rep-loc"><img src="https://www.figma.com/api/mcp/asset/70727d5b-e882-4d6b-b80c-fb1489bbf687" alt=""><span>Quartier des ressources</span></div>
+                <div class="rep-date">LUN 12 JUIN - 18:00</div>
+              </div>
+              <span class="rep-link">Rapport</span>
+            </div>
+            <div class="btn-green">Voir la page réparation</div>
+          </div>
+        </div>
+
+      </div><!-- /left-col -->
+
+      <!-- Right column — Alertes -->
+      <div class="right-col">
+        <div class="card" style="height:100%;">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Alertes en cours</div>
+              <div class="card-sub">Glissez pour changer la priorité</div>
+            </div>
+            <div class="alerts-badge">
+              <div class="dot"></div>
+              <span>5 actives</span>
+            </div>
+          </div>
+          <div class="alerts-body">
+
+            <div class="alert-card" style="border-left-color:#e7000b">
+              <div class="drag-icon"><img src="https://www.figma.com/api/mcp/asset/7ee538d3-bc0f-435a-9493-f24aad34b571" alt=""></div>
+              <div class="alert-info">
+                <div class="badge-pill badge-red"><div class="dot"></div><span>Très urgente</span></div>
+                <span class="alert-time">Il y a 4 min</span>
+              </div>
+              <div>
+                <div class="alert-title">Batterie faible sur VSL</div>
+                <div class="alert-desc">Véhicule médical en intervention</div>
+                <div class="alert-loc"><img src="https://www.figma.com/api/mcp/asset/f48b9110-e500-423a-a409-6793ea4417ba" alt=""><span>Quartier de la santé - Hôpital</span></div>
+              </div>
+            </div>
+
+            <div class="alert-card" style="border-left-color:#e7000b">
+              <div class="drag-icon"><img src="https://www.figma.com/api/mcp/asset/7ee538d3-bc0f-435a-9493-f24aad34b571" alt=""></div>
+              <div class="alert-info">
+                <div class="badge-pill badge-red"><div class="dot"></div><span>Urgente</span></div>
+                <span class="alert-time">Il y a 12 min</span>
+              </div>
+              <div>
+                <div class="alert-title">Panne Bus Ligne 4</div>
+                <div class="alert-desc">Risque de retard majeur pour les travailleurs</div>
+                <div class="alert-loc"><img src="https://www.figma.com/api/mcp/asset/f48b9110-e500-423a-a409-6793ea4417ba" alt=""><span>Quartier résidentiel - Arrêt du Chêne</span></div>
+              </div>
+            </div>
+
+            <div class="alert-card" style="border-left-color:#fe9a00">
+              <div class="drag-icon"><img src="https://www.figma.com/api/mcp/asset/7ee538d3-bc0f-435a-9493-f24aad34b571" alt=""></div>
+              <div class="alert-info">
+                <div class="badge-pill badge-orange"><div class="dot"></div><span>Moyenne</span></div>
+                <span class="alert-time">Il y a 32 min</span>
+              </div>
+              <div>
+                <div class="alert-title">Accident léger vélo cargo</div>
+                <div class="alert-desc">Trajet de livraison</div>
+                <div class="alert-loc"><img src="https://www.figma.com/api/mcp/asset/f48b9110-e500-423a-a409-6793ea4417ba" alt=""><span>Centre ville - Marché central</span></div>
+              </div>
+            </div>
+
+            <div class="alert-card" style="border-left-color:#2b7fff">
+              <div class="drag-icon"><img src="https://www.figma.com/api/mcp/asset/7ee538d3-bc0f-435a-9493-f24aad34b571" alt=""></div>
+              <div class="alert-info">
+                <div class="badge-pill badge-blue"><div class="dot"></div><span>Peu urgente</span></div>
+                <span class="alert-time">Il y a 1h</span>
+              </div>
+              <div>
+                <div class="alert-title">Portière bloqué</div>
+                <div class="alert-desc">Véhicule de tourisme (vacances)</div>
+                <div class="alert-loc"><img src="https://www.figma.com/api/mcp/asset/f48b9110-e500-423a-a409-6793ea4417ba" alt=""><span>Quartier résidentiel - Parking de l'est</span></div>
+              </div>
+            </div>
+
+            <div class="alert-card" style="border-left-color:#e5e7eb; padding-left:16px;">
+              <div class="alert-info">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img src="https://www.figma.com/api/mcp/asset/e9db37cf-9c98-4d6e-9c22-06556aaeee44" alt="" style="width:14px;height:14px;">
+                  <div class="badge-pill badge-green"><div class="dot"></div><span>Pas urgente</span></div>
+                </div>
+                <span class="alert-time">Il y a 2h</span>
+              </div>
+              <div>
+                <div class="alert-title">Rayure carrosserie</div>
+                <div class="alert-desc">Signalement utilisateur</div>
+                <div class="alert-loc"><img src="https://www.figma.com/api/mcp/asset/c1570d09-5ab9-43a0-86e5-59fc77faf15c" alt=""><span>Centre-ville</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /right-col -->
+
+    </div><!-- /dash-body -->
+  </div><!-- /main -->
+</div><!-- /screen-dashboard -->
+
+<script>
+  function login() {
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-dashboard').style.display = 'block';
+  }
+
+  window.addEventListener('message', e => {
+    if (e.data?.type === 'pcscreen:exit') {
+      document.getElementById('screen-dashboard').style.display = 'none';
+      document.getElementById('screen-login').style.display = 'block';
+      document.getElementById('id-input').value = '';
+    }
+  });
+</script>
+</body>
+</html>

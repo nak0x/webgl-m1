@@ -144,7 +144,7 @@ export default class AtelierWorld {
       console.warn(`AtelierWorld: mesh "${OBJECTS.SCREEN}" introuvable`)
       return
     }
-    this._pcScreen = new PcScreen(this.experience, mesh)
+    this._pcScreen = new PcScreen(this.experience, mesh, '/crm-scenario.html')
     this._pcScreen.setFpsController(this._fps)
   }
 
