@@ -1,0 +1,58 @@
+{
+  "vehicle": {
+    "name": "Dacia Sandero",
+    "year": 2030,
+    "immatriculation": "ZZ-999-ZZ",
+    "km": 200387,
+    "fuel_level": 15,
+    "fuel_type": "hydrogen"
+  },
+  "context": "Diagnostic embarqué : anomalie critique détectée sur le circuit hydrogène.",
+  "priority": "urgent",
+  "repair_delay_days": 3,
+  "available_parts": [
+    { "id": "filtre_h2", "name": "Filtre hydrogène", "available": true, "delivery_days": 0 },
+    { "id": "regulateur_h2", "name": "Régulateur hydrogène", "available": false, "delivery_days": 1 }
+  ],
+  "repair_history": [
+    { "date": "2050-01-03", "type": "moteur", "severity": "critique" },
+    { "date": "2051-03-13", "type": "frein", "severity": "use" }
+  ],
+  "repairs": [
+    {
+      "id": "panne_moteur_h2",
+      "name": "Panne moteur hydrogène",
+      "description": "Blocage intermittent de la vanne de détente haute pression par givrage interne du circuit hydrogène.",
+      "severity": "critique",
+      "repairable": false,
+      "replaceable": true,
+      "pieces": [
+        { "mesh": "moteur", "name": "Moteur hydrogène" },
+        { "mesh": "vanne_hp", "name": "Vanne haute pression" }
+      ]
+    },
+    {
+      "id": "usure_frein_av",
+      "name": "Usure frein avant",
+      "description": "Plaquettes avant à 30% de vie restante. Remplacement préventif recommandé avant 5 000 km.",
+      "severity": "use",
+      "repairable": true,
+      "replaceable": true,
+      "pieces": [
+        { "mesh": "frein_avant_gauche", "name": "Frein avant gauche" },
+        { "mesh": "frein_avant_droit", "name": "Frein avant droit" }
+      ]
+    },
+    {
+      "id": "fuite_refroidissement",
+      "name": "Fuite circuit refroidissement",
+      "description": "Micro-fissure détectée sur le radiateur secondaire. Perte de pression progressive.",
+      "severity": "endommage",
+      "repairable": true,
+      "replaceable": true,
+      "pieces": [
+        { "mesh": "radiateur", "name": "Radiateur secondaire" }
+      ]
+    }
+  ]
+}

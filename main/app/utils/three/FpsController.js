@@ -66,7 +66,14 @@ export default class FpsController {
   }
 
   get isLocked() { return this.controls.isLocked }
-  lock()         { this.controls.lock() }
+
+  // PointerLockControls.lock() calls requestPointerLock() but discards its
+  // Promise, causing uncaught rejections when called without a user gesture
+  // or when already locked. We call the DOM API directly to catch those cases.
+  lock() {
+    if (this.controls.isLocked) return
+    this.controls.domElement.requestPointerLock()?.catch(() => {})
+  }
 
   setCollisionManager(cm) { this._collisionManager = cm }
 
@@ -161,7 +168,7 @@ export default class FpsController {
   }
 
   _onClick() {
-    if (!this.controls.isLocked) this.controls.lock()
+    this.lock()
   }
 
   _onKeyDown(e) {
@@ -190,6 +197,10 @@ export default class FpsController {
     window.removeEventListener('keyup',   this._onKeyUp)
     this._canvas.removeEventListener('click', this._onClick)
     this._crosshairEl.remove()
+    // PointerLockControls.dispose() removes listeners but does NOT call
+    // exitPointerLock — the lock persists across scene transitions. Release
+    // explicitly so the next scene's FPS controller can lock cleanly.
+    if (this.controls.isLocked) this.controls.unlock()
     this.controls.dispose()
 
     this._experience.camera.autoUpdate       = true

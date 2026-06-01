@@ -6,7 +6,9 @@ import CityWorld              from './city/CityWorld.js'
 import CitySources            from './city/CitySources.js'
 import AtelierEndSceneWorld   from './atelier_end/AtelierEndSceneWorld.js'
 import AtelierEndSceneSources from './atelier_end/AtelierEndSceneSources.js'
-import { assetPath }  from '../../assetPath.js'
+import CarRepairWorld         from './car_repair/CarRepairWorld.js'
+import CarRepairSources       from './car_repair/CarRepairSources.js'
+import { assetPath }          from '../../assetPath.js'
 
 export const SCENES = {
   'scene_1': {
@@ -48,6 +50,20 @@ export const SCENES = {
     World:   AtelierEndSceneWorld,
     sources: AtelierEndSceneSources,
     flow: [],
+  },
+
+  'car_repair': {
+    World:   CarRepairWorld,
+    sources: CarRepairSources,
+    flow: [
+      {
+        type: 'text',
+        cards: [
+          { title: 'DIAGNOSTIC',          duration: 2500 },
+          { text: 'Analyse du véhicule…', duration: 2000 },
+        ],
+      },
+    ],
   },
 }
 

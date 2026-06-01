@@ -42,6 +42,16 @@
       :arrow-visible="indicator.arrowVisible.value"
       :arrow-angle="indicator.arrowAngle.value"
     />
+
+    <RepairHud
+      :repair="repair.activeRepair.value"
+      :xray-active="repair.xrayRepairId.value !== null"
+      @confirm="(id, action) => repair.confirmRepair(id, action)"
+    />
+    <VehicleInfoHud
+      :vehicle="repair.vehicleInfo.value"
+      :meta="repair.vehicleMeta.value"
+    />
   </template>
 
   <TextCinematicHud
@@ -96,6 +106,7 @@ import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
 import { useCinematicState }      from '~/composables/useCinematicState.js'
 import { useTextCinematic }       from '~/composables/useTextCinematic.js'
 import { usePcState }             from '~/composables/usePcState.js'
+import { useRepairState }         from '~/composables/useRepairState.js'
 
 const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
@@ -106,6 +117,7 @@ const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
 const pc            = usePcState()
+const repair        = useRepairState()
 const isFading      = ref(false)
 const isStarted     = ref(false)
 const isPcRecap     = ref(false)
@@ -137,6 +149,9 @@ function makeCallbacks() {
       indicator.bindCamera(experience.camera.instance)
       ind.setArrowCallback(indicator.setArrow)
     },
+    onWorldReady:    ({ repairData, markerManager }) => repair.bind(markerManager, repairData),
+    onXrayChange:    (id) => { repair.xrayRepairId.value = id },
+    onRepairDispose: () => repair.unbind(),
     transitionTo,
     onPcRecap:       () => { isPcRecap.value = true },
     onGameEnd,
