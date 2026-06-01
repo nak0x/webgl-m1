@@ -3,32 +3,35 @@
     <div v-if="active" class="cinematic-root">
       <div class="cinematic-bar">
 
-        <button class="cinematic-icon-btn" @click="togglePause" :aria-label="isPaused ? 'Reprendre' : 'Pause'">
-          <svg v-if="isPaused" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M4 2.5l9 5.5-9 5.5z"/>
+        <button class="cinematic-btn" @click="togglePause" :aria-label="isPaused ? 'Reprendre' : 'Pause'">
+          <svg v-if="isPaused" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5,3 19,12 5,21"/>
           </svg>
-          <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <rect x="2.5" y="2" width="4" height="12"/>
-            <rect x="9.5" y="2" width="4" height="12"/>
+          <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="5" y="3" width="4" height="18" rx="1"/>
+            <rect x="15" y="3" width="4" height="18" rx="1"/>
           </svg>
         </button>
 
-        <input
-          class="cinematic-seek"
-          type="range"
-          :min="0"
-          :max="duration || 1"
-          :value="currentTime"
-          step="0.01"
-          @input="onSeek"
-          @mousedown="onSeekStart"
-          @mouseup="onSeekEnd"
-        />
+        <div class="cinematic-track">
+          <div class="cinematic-fill" :style="{ width: fillPct + '%' }" />
+          <input
+            class="cinematic-seek"
+            type="range"
+            :min="0"
+            :max="duration || 1"
+            :value="currentTime"
+            step="0.01"
+            @input="onSeek"
+            @mousedown="onSeekStart"
+            @mouseup="onSeekEnd"
+          />
+        </div>
 
-        <button class="cinematic-icon-btn cinematic-skip-btn" @click="skip" aria-label="Passer">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M3 2.5l8 5.5-8 5.5z"/>
-            <rect x="12" y="2.5" width="2" height="11" rx="1"/>
+        <button class="cinematic-btn" @click="skip" aria-label="Passer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5,3 17,12 5,21"/>
+            <rect x="18" y="3" width="3" height="18" rx="1"/>
           </svg>
         </button>
 
@@ -47,15 +50,17 @@ const props = defineProps({
 
 const emit = defineEmits(['pause', 'resume', 'skip', 'seek'])
 
+const fillPct = computed(() =>
+  props.duration > 0 ? (props.currentTime / props.duration) * 100 : 0
+)
+
 function togglePause() {
   props.isPaused ? emit('resume') : emit('pause')
 }
 
 function skip() { emit('skip') }
 
-function onSeek(e) {
-  emit('seek', parseFloat(e.target.value))
-}
+function onSeek(e) { emit('seek', parseFloat(e.target.value)) }
 
 let _wasPaused = false
 function onSeekStart() {
@@ -84,62 +89,82 @@ function onSeekEnd(e) {
 .cinematic-bar {
   pointer-events: all;
   width: min(680px, 88vw);
-  background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 8px;
-  padding: 12px 20px;
+  background: var(--color-black);
+  box-shadow: 0 0 5px rgba(142, 184, 184, 0.75);
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
+  border-radius: 4px;
 }
 
-.cinematic-icon-btn {
+/* ── Boutons icône ── */
+
+.cinematic-btn {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-white);
   cursor: pointer;
-  border-radius: 4px;
-  transition: color 0.15s;
+  border-radius: 50%;
+  transition: opacity 0.15s;
   padding: 0;
 }
 
-.cinematic-icon-btn:hover {
-  color: #fff;
+.cinematic-btn:hover { opacity: 0.75; }
+
+/* ── Barre de progression ── */
+
+.cinematic-track {
+  flex: 1 0 0;
+  position: relative;
+  height: 6px;
+  background: rgba(255, 96, 56, 0.25);
+  min-width: 1px;
+}
+
+.cinematic-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6px;
+  background: var(--color-orange);
+  pointer-events: none;
+  transition: width 0.1s linear;
 }
 
 .cinematic-seek {
-  flex: 1;
+  position: absolute;
+  inset: -10px 0;
+  width: 100%;
+  height: 26px;
   -webkit-appearance: none;
   appearance: none;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  background: transparent;
   outline: none;
   cursor: pointer;
-  accent-color: #fff;
+  margin: 0;
 }
 
 .cinematic-seek::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  transition: transform 0.15s;
+  width: 0;
+  height: 0;
 }
 
-.cinematic-seek:hover::-webkit-slider-thumb {
-  transform: scale(1.35);
+.cinematic-seek::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border: none;
+  background: transparent;
 }
 
-/* Transition */
+/* ── Transition ── */
 .cinematic-enter-active { transition: opacity 0.3s, transform 0.3s; }
 .cinematic-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .cinematic-enter-from   { opacity: 0; transform: translateY(10px); }

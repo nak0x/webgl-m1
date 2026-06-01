@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500&display=swap');
+
+:root {
+  --color-black:  #2d1d1b;
+  --color-white:  #efeadf;
+  --color-orange: #ff6038;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -7,7 +15,8 @@
 html, body {
   overflow: hidden;
   background: #000;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  color: var(--color-black);
 }
 
 canvas {

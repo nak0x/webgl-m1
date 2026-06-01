@@ -1,36 +1,30 @@
 /**
- * useTextCinematic — cinématique textuelle (cartes noires).
- *
- * Lit un tableau de cartes JSON et les affiche en séquence.
- * Chaque carte se fait fade-in → hold → fade-out automatiquement.
+ * useTextCinematic — cinématique textuelle.
  *
  * Format d'une carte :
  *   { text: "...", duration: 3000 }
  *   { title: "CHAPITRE I", subtitle: "L'Atelier", duration: 4000 }
- *   { title: "...", text: "...", duration: 5000 }  // title + texte combinés
+ *   { title: "...", text: "...", duration: 5000 }
  *
- * Usage :
- *   const textCinematic = useTextCinematic()
- *   await textCinematic.play(cards)   // resolve quand toutes les cartes sont passées
- *   // ou depuis un World via import JSON :
- *   const cards = await fetch('/cinematics/intro.json').then(r => r.json())
- *   await textCinematic.play(cards)
+ * play(cards, { backgroundImage: '/img/atelier.jpg' }) — image de fond optionnelle
  */
 
 const FADE_MS = 400
 
-const active  = ref(false)
-const card    = ref(null)   // { title?, subtitle?, text?, duration }
-const visible = ref(false)  // contrôle le fade CSS
+const active          = ref(false)
+const card            = ref(null)
+const visible         = ref(false)
+const backgroundImage = ref(null)
 
 export function useTextCinematic() {
-  function play(cards) {
+  function play(cards, options = {}) {
     if (!cards?.length) return Promise.resolve()
 
     return new Promise(resolve => {
-      active.value  = true
-      visible.value = false
-      card.value    = null
+      active.value          = true
+      visible.value         = false
+      card.value            = null
+      backgroundImage.value = options.backgroundImage ?? null
 
       let index = 0
 
@@ -38,8 +32,9 @@ export function useTextCinematic() {
         if (index >= cards.length) {
           visible.value = false
           await delay(FADE_MS)
-          active.value = false
-          card.value   = null
+          active.value          = false
+          card.value            = null
+          backgroundImage.value = null
           resolve()
           return
         }
@@ -60,13 +55,13 @@ export function useTextCinematic() {
   }
 
   function skip() {
-    // Coupe immédiatement — la Promise ne resolve pas, le caller doit gérer
-    visible.value = false
-    active.value  = false
-    card.value    = null
+    visible.value         = false
+    active.value          = false
+    card.value            = null
+    backgroundImage.value = null
   }
 
-  return { active, card, visible, play, skip }
+  return { active, card, visible, backgroundImage, play, skip }
 }
 
 function delay(ms) {

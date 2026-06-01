@@ -48,6 +48,7 @@
     :active="textCinematic.active.value"
     :visible="textCinematic.visible.value"
     :card="textCinematic.card.value"
+    :background-image="textCinematic.backgroundImage.value"
   />
 
   <PauseHud
