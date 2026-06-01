@@ -16,6 +16,13 @@ export default class GlassesManager extends EventEmitter {
     this.trigger('glasses:off')
   }
 
+  toggle() {
+    if (this._equipped) this.unequip()
+    else                this.equip()
+  }
+
+  get equipped() { return this._equipped }
+
   notify({ id, title, text, permanent = false, duration = 4000 }) {
     this.trigger('notification', { id, title, text, permanent, duration })
   }

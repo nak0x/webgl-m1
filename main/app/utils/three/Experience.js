@@ -45,6 +45,7 @@ export default class Experience {
     this.sound          = new SoundManager(this)
     this.cinematic      = new CinematicManager(this)
     this.dialogue       = null   // assigné par le World via setDialogue()
+    this.glasses        = null   // assigné par le World via setGlasses()
 
     // Boucle & resize propagés par Experience
     this.time.on('tick',    () => this._update())
@@ -62,6 +63,10 @@ export default class Experience {
    */
   setDialogue(manager) {
     this.dialogue = manager
+  }
+
+  setGlasses(manager) {
+    this.glasses = manager
   }
 
   _update() {

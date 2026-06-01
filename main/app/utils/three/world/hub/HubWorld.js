@@ -22,6 +22,7 @@ export default class HubWorld {
     experience.setDialogue(this.dialogue)
 
     this._glasses = new GlassesManager()
+    experience.setGlasses(this._glasses)
     this._callbacks.onGlassesReady?.(this._glasses)
 
     experience.resources.on('ready', () => this._setup())
