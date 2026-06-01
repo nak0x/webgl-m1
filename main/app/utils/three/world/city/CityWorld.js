@@ -5,7 +5,8 @@ import DialogueManager  from '../../dialogue/DialogueManager.js'
 import GlassesManager   from '../../glasses/GlassesManager.js'
 import { buildOctree }  from '../../buildOctree.js'
 import CityChunkManager from './CityChunkManager.js'
-import { SPAWN, EYE_HEIGHT } from './CityConfig.js'
+import CityCollisionManager from './CityCollisionManager.js'
+import { SPAWN, EYE_HEIGHT, worldToChunk } from './CityConfig.js'
 
 // FpsController capsule radius is 0.3, EYE_HEIGHT constant is 1.0.
 // Settled camera height = floor_y + 0.3 + 1.0.
@@ -156,6 +157,99 @@ export default class CityWorld {
     this._debugFolder = root
   }
 
+  _setupCollisionDebug() {
+    if (!this._debugFolder) return
+
+    const colF  = this._debugFolder.addFolder('Collision')
+    const proxy = { radius: this._collision.radius, showSphere: false, showMap: false }
+
+    colF.add(proxy, 'radius', 0.1, 2.0, 0.05).name('radius').onChange(v => {
+      this._collision.radius = v
+    })
+
+    const geo = new THREE.SphereGeometry(1, 16, 8)
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true })
+    this._debugCollisionSphere = new THREE.Mesh(geo, mat)
+    this._debugCollisionSphere.visible = false
+    this.scene.add(this._debugCollisionSphere)
+
+    colF.add(proxy, 'showSphere').name('show sphere').onChange(v => {
+      this._debugCollisionSphere.visible = v
+    })
+
+    const MAP_PX = 256
+    const MAP_WU = 32
+    this._debugMapScale = MAP_PX / MAP_WU
+
+    const canvas = document.createElement('canvas')
+    canvas.width  = MAP_PX
+    canvas.height = MAP_PX
+    canvas.style.cssText = [
+      'position:fixed', 'bottom:16px', 'right:16px',
+      `width:${MAP_PX}px`, `height:${MAP_PX}px`,
+      'display:none', 'z-index:999',
+      'border:1px solid rgba(255,255,255,0.25)',
+      'image-rendering:pixelated',
+      'pointer-events:none',
+    ].join(';')
+    document.body.appendChild(canvas)
+    this._debugMapCanvas  = canvas
+    this._debugMapCtx     = canvas.getContext('2d')
+    this._debugMapEnabled = false
+    this._debugMapTimer   = 0
+
+    colF.add(proxy, 'showMap').name('show map').onChange(v => {
+      this._debugMapEnabled = v
+      canvas.style.display  = v ? 'block' : 'none'
+    })
+  }
+
+  _updateDebugMap(delta) {
+    if (!this._collision) return
+
+    if (this._debugCollisionSphere.visible) {
+      this._debugCollisionSphere.position.copy(this.camera.instance.position)
+      this._debugCollisionSphere.scale.setScalar(this._collision.radius)
+    }
+
+    if (!this._debugMapEnabled) return
+    this._debugMapTimer += delta
+    if (this._debugMapTimer < 100) return
+    this._debugMapTimer = 0
+
+    const ctx    = this._debugMapCtx
+    const canvas = this._debugMapCanvas
+    const W = canvas.width, H = canvas.height
+    const S = this._debugMapScale
+    const HW = W / 2, HH = H / 2
+
+    const px  = this.camera.instance.position.x
+    const pz  = this.camera.instance.position.z
+    const step = 1 / S
+
+    const imageData = ctx.createImageData(W, H)
+    const data      = imageData.data
+
+    for (let cy = 0; cy < H; cy++) {
+      const wz = pz + (cy - HH) * step
+      for (let cx = 0; cx < W; cx++) {
+        const wx = px + (cx - HW) * step
+        const i  = (cy * W + cx) * 4
+        if (this._collision.sampleAt(wx, wz)) {
+          data[i] = 220; data[i+1] = 60; data[i+2] = 60; data[i+3] = 200
+        } else {
+          data[i] = 20; data[i+1] = 20; data[i+2] = 30; data[i+3] = 160
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0)
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(HW - 2, HH - 2, 4, 4)
+  }
+
   // ── City sky / atmosphere persistence ────────────────────────────────────
 
   async _loadCitySky() {
@@ -243,6 +337,15 @@ export default class CityWorld {
     this._chunks = new CityChunkManager(this.scene, this.experience.renderProfile.material)
     try {
       await this._chunks.init()
+
+      if (this._chunks.manifest?.chunks?.some(c => c.collision?.bin)) {
+        this._collision = new CityCollisionManager(this._chunks.manifest)
+        this._fps.setCollisionManager(this._collision)
+        const { col, row } = worldToChunk(SPAWN.x, SPAWN.z)
+        this._collision.preload(col, row, SPAWN.x, SPAWN.z)
+        this._setupCollisionDebug()
+      }
+
       this._chunks.update(SPAWN.x, SPAWN.z)
     } catch (err) {
       console.error('[CityWorld] manifest load failed:', err)
@@ -256,6 +359,15 @@ export default class CityWorld {
     if (this._chunks) {
       const { x, z } = this.camera.instance.position
       this._chunks.update(x, z)
+
+      if (this._collision) {
+        const { col, row } = worldToChunk(x, z)
+        this._collision.preload(col, row, x, z)
+      }
+    }
+
+    if (this.experience.debug.active && this._collision) {
+      this._updateDebugMap(this.experience.time.delta)
     }
   }
 
@@ -268,11 +380,20 @@ export default class CityWorld {
     this._crosshair?.dispose()
     this.experience.interaction.setFpsMode(false)
     this._chunks?.dispose()
+    this._collision?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
     this._sun.castShadow = false
     this._sun.shadow.map?.dispose()
     this._sun.shadow.map = null
+    if (this._debugCollisionSphere) {
+      this.scene.remove(this._debugCollisionSphere)
+      this._debugCollisionSphere.geometry?.dispose()
+      this._debugCollisionSphere.material?.dispose()
+    }
+    if (this._debugMapCanvas) {
+      this._debugMapCanvas.remove()
+    }
     this._debugFolder?.destroy()
   }
 }

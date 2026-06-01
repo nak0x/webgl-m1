@@ -1,5 +1,6 @@
 import { GLTFLoader } from '/lib/addons/loaders/GLTFLoader.js'
-import { CHUNK_DIR, RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
+import { RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
+import { assetPath } from '../../../assetPath.js'
 
 // Chunks are position-only, not Draco-compressed — no DRACOLoader needed.
 const MAX_CONCURRENT = 3   // parallel GLTF parses
@@ -33,7 +34,7 @@ export default class CityChunkManager {
   }
 
   async init() {
-    const r = await fetch(CHUNK_DIR + 'manifest.json')
+    const r = await fetch(assetPath('/models/town/chunks/manifest.json'))
     this._manifest = await r.json()
     this._chunkMap = new Map(this._manifest.chunks.map(c => [c.id, c]))
   }
@@ -119,13 +120,13 @@ export default class CityChunkManager {
 
     const file = chunk.lods[lod].file
 
-    fetch(CHUNK_DIR + file)
+    fetch(assetPath('/models/town/chunks/' + file))
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.arrayBuffer()
       })
       .then(buf => new Promise((ok, fail) =>
-        this._loader.parse(buf, CHUNK_DIR, ok, fail)
+        this._loader.parse(buf, assetPath('/models/town/chunks/'), ok, fail)
       ))
       .then(gltf => {
         // Compute normals (position-only GLTFs have none) + apply shared material
