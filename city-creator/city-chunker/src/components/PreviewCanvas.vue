@@ -518,13 +518,39 @@ function _clearCollisionGroup() {
 }
 
 function _addCollisionPlane(chunk) {
-  if (!chunk.bmp || !collisionGroup) return
+  if (!chunk.bin || !collisionGroup) return
   const cs = props.chunkSize
   const [col, row] = chunk.chunkId.split('_').map(Number)
 
-  const blob = new Blob([chunk.bmp], { type: 'image/bmp' })
-  const url  = URL.createObjectURL(blob)
-  const tex  = new THREE.TextureLoader().load(url, () => URL.revokeObjectURL(url))
+  let tex
+  if (chunk.bmp) {
+    const blob = new Blob([chunk.bmp], { type: 'image/bmp' })
+    const url  = URL.createObjectURL(blob)
+    tex = new THREE.TextureLoader().load(url, () => URL.revokeObjectURL(url))
+  } else {
+    // bmp not generated (resolution > 2048) — decode bitfield directly
+    const binData    = new Uint8Array(chunk.bin)
+    const resolution = Math.round(Math.sqrt(binData.length * 8))
+    const size       = Math.min(resolution, 512)
+    const canvas     = document.createElement('canvas')
+    canvas.width = size; canvas.height = size
+    const ctx = canvas.getContext('2d')
+    const img = ctx.createImageData(size, size)
+    const d   = img.data
+    const step = resolution / size
+    for (let py = 0; py < size; py++) {
+      for (let px = 0; px < size; px++) {
+        const bx  = Math.floor(px * step)
+        const bz  = Math.floor(py * step)
+        const idx = bz * resolution + bx
+        const bit = (binData[idx >> 3] >> (idx & 7)) & 1
+        const i   = (py * size + px) * 4
+        d[i] = bit ? 220 : 20; d[i+1] = bit ? 60 : 20; d[i+2] = bit ? 60 : 30; d[i+3] = 200
+      }
+    }
+    ctx.putImageData(img, 0, 0)
+    tex = new THREE.CanvasTexture(canvas)
+  }
 
   const geo  = new THREE.PlaneGeometry(cs, cs)
   const mat  = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.65, depthWrite: false })
