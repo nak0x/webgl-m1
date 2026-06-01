@@ -11,7 +11,7 @@ export interface CameraController {
 }
 
 export function useCamera(): CameraController {
-  const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 250)
+  const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1.75, 100)
 
   let mode: CameraMode = 'third'
 
