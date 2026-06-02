@@ -162,13 +162,187 @@ export default class CityWorld {
 
     const root = debug.gui.addFolder('City'); root.close()
     this._debugFolder = root
+    this._setupMinimap()
+  }
+
+  _setupMinimap() {
+    const MAP_PX = 256
+
+    const wrapper = document.createElement('div')
+    Object.assign(wrapper.style, {
+      position:      'fixed',
+      bottom:        '16px',
+      right:         '16px',
+      zIndex:        '1000',
+      pointerEvents: 'none',
+    })
+
+    const canvas = document.createElement('canvas')
+    canvas.width  = MAP_PX
+    canvas.height = MAP_PX
+    Object.assign(canvas.style, {
+      display:        'block',
+      border:         '1px solid rgba(0,255,255,0.35)',
+      imageRendering: 'pixelated',
+    })
+
+    const coords = document.createElement('div')
+    Object.assign(coords.style, {
+      marginTop:  '4px',
+      background: 'rgba(0,0,0,0.72)',
+      padding:    '3px 8px',
+      font:       '11px/1.5 monospace',
+      color:      '#0ff',
+      whiteSpace: 'pre',
+    })
+    coords.textContent = 'x:   0.0   y:   0.0   z:   0.0'
+
+    wrapper.appendChild(canvas)
+    wrapper.appendChild(coords)
+    document.body.appendChild(wrapper)
+
+    // Ortho camera looking straight down, -Z is screen up (= world north).
+    // Covers 64 WU (1 CHUNK_SIZE) from edge to edge.
+    const orthoCamera = new THREE.OrthographicCamera(-32, 32, 32, -32, 0.1, 600)
+    orthoCamera.up.set(0, 0, -1)
+
+    // Height-based shader: light grey below 0.4 m (streets/ground), dark grey above (buildings).
+    const heightShader = new THREE.ShaderMaterial({
+      vertexShader: /* glsl */`
+        varying float vWorldY;
+        void main() {
+          vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldY = worldPos.y;
+          gl_Position = projectionMatrix * viewMatrix * worldPos;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        varying float vWorldY;
+        void main() {
+          float grey = mix(0.72, 0.22, step(0.4, vWorldY));
+          gl_FragColor = vec4(vec3(grey), 1.0);
+        }
+      `,
+      side: THREE.DoubleSide,
+    })
+
+    // Reusable pixel buffers — avoid allocating on every throttled frame.
+    const pixelBuffer   = new Uint8Array(MAP_PX * MAP_PX * 4)
+    const flippedBuffer = new Uint8ClampedArray(MAP_PX * MAP_PX * 4)
+    const savedClearColor = new THREE.Color()
+
+    this._minimap = {
+      wrapper, canvas, ctx: canvas.getContext('2d'), coords, timer: 0,
+      renderTarget: new THREE.WebGLRenderTarget(MAP_PX, MAP_PX),
+      orthoCamera, heightShader, pixelBuffer, flippedBuffer, savedClearColor,
+    }
+  }
+
+  _updateMinimap(delta) {
+    if (!this._minimap) return
+
+    const cam        = this.camera.instance
+    const { x, y, z } = cam.position
+
+    // Coordinates — updated every frame.
+    this._minimap.coords.textContent =
+      `x: ${x.toFixed(1).padStart(7)}   y: ${y.toFixed(1).padStart(5)}   z: ${z.toFixed(1).padStart(7)}`
+
+    // Canvas — throttled to ~20 fps.
+    this._minimap.timer += delta
+    if (this._minimap.timer < 50) return
+    this._minimap.timer = 0
+
+    const { canvas, ctx, renderTarget, orthoCamera, heightShader,
+            pixelBuffer, flippedBuffer, savedClearColor } = this._minimap
+    const MAP_PX   = canvas.width
+    const renderer = this.experience.renderer.instance
+    const scene    = this.scene
+
+    // Position ortho camera 400 m above player, looking straight down.
+    orthoCamera.position.set(x, 400, z)
+    orthoCamera.lookAt(x, 0, z)
+    orthoCamera.updateMatrixWorld()
+
+    // Override scene state for the minimap render.
+    const savedBackground     = scene.background
+    const savedFog            = scene.fog
+    const savedOverride       = scene.overrideMaterial
+    const savedClearAlpha     = renderer.getClearAlpha()
+    renderer.getClearColor(savedClearColor)
+
+    scene.background      = null
+    scene.fog             = null
+    scene.overrideMaterial = heightShader
+    renderer.setClearColor(0x0a0c16, 1)
+
+    // Render scene top-down into the minimap render target.
+    renderer.setRenderTarget(renderTarget)
+    renderer.clearColor()
+    renderer.clearDepth()
+    renderer.render(scene, orthoCamera)
+
+    // Read pixels back (WebGL stores rows bottom-to-top).
+    renderer.readRenderTargetPixels(renderTarget, 0, 0, MAP_PX, MAP_PX, pixelBuffer)
+
+    // Restore renderer + scene state before any other use.
+    renderer.setRenderTarget(null)
+    renderer.setClearColor(savedClearColor, savedClearAlpha)
+    scene.background       = savedBackground
+    scene.fog              = savedFog
+    scene.overrideMaterial = savedOverride
+
+    // Flip Y: WebGL = bottom-to-top, Canvas 2D = top-to-bottom.
+    const stride = MAP_PX * 4
+    for (let row = 0; row < MAP_PX; row++) {
+      const src = (MAP_PX - 1 - row) * stride
+      flippedBuffer.set(pixelBuffer.subarray(src, src + stride), row * stride)
+    }
+    ctx.putImageData(new ImageData(flippedBuffer, MAP_PX, MAP_PX), 0, 0)
+
+    // Crosshair guide.
+    const HW = MAP_PX / 2, HH = MAP_PX / 2
+    ctx.strokeStyle = 'rgba(0,255,255,0.15)'
+    ctx.lineWidth   = 1
+    ctx.beginPath()
+    ctx.moveTo(HW, 0);   ctx.lineTo(HW, MAP_PX)
+    ctx.moveTo(0,  HH);  ctx.lineTo(MAP_PX, HH)
+    ctx.stroke()
+
+    // Direction arrow.
+    const dir   = new THREE.Vector3()
+    cam.getWorldDirection(dir)
+    const ARROW = 14
+    const ax    = HW + dir.x * ARROW
+    const ay    = HH + dir.z * ARROW
+    const angle = Math.atan2(dir.x, dir.z)
+    const WING  = 6
+
+    ctx.strokeStyle = '#00ffff'
+    ctx.lineWidth   = 2
+    ctx.beginPath()
+    ctx.moveTo(HW, HH); ctx.lineTo(ax, ay)
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(ax + Math.sin(angle + 2.4) * WING, ay + Math.cos(angle + 2.4) * WING)
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(ax + Math.sin(angle - 2.4) * WING, ay + Math.cos(angle - 2.4) * WING)
+    ctx.stroke()
+
+    // Player dot.
+    ctx.fillStyle = '#00ffff'
+    ctx.beginPath()
+    ctx.arc(HW, HH, 3, 0, Math.PI * 2)
+    ctx.fill()
   }
 
   _setupCollisionDebug() {
     if (!this._debugFolder) return
 
     const colF  = this._debugFolder.addFolder('Collision')
-    const proxy = { radius: this._collision.radius, showSphere: false, showMap: false }
+    const proxy = { radius: this._collision.radius, showSphere: false }
 
     colF.add(proxy, 'radius', 0.1, 2.0, 0.05).name('radius').onChange(v => {
       this._collision.radius = v
@@ -183,78 +357,12 @@ export default class CityWorld {
     colF.add(proxy, 'showSphere').name('show sphere').onChange(v => {
       this._debugCollisionSphere.visible = v
     })
-
-    const MAP_PX = 256
-    const MAP_WU = 32
-    this._debugMapScale = MAP_PX / MAP_WU
-
-    const canvas = document.createElement('canvas')
-    canvas.width  = MAP_PX
-    canvas.height = MAP_PX
-    canvas.style.cssText = [
-      'position:fixed', 'bottom:16px', 'right:16px',
-      `width:${MAP_PX}px`, `height:${MAP_PX}px`,
-      'display:none', 'z-index:999',
-      'border:1px solid rgba(255,255,255,0.25)',
-      'image-rendering:pixelated',
-      'pointer-events:none',
-    ].join(';')
-    document.body.appendChild(canvas)
-    this._debugMapCanvas  = canvas
-    this._debugMapCtx     = canvas.getContext('2d')
-    this._debugMapEnabled = false
-    this._debugMapTimer   = 0
-
-    colF.add(proxy, 'showMap').name('show map').onChange(v => {
-      this._debugMapEnabled = v
-      canvas.style.display  = v ? 'block' : 'none'
-    })
   }
 
-  _updateDebugMap(delta) {
-    if (!this._collision) return
-
-    if (this._debugCollisionSphere.visible) {
-      this._debugCollisionSphere.position.copy(this.camera.instance.position)
-      this._debugCollisionSphere.scale.setScalar(this._collision.radius)
-    }
-
-    if (!this._debugMapEnabled) return
-    this._debugMapTimer += delta
-    if (this._debugMapTimer < 100) return
-    this._debugMapTimer = 0
-
-    const ctx    = this._debugMapCtx
-    const canvas = this._debugMapCanvas
-    const W = canvas.width, H = canvas.height
-    const S = this._debugMapScale
-    const HW = W / 2, HH = H / 2
-
-    const px  = this.camera.instance.position.x
-    const pz  = this.camera.instance.position.z
-    const step = 1 / S
-
-    const imageData = ctx.createImageData(W, H)
-    const data      = imageData.data
-
-    for (let cy = 0; cy < H; cy++) {
-      const wz = pz + (cy - HH) * step
-      for (let cx = 0; cx < W; cx++) {
-        const wx = px + (cx - HW) * step
-        const i  = (cy * W + cx) * 4
-        if (this._collision.sampleAt(wx, wz)) {
-          data[i] = 220; data[i+1] = 60; data[i+2] = 60; data[i+3] = 200
-        } else {
-          data[i] = 20; data[i+1] = 20; data[i+2] = 30; data[i+3] = 160
-        }
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0)
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)'
-    ctx.lineWidth = 1
-    ctx.strokeRect(HW - 2, HH - 2, 4, 4)
+  _updateDebugMap() {
+    if (!this._collision || !this._debugCollisionSphere?.visible) return
+    this._debugCollisionSphere.position.copy(this.camera.instance.position)
+    this._debugCollisionSphere.scale.setScalar(this._collision.radius)
   }
 
   // ── Atmosphere import/export (delegated to RenderProfile) ────────────────
@@ -355,8 +463,9 @@ export default class CityWorld {
       }
     }
 
-    if (this.experience.debug.active && this._collision) {
-      this._updateDebugMap(this.experience.time.delta)
+    if (this.experience.debug.active) {
+      this._updateMinimap(this.experience.time.delta)
+      this._updateDebugMap()
     }
   }
 
@@ -380,8 +489,11 @@ export default class CityWorld {
       this._debugCollisionSphere.geometry?.dispose()
       this._debugCollisionSphere.material?.dispose()
     }
-    if (this._debugMapCanvas) {
-      document.body.removeChild(this._debugMapCanvas)
+    if (this._minimap) {
+      document.body.removeChild(this._minimap.wrapper)
+      this._minimap.renderTarget.dispose()
+      this._minimap.heightShader.dispose()
+      this._minimap = null
     }
     if (this._debugFolder) {
       this._debugFolder.destroy()
