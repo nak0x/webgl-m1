@@ -277,6 +277,9 @@ function startExperience() {
     isLoadingScene.value  = !hasCinematic
     loadingProgress.value = 0
   })
+  experience.flow.on('step_change', (step) => {
+    if (step.type === 'text' || step.type === 'video') isFading.value = false
+  })
   experience.flow.on('preload_progress', pct => {
     loadingProgress.value = pct   // silencieux : loader caché pendant les cinématiques
   })

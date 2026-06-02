@@ -1,4 +1,5 @@
 import * as THREE        from '/lib/three.js'
+import { clone as skeletonClone } from '/lib/addons/utils/SkeletonUtils.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
 import QuestManager          from '../../quest/QuestManager.js'
@@ -9,7 +10,7 @@ import { buildOctree } from '../../buildOctree.js'
 import VoiceBabble   from '../../sound/VoiceBabble.js'
 import GlassesManager from '../../glasses/GlassesManager.js'
 import { usePcState } from '~/composables/usePcState.js'
-import { OBJECTS, PROXIMITY, SCENE, ACT_LABEL } from './AtelierConfig.js'
+import { OBJECTS, PROXIMITY, SCENE, ACT_LABEL, CHARACTER_1, CHARACTER_2 } from './AtelierConfig.js'
 
 export default class AtelierWorld {
   constructor(experience, callbacks = {}) {
@@ -31,6 +32,8 @@ export default class AtelierWorld {
     experience.setGlasses(this._glasses)
     this._callbacks.onGlassesReady?.(this._glasses)
 
+    this._characters = []
+
     this.resources.on('ready', () => this._setup())
   }
 
@@ -38,9 +41,11 @@ export default class AtelierWorld {
     this._setupLights()
     this._setupModel()
     if (SCENE.USE_BUILTIN_FLOOR) this._setupFloor()
+    this._setupCharacters()
     this._setupFps()
     this._setupPcScreen()
     this._setupQuest()
+    this._setupAmbient()
     this._exempleInteractionProximity()
   }
 
@@ -103,6 +108,106 @@ export default class AtelierWorld {
     }
   }
 
+  _setupCharacters() {
+    const gltf = this.resources.items.character
+    if (!gltf) {
+      console.warn('AtelierWorld: character GLB introuvable')
+      return
+    }
+
+    this._spawnCharacter(gltf, CHARACTER_1, 'npc',         'Character 1 (NPC)')
+    this._spawnCharacter(gltf, CHARACTER_2, 'character_2', 'Character 2')
+    this._setupCharacterDialogueSync()
+  }
+
+  _spawnCharacter(gltf, cfg, id, debugLabel) {
+    const mesh = skeletonClone(gltf.scene)
+    const { position: p, rotation: r, scale: s } = cfg
+
+    mesh.position.set(p.x, p.y, p.z)
+    mesh.rotation.y = r.y
+    mesh.scale.setScalar(s)
+
+    mesh.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow    = true
+        child.receiveShadow = true
+      }
+    })
+
+    this.scene.add(mesh)
+
+    let mixer    = null
+    let nodAction = null
+    if (gltf.animations?.length > 0) {
+      mixer = new THREE.AnimationMixer(mesh)
+      const nodClip = gltf.animations.find(a => a.name === 'Nod')
+      if (nodClip) {
+        nodAction = mixer.clipAction(nodClip)
+        nodAction.setLoop(THREE.LoopRepeat)
+      } else {
+        console.warn(`AtelierWorld: animation "Nod" introuvable sur ${id}. Clips dispo :`, gltf.animations.map(a => a.name))
+      }
+    }
+
+    const proximityKey = id === 'npc' ? 'CHARACTER_1' : 'CHARACTER_2'
+    this.experience.interaction.registerProximity(mesh, id, PROXIMITY[proximityKey])
+
+    const entry = { mesh, mixer, nodAction, id, debugFolder: null }
+    this._characters.push(entry)
+
+    if (this.experience.debug.active) {
+      entry.debugFolder = this._addCharacterDebugFolder(mesh, debugLabel, id)
+    }
+  }
+
+  _setupCharacterDialogueSync() {
+    let lastId = null
+
+    this.experience.interaction.on('interact', e => { lastId = e.id })
+
+    this.dialogue.on('open', () => {
+      const entry = this._characters.find(c => c.id === lastId)
+      entry?.nodAction?.reset().play()
+    })
+
+    this.dialogue.on('complete', () => {
+      const entry = this._characters.find(c => c.id === lastId)
+      entry?.nodAction?.stop()
+    })
+  }
+
+  _addCharacterDebugFolder(mesh, label, configKey) {
+    const pos = mesh.position
+    const rot = mesh.rotation
+    const scl = mesh.scale
+
+    const state = {
+      x:     pos.x,
+      y:     pos.y,
+      z:     pos.z,
+      rotY:  rot.y,
+      scale: scl.x,
+    }
+
+    const folder = this.experience.debug.gui.addFolder(label)
+    folder.open()
+
+    folder.add(state, 'x',    -20,      20,       0.01).name('pos X') .onChange(v => { pos.x = v })
+    folder.add(state, 'y',    -5,        5,        0.01).name('pos Y') .onChange(v => { pos.y = v })
+    folder.add(state, 'z',    -20,      20,       0.01).name('pos Z') .onChange(v => { pos.z = v })
+    folder.add(state, 'rotY', -Math.PI,  Math.PI,  0.01).name('rot Y') .onChange(v => { rot.y = v })
+    folder.add(state, 'scale', 0.01,     5,        0.01).name('scale') .onChange(v => { scl.setScalar(v) })
+
+    folder.add({
+      log: () => console.log(
+        `${configKey}: { position: { x: ${pos.x.toFixed(3)}, y: ${pos.y.toFixed(3)}, z: ${pos.z.toFixed(3)} }, rotation: { y: ${rot.y.toFixed(3)} }, scale: ${scl.x.toFixed(3)} }`
+      )
+    }, 'log').name('⬇ Log in console')
+
+    return folder
+  }
+
   _setupFloor() {
     const geo = new THREE.PlaneGeometry(30, 30)
     const mat = new THREE.MeshStandardMaterial({
@@ -152,18 +257,30 @@ export default class AtelierWorld {
     this._pcScreen = new PcScreen(this.experience, mesh, '/crm-scenario.html')
     this._pcScreen.setFpsController(this._fps)
     const pc = usePcState()
-    this._pcScreen.setCallbacks({ onEnter: pc.enter, onExit: pc.exit, onTutoDone: pc.setTutoDone })
+    this._keyboardHandle = null
+    this._pcScreen.setCallbacks({
+      onEnter: () => {
+        this._keyboardHandle = this.experience.sound.play('keyboard', { loop: true })
+        pc.enter()
+      },
+      onExit: () => {
+        this._keyboardHandle?.stop()
+        this._keyboardHandle = null
+        pc.exit()
+      },
+      onTutoDone: pc.setTutoDone,
+    })
   }
 
   _setupQuest() {
     const { interaction } = this.experience
 
-    const npc  = this.model?.getObjectByName(OBJECTS.NPC)
+    // 'npc' est déjà enregistré sur character_1 dans _setupCharacters()
+    const npc  = this._characters[0]?.mesh ?? null
     const pc   = this.model?.getObjectByName(OBJECTS.PC)
     const tool = this.model?.getObjectByName(OBJECTS.TOOL)
     const door = this.model?.getObjectByName(OBJECTS.DOOR)
 
-    if (npc)  interaction.registerProximity(npc,  'npc',  PROXIMITY.NPC)
     if (pc)   interaction.registerProximity(pc,   'pc',   PROXIMITY.PC)
     if (tool) interaction.registerProximity(tool, 'tool', PROXIMITY.TOOL)
     if (door) interaction.registerProximity(door, 'door', PROXIMITY.DOOR)
@@ -201,6 +318,7 @@ export default class AtelierWorld {
           this.toolPickedUp = true
           tool?.removeFromParent()
           interaction.unregister('tool')
+          this.experience.sound.play('pick_object')
           this._glasses.equip()
           this._glasses.notify({
             id:       'glasses_on',
@@ -209,6 +327,7 @@ export default class AtelierWorld {
             permanent: false,
             duration:  5000,
           })
+          this.experience.sound.play('notification')
         },
       },
       {
@@ -218,6 +337,7 @@ export default class AtelierWorld {
         trigger:   { type: 'interact', id: 'door' },
         indicator: { type: 'door' },
         onComplete: (callbacks) => {
+          this.experience.sound.play('door')
           callbacks.transitionTo?.('scene_2')
         },
       },
@@ -234,22 +354,23 @@ export default class AtelierWorld {
     this._quest.start()
   }
 
+  _setupAmbient() {
+    this._ambientHandle = this.experience.sound.play('repair_ambient', { loop: true })
+  }
+
   _exempleInteractionProximity() {
-    const { interaction } = this.experience
+    const { interaction, sound } = this.experience
 
     interaction.on('proximity:enter', e => {
-      console.log('🟢', e)
-      if (e.id === 'npc') {
-        console.log('Launch animation of the npc')
+      if (e.id === 'npc' || e.id === 'character_2') {
+
       }
     })
-    interaction.on('proximity:leave', e => {
-      console.log('🔴', e)
-      if (e.id === 'npc') {
-        console.log('Stop animation of the npc')
-      }
+
+    const CLIC_IDS = new Set(['npc', 'pc', 'character_2'])
+    interaction.on('interact', e => {
+      if (CLIC_IDS.has(e.id)) sound.play('clic')
     })
-    interaction.on('interact',        e => console.log('⚡', e))
   }
 
   update() {
@@ -257,6 +378,8 @@ export default class AtelierWorld {
     this._crosshairTarget?.update()
     this._pcScreen?.update(this.experience.time.delta)
     this._indicator?.update(this.experience.time.delta)
+    const dt = this.experience.time.delta / 1000
+    this._characters.forEach(c => c.mixer?.update(dt))
   }
 
   resize() {
@@ -264,6 +387,8 @@ export default class AtelierWorld {
   }
 
   dispose() {
+    this._ambientHandle?.stop()
+    this._keyboardHandle?.stop()
     this.sound.stopAll()
     this._indicator?.destroy()
     this._quest?.dispose()
@@ -279,6 +404,19 @@ export default class AtelierWorld {
       this._floorGeo?.dispose()
       this._floorMat?.dispose()
     }
+
+    this._characters.forEach(c => {
+      c.debugFolder?.destroy()
+      c.mixer?.stopAllAction()
+      this.experience.interaction.unregister(c.id)
+      c.mesh.traverse(child => {
+        child.geometry?.dispose()
+        const mats = Array.isArray(child.material) ? child.material : [child.material]
+        mats.forEach(m => m?.dispose())
+      })
+      this.scene.remove(c.mesh)
+    })
+    this._characters = []
 
     if (this.model) {
       this.experience.renderProfile.restore(this.scene)

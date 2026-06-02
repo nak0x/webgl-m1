@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 112.18 116.49">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: none;
+      }
+
+      .cls-3 {
+        fill: #efeadf;
+      }
+
+      .cls-2 {
+        stroke: #efeadf;
+        stroke-miterlimit: 10;
+        stroke-width: 4px;
+      }
+
+      .cls-4 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" x="14.82" y="-131.89" width="84.56" height="95.77"/>
+    </clipPath>
+  </defs>
+  <g class="cls-4">
+    <polygon class="cls-3" points="82.11 -78.46 82.11 -40.26 88.19 -34.85 58.76 15.14 55.43 15.14 26.01 -34.85 32.09 -40.26 32.09 -78.46 43.16 -89.53 71.04 -89.53 82.11 -78.46"/>
+  </g>
+  <polyline class="cls-2" points="9.24 62.25 37.06 62.25 37.06 28.28 60.71 28.28 60.71 93.55 82.44 93.55 82.44 61.65 102.94 61.65"/>
+</svg>

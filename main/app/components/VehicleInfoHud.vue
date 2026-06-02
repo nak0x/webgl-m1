@@ -10,7 +10,7 @@
       </div>
 
       <div class="vehicle-hud__fuel">
-        <span class="vehicle-hud__fuel-icon">{{ FUEL_ICONS[vehicle.fuel_type] ?? '⛽' }}</span>
+        <img :src="FUEL_PICTOS[vehicle.fuel_type] ?? FUEL_PICTOS.gasoline" class="vehicle-hud__fuel-icon" alt="" aria-hidden="true">
         <div class="vehicle-hud__fuel-bar-wrap">
           <div class="vehicle-hud__fuel-bar" :style="{ width: vehicle.fuel_level + '%' }" />
         </div>
@@ -20,7 +20,7 @@
       <div class="vehicle-hud__sep" />
 
       <div v-if="meta?.repair_delay_days" class="vehicle-hud__delay">
-        <span class="vehicle-hud__delay-icon">⧖</span>
+        <img src="/images/Picto/Temps-estime.svg" class="vehicle-hud__delay-icon" alt="" aria-hidden="true">
         <span>{{ meta.repair_delay_days }} jour{{ meta.repair_delay_days > 1 ? 's' : '' }}</span>
         <span class="vehicle-hud__delay-label">délai estimé</span>
       </div>
@@ -98,11 +98,11 @@ const PRIORITY_LABELS = {
   low:     'Faible priorité',
 }
 
-const FUEL_ICONS = {
-  hydrogen: '⊕',
-  electric: '⚡',
-  gasoline: '⛽',
-  diesel:   '⛽',
+const FUEL_PICTOS = {
+  hydrogen: '/images/Picto/Regulateur-hydrogene.svg',
+  electric:  '/images/Picto/Batterie.svg',
+  gasoline:  '/images/Picto/Essence.svg',
+  diesel:    '/images/Picto/Essence.svg',
 }
 
 defineProps({
@@ -169,8 +169,11 @@ defineEmits(['complete'])
 }
 
 .vehicle-hud__fuel-icon {
-  font-size: 1rem;
-  color: rgba(255,255,255,0.6);
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .vehicle-hud__fuel-bar-wrap {
@@ -211,8 +214,11 @@ defineEmits(['complete'])
 }
 
 .vehicle-hud__delay-icon {
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.5);
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .vehicle-hud__delay-label {

@@ -19,9 +19,7 @@
 
       <div v-if="collectibles.length > 0" class="glasses-card">
         <div class="card-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d1d1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-          </svg>
+          <img src="/images/Picto/Reparation.svg" class="picto-icon" alt="" aria-hidden="true">
           <span>Outils requis</span>
         </div>
         <div class="collect-list">
@@ -49,9 +47,7 @@
         >
           <div class="notif-info">
             <div class="notif-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d1d1b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
+              <img src="/images/Picto/Info.svg" class="picto-icon" alt="" aria-hidden="true">
               <span>{{ notif.title }}</span>
             </div>
             <span v-if="notif.time" class="notif-time">{{ notif.time }}</span>
@@ -283,6 +279,8 @@ onBeforeUnmount(() => {
   line-height: 20px;
   color: var(--color-black);
 }
+
+.picto-icon { width: 20px; height: 20px; display: block; flex-shrink: 0; }
 
 .notif-enter-active { transition: opacity 0.35s ease, transform 0.35s ease; }
 .notif-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
