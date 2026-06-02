@@ -46,6 +46,9 @@
     <RepairHud
       :repair="repair.activeRepair.value"
       :xray-active="repair.xrayRepairId.value !== null"
+      :vehicle="repair.vehicleInfo.value"
+      :priority="repair.vehicleMeta.value?.priority"
+      :context="repair.vehicleMeta.value?.context"
       @confirm="(id, action) => repair.confirmRepair(id, action)"
     />
     <VehicleInfoHud
@@ -222,7 +225,7 @@ async function onGameEnd() {
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
   await new Promise(r => setTimeout(r, FADE_MS))
-  await textCinematic.play(endCreditsCards, { theme: 'ville-soir', position: 'center', textColor: '#efeadf' })
+  await textCinematic.play(endCreditsCards, { theme: 'lunette', position: 'right', textColor: '#efeadf' })
   isFading.value = false
   isGameEnded.value = true
 }

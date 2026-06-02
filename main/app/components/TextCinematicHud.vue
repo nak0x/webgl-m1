@@ -12,10 +12,15 @@
         </template>
 
         <template v-else-if="theme === 'ville' || theme === 'ville-soir'">
-          <img class="text-cinematic__bg-city" src="/images/home/bg-city.png" alt="" />
-          <img class="text-cinematic__bg-city text-cinematic__bg-city--flip" src="/images/home/bg-city.png" alt="" />
-          <img class="text-cinematic__bg-ressources" src="/images/home/batiment-ressources.png" alt="" />
+          <img class="text-cinematic__bg-city" src="/images/transitions/immeuble-2.png" alt="" />
+          <img class="text-cinematic__bg-city text-cinematic__bg-city--flip" src="/images/transitions/immeuble-2.png" alt="" />
+          <img class="text-cinematic__bg-ressources" src="/images/transitions/batiment-ressources.png" alt="" />
           <div class="text-cinematic__bg-overlay-ville" :class="{ 'text-cinematic__bg-overlay-ville--soir': theme === 'ville-soir' }" />
+        </template>
+
+        <template v-else-if="theme === 'lunette'">
+          <img class="text-cinematic__bg-lunette" src="/images/transitions/Transition7.png" alt="" />
+          <div class="text-cinematic__bg-overlay-lunette" />
         </template>
 
         <template v-else>
@@ -45,7 +50,7 @@ defineProps({
   backgroundImage: { type: String,  default: null  },
   position:        { type: String,  default: 'center', validator: v => ['left', 'center', 'right'].includes(v) },
   textColor:       { type: String,  default: null  },
-  theme:           { type: String,  default: null,   validator: v => ['voiture', 'ville', 'ville-soir'].includes(v) },
+  theme:           { type: String,  default: null,   validator: v => ['voiture', 'ville', 'ville-soir', 'lunette'].includes(v) },
 })
 </script>
 
@@ -156,6 +161,23 @@ defineProps({
 
 .text-cinematic__bg-overlay-ville--soir {
   background: linear-gradient(112.4deg, rgba(239, 234, 223, 0.207) 90%, rgba(7, 76, 78, 0.543) 46%);
+}
+
+/* ── Thème lunette ── */
+
+.text-cinematic__bg-lunette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.text-cinematic__bg-overlay-lunette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to left, rgba(7, 76, 78, 0.55) 0%, rgba(7, 76, 78, 0.1) 55%, transparent 100%);
 }
 
 /* ── Carte texte ── */

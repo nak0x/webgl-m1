@@ -45,7 +45,15 @@ export const SCENES = {
   'scene_4': {
     World:   AtelierEndSceneWorld,
     sources: AtelierEndSceneSources,
-    flow: [],
+    flow: [
+      {
+        type: 'text',
+        cards: [
+          { title: 'Fin de sa journée de travail', duration: 3000 },
+        ],
+        options: { theme: 'ville', position: 'center' },
+      },
+    ],
   },
 
   'car_repair': {
