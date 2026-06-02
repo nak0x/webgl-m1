@@ -18,12 +18,18 @@ export const SCENES = {
       {
         type: 'text',
         cards: [
-          { text: 'En 2050, après l\'effondrement de l\'ère des Villes-Marques, Altera s\'est reconstruite sur les ruines du capitalisme pour devenir un écosystème de "Communs" géré par et pour ses citoyens.', duration: 5000 },
-          { text: 'Au sein de l\'Atelier de la Maintenance, les artisans veillent sur la flotte de véhicules partagés, répondant aux alertes pour garantir une mobilité fluide et solidaire basée sur l\'urgence sociale.', duration: 5000 },
-          { text: 'Vous avez déjà vécu cette journée ?', duration: 3000 },
+          { title: 'Vous avez déjà vécu cette journée ?', duration: 3000 },
         ],
+        options: { theme: 'voiture', position: 'left' },
       },
       { type: 'video', src: assetPath('/videos/intro_atelier.mp4') },
+      {
+        type: 'text',
+        cards: [
+          { title: 'Le lendemain', duration: 3000 },
+        ],
+        options: { theme: 'ville', position: 'center' },
+      },
     ],
   },
 

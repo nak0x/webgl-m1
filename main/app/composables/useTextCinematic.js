@@ -6,7 +6,11 @@
  *   { title: "CHAPITRE I", subtitle: "L'Atelier", duration: 4000 }
  *   { title: "...", text: "...", duration: 5000 }
  *
- * play(cards, { backgroundImage: '/img/atelier.jpg' }) — image de fond optionnelle
+ * play(cards, { theme: 'voiture', position: 'left', textColor: '#efeadf' })
+ *   theme           — 'voiture' | 'ville' | 'ville-soir' | null (fond libre via backgroundImage)
+ *   backgroundImage — image de fond libre (si theme est null)
+ *   position        — 'left' | 'center' | 'right' (défaut : 'center')
+ *   textColor       — couleur CSS du texte (défaut : couleur du thème)
  */
 
 const FADE_MS = 400
@@ -15,6 +19,9 @@ const active          = ref(false)
 const card            = ref(null)
 const visible         = ref(false)
 const backgroundImage = ref(null)
+const position        = ref('center')
+const textColor       = ref(null)
+const theme           = ref(null)
 
 export function useTextCinematic() {
   function play(cards, options = {}) {
@@ -25,6 +32,9 @@ export function useTextCinematic() {
       visible.value         = false
       card.value            = null
       backgroundImage.value = options.backgroundImage ?? null
+      position.value        = options.position  ?? 'center'
+      textColor.value       = options.textColor ?? null
+      theme.value           = options.theme     ?? null
 
       let index = 0
 
@@ -35,6 +45,9 @@ export function useTextCinematic() {
           active.value          = false
           card.value            = null
           backgroundImage.value = null
+          position.value        = 'center'
+          textColor.value       = null
+          theme.value           = null
           resolve()
           return
         }
@@ -59,9 +72,12 @@ export function useTextCinematic() {
     active.value          = false
     card.value            = null
     backgroundImage.value = null
+    position.value        = 'center'
+    textColor.value       = null
+    theme.value           = null
   }
 
-  return { active, card, visible, backgroundImage, play, skip }
+  return { active, card, visible, backgroundImage, position, textColor, theme, play, skip }
 }
 
 function delay(ms) {
