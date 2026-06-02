@@ -76,6 +76,24 @@
 - Enregistrée dans `SCENES.js` comme `scene_4`
 - Quête vide — interactions à définir par l'utilisateur
 
+### Lien Ville → Réparation → Scène 4 (`docs/REPAIR_FLOW_IMPLEMENTATION.md`)
+Boucle `scene_3 (ville) → [E sur véhicule] → car_repair (modèle/JSON dynamiques) → [réparer + service] → scene_4`.
+- **API d'écriture** (`server/api/settings/[file].post.js`, `index.get.js`) — sauvegarde JSON
+  dans `public/settings/`, **dev-only** (garde `import.meta.dev`, anti path-traversal).
+- **Runtime ville** : `world/city/CityAccidentManager.js` lit `public/settings/city_accidents.json`,
+  charge les GLB véhicules, pose une `Sphere` trigger par accident, gère le prompt « E » et la
+  transition vers `car_repair` (écoute KeyE locale, gardée par zone active).
+- **Éditeur debug** (`#debug`) : `world/city/CityAccidentEditor.js` — folder lil-gui sous `City`,
+  bouton « Poser ici » (position caméra, `y=0.15`), gizmos, sauvegarde POST.
+- **`car_repair` paramétré** : `CarRepairWorld` charge modèle + JSON depuis le `repairContext`
+  (`onRepairContext` callback) ; fallback `car_repair_sample.json`. `CarRepairSources` → `[]`.
+- **Sortie** : `VehicleInfoHud` bouton « Voiture en service » activé via `useRepairState.allDone`,
+  câblé `@complete → transitionTo('scene_4')` dans `index.vue`.
+- **Prompt** : `components/InteractPromptHud.vue` + `composables/useInteractPrompt.js`.
+- **Outil auteur** : `pages/repair-builder.vue` — charge un modèle MinIO, X-ray sur toutes les
+  pièces, sélection (liste/raycast), construction des `repairs[]`, sauvegarde POST + association
+  à un accident.
+
 ---
 
 ## Fichiers à nettoyer / supprimer

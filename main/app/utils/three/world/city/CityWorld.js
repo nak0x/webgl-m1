@@ -6,7 +6,10 @@ import GlassesManager   from '../../glasses/GlassesManager.js'
 import { buildOctree }  from '../../buildOctree.js'
 import CityChunkManager from './CityChunkManager.js'
 import CityCollisionManager from './CityCollisionManager.js'
+import CityAccidentManager from './CityAccidentManager.js'
+import CityAccidentEditor  from './CityAccidentEditor.js'
 import { SPAWN, EYE_HEIGHT, worldToChunk } from './CityConfig.js'
+import { safeFetch }    from '../../../assetError.js'
 
 // FpsController capsule radius is 0.3, EYE_HEIGHT constant is 1.0.
 // Settled camera height = floor_y + 0.3 + 1.0.
@@ -44,6 +47,34 @@ export default class CityWorld {
     this._registerAtmosphere()   // also loads city_sky.json + adds Atmosphere lil-gui folder
     this._setupDebug()
     this._setupChunks()          // async, fire-and-forget — chunks load progressively
+    this._setupAccidents()       // async, fire-and-forget — vehicles load progressively
+  }
+
+  async _loadAccidents() {
+    const res = await safeFetch('/settings/city_accidents.json', {
+      context: 'CityWorld', name: 'city_accidents.json', verb: 'accidents fetch failed', level: 'warn',
+    })
+    if (!res) return []
+    const json = await res.json()
+    return Array.isArray(json?.accidents) ? json.accidents : []
+  }
+
+  async _setupAccidents() {
+    const accidents = await this._loadAccidents()
+
+    if (this.experience.debug.active) {
+      this._accidentEditor = new CityAccidentEditor(this.experience, this._debugFolder, accidents)
+    }
+
+    this._accidents = new CityAccidentManager(this.experience, accidents, {
+      onEnterRepair: (acc) => this._callbacks.transitionTo?.('car_repair', {
+        repairContext: { modelPath: acc.modelPath, repairFile: acc.repairFile },
+      }),
+      onPromptShow: (txt) => this._callbacks.onPromptShow?.(txt),
+      onPromptHide: ()    => this._callbacks.onPromptHide?.(),
+    })
+    await this._accidents.loadModels()
+    this._accidents.spawn()
   }
 
   _setupLights() {
@@ -486,6 +517,8 @@ export default class CityWorld {
       this._minimap = null
     }
 
+    this._accidentEditor?.destroy()
+    this._accidents?.destroy()
     this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
