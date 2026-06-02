@@ -1,10 +1,18 @@
 {
-  "sky": { "color": "#8eb8b8" },
-  "fog": { "color": "#8eb8b8", "density": 0.012 },
-  "ambient": { "color": "#fa9982", "intensity": 0.6 },
+  "sky": {
+    "color": "#76b9c6"
+  },
+  "fog": {
+    "color": "#76b9c6",
+    "density": 0.013
+  },
+  "ambient": {
+    "color": "#f8b771",
+    "intensity": 2.8
+  },
   "sun": {
     "color": "#f8b771",
-    "intensity": 2.8,
+    "intensity": 4.3,
     "x": -2.1,
     "y": 0.9,
     "z": 2,
@@ -18,8 +26,8 @@
     "z": -18.5
   },
   "hemi": {
-    "sky": "#8eb8b8",
-    "ground": "#ff6038",
-    "intensity": 0.5
+    "sky": "#3f6597",
+    "ground": "#3878a8",
+    "intensity": 1.18
   }
 }
