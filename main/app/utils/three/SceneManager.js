@@ -99,12 +99,12 @@ export default class SceneManager {
   _clearScene() {
     const scene = this.experience.scene
 
-    // Dispose toutes les géométries et matériaux
+    // Dispose toutes les géométries, matériaux et leurs textures
     scene.traverse(obj => {
       obj.geometry?.dispose()
       if (obj.material) {
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material]
-        mats.forEach(m => m.dispose?.())
+        mats.forEach(m => this._disposeMaterial(m))
       }
     })
 
@@ -115,6 +115,18 @@ export default class SceneManager {
 
     scene.background = null
     scene.fog = null
+  }
+
+  // Material.dispose() libère le programme shader mais PAS ses textures. Sur une
+  // session complète (plusieurs scènes), ces textures GLB restent résidentes sur
+  // le GPU et s'accumulent — on les dispose explicitement ici. Les textures sont
+  // propres à chaque scène (Resources distinct), aucun partage inter-scène.
+  _disposeMaterial(material) {
+    if (!material) return
+    for (const value of Object.values(material)) {
+      if (value?.isTexture) value.dispose()
+    }
+    material.dispose?.()
   }
 
   _resetCamera() {

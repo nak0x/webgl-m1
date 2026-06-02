@@ -11,6 +11,7 @@ const EYE_HEIGHT     = 1.0   // distance start → end (hauteur du cylindre)
 const _forward = new Vector3()
 const _right   = new Vector3()
 const _move    = new Vector3()
+const _delta   = new Vector3()
 const _up      = new Vector3(0, 1, 0)
 
 export default class FpsController {
@@ -141,16 +142,16 @@ export default class FpsController {
       this._velocity.y -= GRAVITY * dt
     }
 
-    const delta = this._velocity.clone().multiplyScalar(dt)
+    _delta.copy(this._velocity).multiplyScalar(dt)
     if (this._collisionManager) {
       const { x, z } = this._capsule.end
-      const { dx, dz } = this._collisionManager.resolveMovement(x, z, delta.x, delta.z)
-      if (dx === 0 && delta.x !== 0) this._velocity.x = 0
-      if (dz === 0 && delta.z !== 0) this._velocity.z = 0
-      delta.x = dx
-      delta.z = dz
+      const { dx, dz } = this._collisionManager.resolveMovement(x, z, _delta.x, _delta.z)
+      if (dx === 0 && _delta.x !== 0) this._velocity.x = 0
+      if (dz === 0 && _delta.z !== 0) this._velocity.z = 0
+      _delta.x = dx
+      _delta.z = dz
     }
-    this._capsule.translate(delta)
+    this._capsule.translate(_delta)
     this._resolveCollisions()
     this._camera.position.copy(this._capsule.end)
   }
