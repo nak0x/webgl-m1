@@ -1,12 +1,14 @@
 import * as THREE from '/lib/three.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
+import Resources        from '../../Resources.js'
 import { buildOctree }  from '../../buildOctree.js'
 import RepairParser     from './RepairParser.js'
 import RepairBuilder    from './RepairBuilder.js'
 import RepairMarkerManager from './RepairMarkerManager.js'
 import { SCENE }        from './CarRepairConfig.js'
 import { safeFetch }    from '../../../assetError.js'
+import { assetPath }    from '../../../assetPath.js'
 
 export default class CarRepairWorld {
   constructor(experience, callbacks = {}) {
@@ -34,9 +36,10 @@ export default class CarRepairWorld {
   }
 
   async _setup() {
-    await this._loadRepairData()
+    const ctx = this._callbacks.onRepairContext?.() ?? {}
+    await this._loadRepairData(ctx)
     this._setupLights()
-    this._setupModel()
+    await this._setupModel(ctx)
     this._setupFloor()
     this._setupFps()
     this._setupMarkers()
@@ -47,9 +50,10 @@ export default class CarRepairWorld {
     })
   }
 
-  async _loadRepairData() {
-    const url = '/data/car_repair_sample.json'
-    const res = await safeFetch(url, { context: 'CarRepairWorld', name: 'car_repair_sample.json', verb: 'repair data fetch failed', level: 'warn' })
+  async _loadRepairData(ctx) {
+    const file = ctx?.repairFile ? `/settings/${ctx.repairFile}` : '/data/car_repair_sample.json'
+    const name = file.substring(file.lastIndexOf('/') + 1)
+    const res  = await safeFetch(file, { context: 'CarRepairWorld', name, verb: 'repair data fetch failed', level: 'warn' })
     if (!res) {
       this._repairData = { vehicle: null, meta: null, repairs: [] }
       return
@@ -61,6 +65,14 @@ export default class CarRepairWorld {
       meta:    parser.parseMeta(json),
       repairs: parser.parse(json),
     }
+  }
+
+  _loadGltf(path) {
+    const type = path.toLowerCase().endsWith('.glb') ? 'glb' : 'gltf'
+    return new Promise(resolve => {
+      const res = new Resources([{ name: 'vehicle', type, path }])
+      res.on('ready', () => resolve(res.items.vehicle ?? null))
+    })
   }
 
   _setupLights() {
@@ -88,8 +100,8 @@ export default class CarRepairWorld {
     this.scene.add(rim)
   }
 
-  _setupModel() {
-    const gltf = this.experience.resources.items.carRepair
+  async _setupModel(ctx) {
+    const gltf = ctx?.modelPath ? await this._loadGltf(assetPath(ctx.modelPath)) : null
     if (!gltf) {
       console.warn('[CarRepairWorld] GLB absent — cube placeholder')
       this._placeholderGeo = new THREE.BoxGeometry(2, 0.9, 4)

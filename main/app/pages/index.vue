@@ -51,6 +51,13 @@
     <VehicleInfoHud
       :vehicle="repair.vehicleInfo.value"
       :meta="repair.vehicleMeta.value"
+      :can-complete="repair.allDone.value"
+      @complete="onRepairComplete"
+    />
+
+    <InteractPromptHud
+      :visible="interactPrompt.visible.value"
+      :text="interactPrompt.text.value"
     />
   </template>
 
@@ -108,6 +115,7 @@ import { useCinematicState }      from '~/composables/useCinematicState.js'
 import { useTextCinematic }       from '~/composables/useTextCinematic.js'
 import { usePcState }             from '~/composables/usePcState.js'
 import { useRepairState }         from '~/composables/useRepairState.js'
+import { useInteractPrompt }      from '~/composables/useInteractPrompt.js'
 
 const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
@@ -119,6 +127,7 @@ const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
 const pc            = usePcState()
 const repair        = useRepairState()
+const interactPrompt = useInteractPrompt()
 const isFading      = ref(false)
 const isStarted     = ref(false)
 const uiHidden      = ref(false)
@@ -136,9 +145,10 @@ const endCreditsCards = [
 
 const FADE_MS = 400
 
-let experience   = null
-let sceneManager = null
-let _fps         = null
+let experience    = null
+let sceneManager  = null
+let _fps          = null
+let _pendingRepair = null
 
 function makeCallbacks() {
   return {
@@ -153,6 +163,9 @@ function makeCallbacks() {
     onWorldReady:    ({ repairData, markerManager }) => repair.bind(markerManager, repairData),
     onXrayChange:    (id) => { repair.xrayRepairId.value = id },
     onRepairDispose: () => repair.unbind(),
+    onRepairContext: () => _pendingRepair,
+    onPromptShow:    (text) => interactPrompt.show(text),
+    onPromptHide:    ()     => interactPrompt.hide(),
     transitionTo,
     onPcRecap:       () => { isPcRecap.value = true },
     onGameEnd,
@@ -160,9 +173,11 @@ function makeCallbacks() {
   }
 }
 
-function transitionTo(name, { skipFlow = false } = {}) {
+function transitionTo(name, { skipFlow = false, repairContext = null } = {}) {
   const scene = SCENES[name]
   if (!scene) return
+  if (repairContext) _pendingRepair = repairContext
+  interactPrompt.hide()
   _fps?.hideCrosshair()
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
@@ -170,6 +185,10 @@ function transitionTo(name, { skipFlow = false } = {}) {
   setTimeout(() => {
     experience.flow.run(steps, name)
   }, FADE_MS)
+}
+
+function onRepairComplete() {
+  transitionTo('scene_4')
 }
 
 function exitPc() {

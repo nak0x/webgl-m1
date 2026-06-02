@@ -2,7 +2,7 @@
  * Renderer — WebGLRenderer + EffectComposer
  *
  * Pipeline complet :
- *   RenderPass → SSAOPass → BokehPass → OutlinePass → UnrealBloomPass
+ *   RenderPass → SSAOPass → BokehPass → UnrealBloomPass → OutlinePass
  *   → AfterimagePass → ACESShaderPass → LUTPass → VignettePass
  *   → RGBShiftPass → FilmPass → OutputPass
  *
@@ -257,7 +257,17 @@ export default class Renderer {
     this.bokehPass.enabled = false
     this.composer.addPass(this.bokehPass)
 
-    // 5a. Outline hover — blanc (CrosshairTarget)
+    // 5. Bloom — doit précéder OutlinePass : les render targets internes d'OutlinePass
+    //    utilisent alpha=0 pour les zones sans objet sélectionné, ce qui crée de grands
+    //    rectangles noirs aux niveaux du mip-pyramid de UnrealBloomPass si bloom suit outline.
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(sizes.width, sizes.height),
+      1.5, 0.4, 0.85,
+    )
+    this.bloomPass.enabled = false
+    this.composer.addPass(this.bloomPass)
+
+    // 6a. Outline hover — blanc (CrosshairTarget)
     this.outlinePass = new OutlinePass(
       new THREE.Vector2(sizes.width, sizes.height),
       scene,
@@ -270,7 +280,7 @@ export default class Renderer {
     this.outlinePass.hiddenEdgeColor.set('#ffffff')
     this.composer.addPass(this.outlinePass)
 
-    // 5b. Outline quête — gold, toujours actif sur la cible du step courant
+    // 6b. Outline quête — gold, toujours actif sur la cible du step courant
     this.questOutlinePass = new OutlinePass(
       new THREE.Vector2(sizes.width, sizes.height),
       scene,
@@ -282,14 +292,6 @@ export default class Renderer {
     this.questOutlinePass.visibleEdgeColor.set('#FFD700')
     this.questOutlinePass.hiddenEdgeColor.set('#b8960c')
     this.composer.addPass(this.questOutlinePass)
-
-    // 6. Bloom
-    this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(sizes.width, sizes.height),
-      1.5, 0.4, 0.85,
-    )
-    this.bloomPass.enabled = false
-    this.composer.addPass(this.bloomPass)
 
     // 7. Motion blur (accumulation)
     this.afterimagePass = new AfterimagePass(0.96)
