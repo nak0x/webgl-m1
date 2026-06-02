@@ -3,7 +3,7 @@
 
   <StartHud v-if="!isStarted" @start="startExperience" />
 
-  <template v-if="isStarted && !pc.isActive.value">
+  <template v-if="isStarted && !pc.isActive.value && !uiHidden">
     <QuestHud
       :act-label="quest.actLabel.value"
       :current-step="quest.currentStep.value"
@@ -66,13 +66,14 @@
 
   <EndHud
     :visible="isGameEnded"
+    @home="onReturnHome"
     @replay="onReplay"
   />
 
   <LoadingHud :visible="isLoadingScene" :progress="loadingProgress" />
 
   <button
-    v-if="pc.isActive.value && pc.tutoDone.value"
+    v-if="pc.isActive.value && pc.tutoDone.value && !uiHidden"
     class="pc-exit-btn"
     @click="exitPc"
   >
@@ -108,6 +109,7 @@ const indicator     = useQuestIndicatorState()
 const pc            = usePcState()
 const isFading      = ref(false)
 const isStarted     = ref(false)
+const uiHidden      = ref(false)
 const isPcRecap     = ref(false)
 const isGameEnded   = ref(false)
 const volumes       = ref({ master: 1, ambient: 0.4, voice: 0.8 })
@@ -116,9 +118,8 @@ const isLoadingScene  = ref(false)
 const loadingProgress = ref(0)
 
 const endCreditsCards = [
-  { title: 'MISSION ACCOMPLIE',                                                        duration: 3000 },
-  { text: 'Tous les systèmes de l\'atelier ont été remis en service.\nRapport transmis à la hiérarchie.', duration: 4500 },
-  { text: 'Merci d\'avoir joué.',                                                       duration: 3500 },
+  { title: 'Adoptez le réflexe de demain', duration: 3500 },
+  { text: 'Parce que prendre soin de notre flotte citoyenne exige des outils à la hauteur de nos engagements, facilitez vos interventions dès aujourd\'hui : prenez vos lunettes de réalité augmentée, pilotez vos alertes via le CRM et simplifiez votre quotidien au service d\'Altera !', duration: 7000 },
 ]
 
 const FADE_MS = 400
@@ -188,9 +189,19 @@ async function onGameEnd() {
   isGameEnded.value = true
 }
 
-function onReplay() {
+function onReturnHome() {
   isGameEnded.value = false
   returnToHome()
+}
+
+function onReplay() {
+  isGameEnded.value = false
+  sceneManager?.dispose()
+  experience?.dispose()
+  sceneManager = null
+  experience   = null
+  _fps         = null
+  startExperience()
 }
 
 function onVolumeChange({ category, value }) {
@@ -199,7 +210,14 @@ function onVolumeChange({ category, value }) {
 }
 
 function _onKeyDown(e) {
-  if (e.code !== 'Escape' || !isStarted.value || dialogue.active.value) return
+  if (!isStarted.value) return
+
+  if (e.code === 'KeyH') {
+    uiHidden.value = !uiHidden.value
+    return
+  }
+
+  if (e.code !== 'Escape' || dialogue.active.value) return
   if (pause.isPaused.value) closePause()
   else openPause()
 }

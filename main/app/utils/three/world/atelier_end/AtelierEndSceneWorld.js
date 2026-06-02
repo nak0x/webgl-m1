@@ -10,59 +10,6 @@ import VoiceBabble            from '../../sound/VoiceBabble.js'
 import GlassesManager         from '../../glasses/GlassesManager.js'
 import { OBJECTS, PROXIMITY, SCENE, ACT_LABEL } from './AtelierEndSceneConfig.js'
 
-const RECAP_HTML = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  *,html,body{margin:0;padding:0;box-sizing:border-box;}
-  body{
-    background:#0a0a0a;color:#fff;
-    font-family:'Courier New',monospace;
-    padding:48px;height:100vh;
-    display:flex;flex-direction:column;gap:20px;
-  }
-  .corp{font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.3);}
-  .title{font-size:20px;font-weight:700;letter-spacing:.08em;margin-top:4px;}
-  hr{border:none;border-top:1px solid rgba(255,255,255,.1);}
-  .label{font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.3);margin-bottom:10px;}
-  ul{list-style:none;display:flex;flex-direction:column;gap:14px;}
-  li{display:flex;align-items:center;gap:14px;font-size:14px;color:rgba(255,255,255,.8);}
-  .ok{color:#4caf72;}
-  .status{font-size:12px;color:rgba(255,255,255,.35);}
-  .status b{color:#4caf72;}
-  .spacer{flex:1;}
-  button{
-    padding:16px 32px;
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.2);border-radius:3px;
-    color:#fff;font-family:inherit;font-size:12px;font-weight:700;
-    letter-spacing:.12em;text-transform:uppercase;
-    cursor:pointer;transition:background .15s,border-color .15s;
-  }
-  button:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);}
-</style>
-</head>
-<body>
-  <p class="corp">NEXORA CORP.</p>
-  <p class="title">RAPPORT DE MISSION</p>
-  <hr>
-  <p class="label">MISSIONS EFFECTUÉES</p>
-  <ul>
-    <li><span class="ok">✓</span> Briefing avec le technicien</li>
-    <li><span class="ok">✓</span> Accès au PC de bureau</li>
-    <li><span class="ok">✓</span> Récupération de l'équipement AR</li>
-    <li><span class="ok">✓</span> Sortie du bureau sécurisé</li>
-  </ul>
-  <hr>
-  <p class="status">Statut : <b>OPÉRATIONNEL</b></p>
-  <div class="spacer"></div>
-  <button onclick="window.parent.postMessage({type:'pcscreen:confirm'},'*')">
-    Valider et terminer la mission &rarr;
-  </button>
-</body>
-</html>`
-
 export default class AtelierEndSceneWorld {
   constructor(experience, callbacks = {}) {
     this.experience = experience
@@ -195,19 +142,17 @@ export default class AtelierEndSceneWorld {
       console.warn(`AtelierEndSceneWorld: mesh "${OBJECTS.SCREEN}" introuvable`)
       return
     }
-    this._pcScreen = new PcScreen(this.experience, mesh)
+    mesh.raycast = () => {}
+    this._pcScreen = new PcScreen(this.experience, mesh, '/crm-reparations.html')
     this._pcScreen.setFpsController(this._fps)
 
-    // Le bouton "Valider" dans le srcdoc envoie pcscreen:confirm
+    // Le bouton "valider toutes les interventions" du CRM envoie crm:validate-all
     this._onPcMsg = (e) => {
-      if (e.data?.type !== 'pcscreen:confirm') return
+      if (e.data?.type !== 'crm:validate-all') return
       this._pcScreen.exit()
       this._callbacks.onGameEnd?.()
     }
     window.addEventListener('message', this._onPcMsg)
-
-    // Charge le HTML de recap directement dans l'iframe
-    this._pcScreen._iframe.srcdoc = RECAP_HTML
   }
 
   _setupQuest() {

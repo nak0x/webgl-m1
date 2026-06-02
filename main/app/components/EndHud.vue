@@ -1,22 +1,49 @@
 <template>
   <Transition name="end">
     <div v-if="visible" class="end-root">
-      <div class="end-content">
 
-        <p class="end-corp">NEXORA CORP.</p>
-        <h1 class="end-title">Fin de mission</h1>
-        <p class="end-message">
-          L'atelier est de nouveau opérationnel.<br>
-          Rapport transmis au hub central.
-        </p>
+      <header class="end-header">
+        <img class="end-header-logo" src="/images/home/logo-small.svg" alt="ad-hoc">
+        <div class="end-header-link">
+          <span class="end-header-dot"></span>
+          <span>A propos</span>
+        </div>
+      </header>
 
-        <div class="end-actions">
-          <button class="end-btn end-btn--primary" @click="$emit('replay')">
-            Rejouer
-          </button>
+      <div class="end-credits">
+        <div class="end-titre">
+          <img class="end-logo" src="/images/home/logo-adhoc.svg" alt="ad-hoc">
+          <p class="end-tagline">Artisans de la maintenance</p>
         </div>
 
+        <div class="end-roles">
+          <div class="end-role">
+            <p class="end-role-title">Design</p>
+            <p class="end-role-names">Alice &amp; Xavier</p>
+          </div>
+          <div class="end-role">
+            <p class="end-role-title">Développement</p>
+            <p class="end-role-names">Anthony &amp; Théo</p>
+          </div>
+        </div>
+
+        <div class="end-actions">
+          <button class="end-btn" @click="$emit('home')">
+            <svg class="end-btn-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M2 6.5 8 2l6 4.5V14a.5.5 0 0 1-.5.5h-3v-4h-5v4h-3A.5.5 0 0 1 2 14V6.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            </svg>
+            Retour à l'accueil
+          </button>
+          <button class="end-btn" @click="$emit('replay')">
+            <svg class="end-btn-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              <path d="M13.5 2v3h-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Rejouer l'expérience
+          </button>
+        </div>
       </div>
+
     </div>
   </Transition>
 </template>
@@ -26,84 +53,132 @@ defineProps({
   visible: { type: Boolean, default: false },
 })
 
-defineEmits(['replay'])
+defineEmits(['replay', 'home'])
 </script>
 
 <style scoped>
 .end-root {
   position: fixed;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000;
+  background: var(--color-white);
   z-index: 900;
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  overflow: hidden;
 }
 
-.end-content {
+/* ── Header ── */
+.end-header {
+  position: absolute;
+  left: 25px; top: 26px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.end-header-logo { width: 50px; height: 50px; display: block; }
+
+.end-header-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.end-header-dot { width: 6px; height: 6px; background: var(--color-black); }
+
+/* ── Crédits ── */
+.end-credits {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 72px;
+}
+
+.end-titre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 602px;
+  max-width: 90vw;
+}
+
+.end-logo {
+  width: 500px;
+  max-width: 80vw;
+  aspect-ratio: 500 / 200;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.end-tagline {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 25px;
+  color: var(--color-black);
   text-align: center;
-  gap: 16px;
-  padding: 0 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.end-corp {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  color: rgba(255, 255, 255, 0.25);
-  font-family: 'Courier New', monospace;
+.end-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  align-items: center;
 }
 
-.end-title {
-  font-size: clamp(28px, 5vw, 48px);
-  font-weight: 300;
-  letter-spacing: 0.06em;
-  color: #fff;
-  margin: 0;
+.end-role {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 260px;
+  color: var(--color-black);
 }
 
-.end-message {
-  font-size: 14px;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.45);
-  max-width: 380px;
-  margin-top: 4px;
-}
+.end-role-title { font-size: 24px; font-weight: 500; line-height: 25px; }
+.end-role-names { font-size: 18px; font-weight: 400; line-height: 20px; }
 
+/* ── Boutons ── */
 .end-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 20px;
+  align-items: center;
 }
 
 .end-btn {
-  padding: 12px 32px;
-  border-radius: 3px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--color-orange);
+  box-shadow: 0 0 3px rgba(45, 29, 27, 0.25);
+  border: none;
+  padding: 14px 40px;
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--color-black);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  transition: filter 0.15s;
 }
 
-.end-btn--primary {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
-}
+.end-btn:hover { filter: brightness(1.08); }
 
-.end-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
-}
+.end-btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Transition */
 .end-enter-active { transition: opacity 0.6s ease; }
