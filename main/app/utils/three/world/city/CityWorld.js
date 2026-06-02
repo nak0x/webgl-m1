@@ -182,6 +182,10 @@ export default class CityWorld {
     canvas.height = MAP_PX
     Object.assign(canvas.style, {
       display:        'block',
+      position:       'static',
+      inset:          'unset',
+      width:          `${MAP_PX}px`,
+      height:         `${MAP_PX}px`,
       border:         '1px solid rgba(0,255,255,0.35)',
       imageRendering: 'pixelated',
     })
