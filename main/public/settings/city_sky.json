@@ -1,25 +1,33 @@
 {
-  "sky": { "color": "#67b1f2" },
-  "fog": { "color": "#6a9ded", "density": 0.013 },
-  "ambient": { "color": "#b0d7f7", "intensity": 0 },
+  "sky": {
+    "color": "#76b9c6"
+  },
+  "fog": {
+    "color": "#76b9c6",
+    "density": 0.013
+  },
+  "ambient": {
+    "color": "#f8b771",
+    "intensity": 2.8
+  },
   "sun": {
-    "color": "#7a90f5",
-    "intensity": 10,
-    "x": -6.9,
-    "y": 1.05,
+    "color": "#f8b771",
+    "intensity": 4.3,
+    "x": -2.1,
+    "y": 0.9,
     "z": 2,
-    "shadowRes": 4096
+    "shadowRes": 512
   },
   "fill": {
-    "color": "#6080b8",
-    "intensity": 0.38,
-    "x": 8,
-    "y": 4,
-    "z": -5
+    "color": "#ff6038",
+    "intensity": 0.39,
+    "x": 12.4,
+    "y": 0,
+    "z": -18.5
   },
   "hemi": {
-    "sky": "#9cc4ed",
-    "ground": "#454c7e",
-    "intensity": 0.5
+    "sky": "#3f6597",
+    "ground": "#3878a8",
+    "intensity": 1.18
   }
 }

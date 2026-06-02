@@ -20,9 +20,9 @@ export default class RenderProfile {
     this.experience = experience
 
     this.material = new THREE.MeshPhongMaterial({
-      color:     0xffffff,
-      shininess: 12,
-      specular:  new THREE.Color(0x1a1a1a),
+      color:     0xefeadf,
+      shininess: 5,
+      specular:  new THREE.Color(0xefeadf),
       side:      THREE.DoubleSide,
     })
 
@@ -170,9 +170,12 @@ export default class RenderProfile {
   _initEffects() {
     const { renderer } = this.experience
     renderer.setSMAA({ enabled: true })
-    renderer.setBloom({ strength: 0.25, radius: 0.5, threshold: 0.88 })
-    renderer.setColorGrading({ contrast: 0.08, saturation: 0.82, gamma: 1.05, gain: 1.0 })
-    renderer.setSsao({ radius: 0.25, minDistance: 0.001, maxDistance: 0.04, kernelSize: 64 })
+    renderer.setBloom({ strength: 0.03, radius: 0.59, threshold: 0.88 })
+    renderer.bloomPass.enabled = false
+    renderer.setColorGrading({ brightness: -0.04, contrast: 0.42, saturation: 1.15, temperature: -0.04, gamma: 0.89, gain: 1.27 })
+    renderer.setSsao({ radius: 0.49, minDistance: 0.0002, maxDistance: 0.028, kernelSize: 64 })
+    renderer.setEdge({ edgeStrength: 0.33, edgeScale: 0.7 })
+    renderer.edgePass.enabled = true
   }
 
   // ── Debug GUI ─────────────────────────────────────────────────────────────

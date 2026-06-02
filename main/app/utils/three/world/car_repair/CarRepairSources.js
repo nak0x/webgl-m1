@@ -1,5 +1,3 @@
-import { assetPath } from '../../../assetPath.js'
-
-export default [
-  { name: 'carRepair', type: 'gltf', path: assetPath('/models/car_repair.gltf') },
-]
+// Le modèle du véhicule est chargé dynamiquement par CarRepairWorld depuis le
+// repairContext (modelPath de l'accident). Aucune source statique ici.
+export default []

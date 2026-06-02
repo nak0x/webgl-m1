@@ -78,8 +78,12 @@
       </template>
 
       <div class="vehicle-hud__sep" />
-      <button class="vehicle-hud__service-btn" @click="$emit('complete')">
-        Voiture en service
+      <button
+        class="vehicle-hud__service-btn"
+        :disabled="!canComplete"
+        @click="$emit('complete')"
+      >
+        {{ canComplete ? 'Voiture en service' : 'Réparations en cours…' }}
       </button>
 
     </div>
@@ -102,8 +106,9 @@ const FUEL_ICONS = {
 }
 
 defineProps({
-  vehicle: { type: Object, default: null },
-  meta:    { type: Object, default: null },
+  vehicle:     { type: Object,  default: null },
+  meta:        { type: Object,  default: null },
+  canComplete: { type: Boolean, default: false },
 })
 defineEmits(['complete'])
 </script>
@@ -317,7 +322,12 @@ defineEmits(['complete'])
   cursor: pointer;
   transition: background 0.15s;
 }
-.vehicle-hud__service-btn:hover { background: #0066ee; }
+.vehicle-hud__service-btn:hover:not(:disabled) { background: #0066ee; }
+.vehicle-hud__service-btn:disabled {
+  background: #2a2f3a;
+  color: rgba(255,255,255,0.4);
+  cursor: not-allowed;
+}
 
 .vehicle-panel-enter-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .vehicle-panel-leave-active { transition: opacity 0.2s ease; }

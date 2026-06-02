@@ -6,12 +6,18 @@ const xrayRepairId  = ref(null)
 const vehicleInfo   = ref(null)
 const vehicleMeta   = ref(null)
 const doneRepairs   = ref(new Set())
+const totalRepairs  = ref(0)
+
+const allDone = computed(() =>
+  totalRepairs.value > 0 && doneRepairs.value.size >= totalRepairs.value
+)
 
 export function useRepairState() {
   function bind(manager, repairData) {
     if (repairData) {
       vehicleInfo.value = repairData.vehicle
       vehicleMeta.value = repairData.meta
+      totalRepairs.value = repairData.repairs?.length ?? 0
     }
 
     if (manager) {
@@ -47,6 +53,7 @@ export function useRepairState() {
     vehicleInfo.value   = null
     vehicleMeta.value   = null
     doneRepairs.value   = new Set()
+    totalRepairs.value  = 0
   }
 
   return {
@@ -55,6 +62,8 @@ export function useRepairState() {
     vehicleInfo,
     vehicleMeta,
     doneRepairs,
+    totalRepairs,
+    allDone,
     bind,
     confirmRepair,
     unbind,
