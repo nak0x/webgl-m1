@@ -1,5 +1,7 @@
 import { GLTFLoader } from '/lib/addons/loaders/GLTFLoader.js'
-import { CHUNK_DIR, RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
+import { RING_LOD, MAX_RING, worldToChunk } from './CityConfig.js'
+import { assetPath } from '../../../assetPath.js'
+import { reportAssetError, safeFetch } from '../../../assetError.js'
 
 // Chunks are position-only, not Draco-compressed — no DRACOLoader needed.
 const MAX_CONCURRENT = 3   // parallel GLTF parses
@@ -32,10 +34,26 @@ export default class CityChunkManager {
     this._currentRow = Infinity
   }
 
+  get manifest() { return this._manifest }
+
   async init() {
-    const r = await fetch(CHUNK_DIR + 'manifest.json')
-    this._manifest = await r.json()
+    const url = assetPath('/models/town/chunks/manifest.json')
+    const res = await safeFetch(url, { context: 'CityChunkManager', name: 'manifest.json', verb: 'manifest fetch failed' })
+    if (!res) {
+      throw new Error('manifest unavailable — town chunks cannot load')
+    }
+    this._manifest = await res.json()
     this._chunkMap = new Map(this._manifest.chunks.map(c => [c.id, c]))
+
+    const hasCollision = this._manifest.chunks.some(c => c.collision?.bin)
+    if (!hasCollision) {
+      console.warn(
+        '%c[CityChunkManager]%c manifest has no collision data — town walls/buildings will be passable.\n' +
+        '  url    : ' + url + '\n' +
+        '  fix    : republish the manifest with collisionMap + chunk[].collision.bin entries',
+        'color:#fa3;font-weight:bold', 'color:#888',
+      )
+    }
   }
 
   // Called every frame with camera world XZ.
@@ -118,17 +136,21 @@ export default class CityChunkManager {
     this._inFlight++
 
     const file = chunk.lods[lod].file
+    const url  = assetPath('/models/town/chunks/' + file)
 
-    fetch(CHUNK_DIR + file)
+    fetch(url)
       .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        if (!r.ok) {
+          const e = new Error(`HTTP ${r.status} ${r.statusText || ''}`.trim())
+          e.status = r.status
+          throw e
+        }
         return r.arrayBuffer()
       })
       .then(buf => new Promise((ok, fail) =>
-        this._loader.parse(buf, CHUNK_DIR, ok, fail)
+        this._loader.parse(buf, assetPath('/models/town/chunks/'), ok, fail)
       ))
       .then(gltf => {
-        // Compute normals (position-only GLTFs have none) + apply shared material
         gltf.scene.traverse(child => {
           if (!child.isMesh) return
           child.geometry.computeVertexNormals()
@@ -146,7 +168,14 @@ export default class CityChunkManager {
         }
       })
       .catch(err => {
-        console.warn(`[CityChunkManager] ${file}:`, err.message)
+        reportAssetError('CityChunkManager', {
+          name:   file,
+          url,
+          status: err.status,
+          verb:   'chunk load failed',
+          error:  err,
+          level:  'warn',
+        })
       })
       .finally(() => {
         this._loading.delete(key)

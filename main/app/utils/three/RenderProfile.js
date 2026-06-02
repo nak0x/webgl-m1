@@ -8,6 +8,8 @@ import * as THREE from '/lib/three.js'
  *   - `apply(scene)` : remplace les materials de tous les meshes visibles
  *   - `restore(scene)` : restaure les materials originaux
  *   - Chargement automatique depuis `/settings/rendering.json`
+ *   - `registerAtmosphere({ key, file, getSettings, applySettings, setupDebug })`
+ *     pour qu'un World branche son ciel/lumières sur l'export unifié
  *   - Post-effects actifs par défaut : SMAA, Bloom, Color Grading, SSAO
  *   - Dossier lil-gui "Rendering" accessible si debug.active
  *
@@ -23,6 +25,9 @@ export default class RenderProfile {
       specular:  new THREE.Color(0x1a1a1a),
       side:      THREE.DoubleSide,
     })
+
+    this._atmosphere     = null   // { key, file, getSettings, applySettings }
+    this._atmosphereGui  = null   // lil-gui folder owned by the active atmosphere
 
     this._initEffects()
     this._loadSettings()
@@ -55,6 +60,52 @@ export default class RenderProfile {
       child.material = child._profileMat
       delete child._profileMat
     })
+  }
+
+  // ── Atmosphere registration (per-scene) ───────────────────────────────────
+
+  /**
+   * Branche le ciel/fog/lumières d'un World sur l'export unifié.
+   *
+   * @param {Object}   opts
+   * @param {string}   opts.key            — identifiant scène (ex: 'city')
+   * @param {string}   opts.file           — nom du fichier dans /settings/
+   * @param {Function} opts.getSettings    — () => Object  pour l'export
+   * @param {Function} opts.applySettings  — (Object) => void  pour l'import
+   * @param {Function} [opts.setupDebug]   — (folder, gui) => void  pour brancher les contrôleurs lil-gui
+   *                                          (le folder "Atmosphere" est créé et nettoyé par RenderProfile)
+   */
+  registerAtmosphere({ key, file, getSettings, applySettings, setupDebug }) {
+    this.unregisterAtmosphere()
+    this._atmosphere = { key, file, getSettings, applySettings }
+
+    if (this.experience.debug.active && setupDebug) {
+      this._atmosphereGui = this.experience.debug.gui.addFolder('Atmosphere')
+      this._atmosphereGui.close()
+      setupDebug(this._atmosphereGui, this.experience.debug.gui)
+    }
+
+    this._loadAtmosphereSettings()
+  }
+
+  unregisterAtmosphere() {
+    this._atmosphere = null
+    this._atmosphereGui?.destroy()
+    this._atmosphereGui = null
+  }
+
+  async _loadAtmosphereSettings() {
+    if (!this._atmosphere) return
+    const target = this._atmosphere
+    try {
+      const res = await fetch('/settings/' + target.file)
+      if (!res.ok) return
+      const json = await res.json()
+      // Scene may have changed between fetch start and resolution.
+      if (this._atmosphere === target) target.applySettings(json)
+    } catch {
+      // file absent or malformed — defaults remain
+    }
   }
 
   // ── Settings persistence ──────────────────────────────────────────────────
@@ -208,7 +259,8 @@ export default class RenderProfile {
     })
 
     // ── Export ────────────────────────────────────────────────────────────
-    root.add({ export: () => this._exportSettings() }, 'export').name('Export profile ↓')
+    // Saves rendering.json + atmosphere file (if a world has registered one) in one click.
+    root.add({ export: () => this._exportSettings() }, 'export').name('Export settings ↓')
 
     this._debugFolder = root
   }
@@ -260,15 +312,26 @@ export default class RenderProfile {
       },
       exposureEv: Math.log2(renderer.acesPass.uniforms['exposure'].value),
     }
-    const json = JSON.stringify(s, null, 2)
-    const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'rendering.json' })
+    this._download(JSON.stringify(s, null, 2), 'rendering.json')
+
+    if (this._atmosphere) {
+      this._download(
+        JSON.stringify(this._atmosphere.getSettings(), null, 2),
+        this._atmosphere.file,
+      )
+    }
+  }
+
+  _download(text, filename) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+    const a   = Object.assign(document.createElement('a'), { href: url, download: filename })
     a.click()
     URL.revokeObjectURL(url)
   }
 
   dispose() {
     this.material.dispose()
+    this.unregisterAtmosphere()
     this._debugFolder?.destroy()
   }
 }

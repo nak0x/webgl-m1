@@ -42,6 +42,16 @@
       :arrow-visible="indicator.arrowVisible.value"
       :arrow-angle="indicator.arrowAngle.value"
     />
+
+    <RepairHud
+      :repair="repair.activeRepair.value"
+      :xray-active="repair.xrayRepairId.value !== null"
+      @confirm="(id, action) => repair.confirmRepair(id, action)"
+    />
+    <VehicleInfoHud
+      :vehicle="repair.vehicleInfo.value"
+      :meta="repair.vehicleMeta.value"
+    />
   </template>
 
   <TextCinematicHud
@@ -97,6 +107,7 @@ import { useQuestIndicatorState } from '~/composables/useQuestIndicatorState.js'
 import { useCinematicState }      from '~/composables/useCinematicState.js'
 import { useTextCinematic }       from '~/composables/useTextCinematic.js'
 import { usePcState }             from '~/composables/usePcState.js'
+import { useRepairState }         from '~/composables/useRepairState.js'
 
 const canvas        = useTemplateRef('canvas')
 const quest         = useQuestState()
@@ -107,6 +118,7 @@ const cinematic     = useCinematicState()
 const textCinematic = useTextCinematic()
 const indicator     = useQuestIndicatorState()
 const pc            = usePcState()
+const repair        = useRepairState()
 const isFading      = ref(false)
 const isStarted     = ref(false)
 const uiHidden      = ref(false)
@@ -138,6 +150,9 @@ function makeCallbacks() {
       indicator.bindCamera(experience.camera.instance)
       ind.setArrowCallback(indicator.setArrow)
     },
+    onWorldReady:    ({ repairData, markerManager }) => repair.bind(markerManager, repairData),
+    onXrayChange:    (id) => { repair.xrayRepairId.value = id },
+    onRepairDispose: () => repair.unbind(),
     transitionTo,
     onPcRecap:       () => { isPcRecap.value = true },
     onGameEnd,
@@ -145,14 +160,15 @@ function makeCallbacks() {
   }
 }
 
-function transitionTo(name) {
+function transitionTo(name, { skipFlow = false } = {}) {
   const scene = SCENES[name]
   if (!scene) return
   _fps?.hideCrosshair()
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
+  const steps = skipFlow ? [] : scene.flow
   setTimeout(() => {
-    experience.flow.run(scene.flow, name)
+    experience.flow.run(steps, name)
   }, FADE_MS)
 }
 
@@ -258,7 +274,7 @@ function startExperience() {
 function _registerDebugSceneSwitcher() {
   const state  = { scene: SCENE_NAMES[0] }
   const folder = experience.debug.gui.addFolder('Scènes')
-  folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(transitionTo)
+  folder.add(state, 'scene', SCENE_NAMES).name('Aller à').onChange(name => transitionTo(name, { skipFlow: true }))
 }
 
 onMounted(()        => window.addEventListener('keydown', _onKeyDown))

@@ -8,12 +8,12 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { useToast } from '../composables/useToast.js'
 
 const props = defineProps({
-  districts: { type: Array,  default: () => [] },
-  // [{ x, z, angle }, …] — x/z = centroid world position, angle = Y rotation (radians)
-  // null entry = unset, PreviewCanvas will emit the natural centroid on load
-  offsets:   { type: Array,  default: () => [] },
-  chunkSize: { type: Number, default: 64 },
-  manifest:  { type: Object, default: null },
+  districts:        { type: Array,   default: () => [] },
+  offsets:          { type: Array,   default: () => [] },
+  chunkSize:        { type: Number,  default: 64 },
+  manifest:         { type: Object,  default: null },
+  collisions:       { type: Array,   default: () => [] },
+  showCollisionMap: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['offset-changed'])
@@ -26,9 +26,10 @@ const camera       = shallowRef(null)
 const controls     = shallowRef(null)
 const scene        = shallowRef(null)
 
-let districtRoot = null
-let gridGroup    = null
-let aabbGroup    = null
+let districtRoot    = null
+let gridGroup       = null
+let aabbGroup       = null
+let collisionGroup  = null
 
 // Per-district objects (indexed by district order)
 let districtGroups  = []   // THREE.Group[] — pivot at centroid, positioned at {x,z}
@@ -84,10 +85,11 @@ function initScene(el) {
   const s = new THREE.Scene()
   scene.value = s
 
-  districtRoot = new THREE.Group()
-  gridGroup    = new THREE.Group()
-  aabbGroup    = new THREE.Group()
-  s.add(districtRoot, gridGroup, aabbGroup)
+  districtRoot   = new THREE.Group()
+  gridGroup      = new THREE.Group()
+  aabbGroup      = new THREE.Group()
+  collisionGroup = new THREE.Group()
+  s.add(districtRoot, gridGroup, aabbGroup, collisionGroup)
 
   const cam  = new THREE.PerspectiveCamera(55, w / h, 1, 5000)
   cam.position.set(150, 200, 300)
@@ -502,11 +504,76 @@ function onPointerUp(e) {
   renderer.value.domElement.style.cursor = _hoveredIdx >= 0 ? (_hoveredMode === 'rotate' ? 'crosshair' : 'grab') : 'default'
 }
 
+// ── Collision overlay ─────────────────────────────────────────────────────────
+
+function _clearCollisionGroup() {
+  if (!collisionGroup) return
+  for (let i = collisionGroup.children.length - 1; i >= 0; i--) {
+    const mesh = collisionGroup.children[i]
+    if (mesh.material?.map) mesh.material.map.dispose()
+    mesh.material?.dispose()
+    mesh.geometry?.dispose()
+    collisionGroup.remove(mesh)
+  }
+}
+
+function _addCollisionPlane(chunk) {
+  if (!chunk.bin || !collisionGroup) return
+  const cs = props.chunkSize
+  const [col, row] = chunk.chunkId.split('_').map(Number)
+
+  let tex
+  if (chunk.bmp) {
+    const blob = new Blob([chunk.bmp], { type: 'image/bmp' })
+    const url  = URL.createObjectURL(blob)
+    tex = new THREE.TextureLoader().load(url, () => URL.revokeObjectURL(url))
+  } else {
+    // bmp not generated (resolution > 2048) — decode bitfield directly
+    const binData    = new Uint8Array(chunk.bin)
+    const resolution = Math.round(Math.sqrt(binData.length * 8))
+    const size       = Math.min(resolution, 512)
+    const canvas     = document.createElement('canvas')
+    canvas.width = size; canvas.height = size
+    const ctx = canvas.getContext('2d')
+    const img = ctx.createImageData(size, size)
+    const d   = img.data
+    const step = resolution / size
+    for (let py = 0; py < size; py++) {
+      for (let px = 0; px < size; px++) {
+        const bx  = Math.floor(px * step)
+        const bz  = Math.floor(py * step)
+        const idx = bz * resolution + bx
+        const bit = (binData[idx >> 3] >> (idx & 7)) & 1
+        const i   = (py * size + px) * 4
+        d[i] = bit ? 220 : 20; d[i+1] = bit ? 60 : 20; d[i+2] = bit ? 60 : 30; d[i+3] = 200
+      }
+    }
+    ctx.putImageData(img, 0, 0)
+    tex = new THREE.CanvasTexture(canvas)
+  }
+
+  const geo  = new THREE.PlaneGeometry(cs, cs)
+  const mat  = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.65, depthWrite: false })
+  const plane = new THREE.Mesh(geo, mat)
+  plane.rotation.x = -Math.PI / 2
+  plane.position.set((col + 0.5) * cs, 0.5, (row + 0.5) * cs)
+  plane.renderOrder = 1
+  collisionGroup.add(plane)
+}
+
+function _rebuildCollisionOverlay() {
+  _clearCollisionGroup()
+  if (!props.showCollisionMap) return
+  for (const chunk of props.collisions) _addCollisionPlane(chunk)
+}
+
 // ── Watchers ──────────────────────────────────────────────────────────────────
 
 watch(() => props.districts, loadDistricts, { immediate: false })
 watch(() => props.chunkSize, rebuildGrid)
 watch(() => props.manifest,  mf => { if (mf) updateHeatmap(mf) })
+watch(() => props.showCollisionMap, _rebuildCollisionOverlay)
+watch(() => props.collisions,       _rebuildCollisionOverlay)
 
 // Sync group transforms when offsets change externally (e.g. parent reset)
 watch(() => props.offsets, newOffsets => {
@@ -533,6 +600,7 @@ onBeforeUnmount(() => {
     dom.removeEventListener('pointerleave', onPointerUp)
   }
   _clearDistrictGroups()
+  _clearCollisionGroup()
   dracoLoader.dispose()
   renderer.value?.dispose()
 })

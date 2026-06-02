@@ -1,12 +1,9 @@
-/**
- * Sources d'assets pour l'AtelierWorld
- *
- * Place ton GLB dans /public/models/ et update le path ci-dessous.
- */
+import { assetPath } from '../../../assetPath.js'
+
 export default [
   {
     name: 'atelier',
-    type: 'gltf',
-    path: '/models/atelier_1.4.0.glb',
+    type: 'glb',
+    path: assetPath('/models/atelier_1.4.0.glb'),
   },
 ]
