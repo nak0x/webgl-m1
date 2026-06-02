@@ -1,13 +1,21 @@
 import EventEmitter from '../../EventEmitter.js'
 import { createXray } from '../../materials/createXray.js'
-import { SEVERITY_COLORS, PROXIMITY_RADIUS } from './CarRepairConfig.js'
+import {
+  SEVERITY_COLORS,
+  PROXIMITY_RADIUS,
+  XRAY_BODY_COLOR,
+  XRAY_BODY_PARAMS,
+  XRAY_REPAIR_PARAMS,
+} from './CarRepairConfig.js'
 
 export default class RepairMarkerManager extends EventEmitter {
-  constructor(experience, repairMarkers) {
+  constructor(experience, repairMarkers, model) {
     super()
     this._exp     = experience
     this._markers = repairMarkers
+    this._model   = model
     this._elapsed = 0
+    this._xray    = null
 
     repairMarkers.forEach(m => {
       experience.scene.add(m.sprite)
@@ -25,45 +33,51 @@ export default class RepairMarkerManager extends EventEmitter {
     this.trigger('inspect:close', {})
   }
 
-  enableXray(id) {
-    const marker = this._find(id)
-    if (!marker || marker.xrayInstances) return
+  enableXray() {
+    if (this._xray || !this._model) return
 
-    const color = SEVERITY_COLORS[marker.repairDef.severity] ?? SEVERITY_COLORS.use
-    marker.originalMaterials = new Map()
-    marker.xrayInstances     = []
-
-    marker.meshes.forEach(mesh => {
-      const origMat = mesh.material
-      marker.originalMaterials.set(mesh, origMat)
-
-      const xray = createXray({ color: color.clone() })
-      marker.xrayInstances.push(xray)
-
-      if (Array.isArray(origMat)) {
-        mesh.material = new Array(origMat.length).fill(xray.material)
-      } else {
-        mesh.material = xray.material
-      }
+    const repairColors = new Map()
+    this._markers.forEach(m => {
+      const color = SEVERITY_COLORS[m.repairDef.severity] ?? SEVERITY_COLORS.use
+      m.meshes.forEach(mesh => repairColors.set(mesh, color))
     })
+
+    const instances = []
+    const restore   = []
+
+    this._model.traverse(mesh => {
+      if (!mesh.isMesh) return
+
+      const repairColor = repairColors.get(mesh)
+      const isRepair    = repairColor !== undefined
+      const xray        = createXray({ color: (isRepair ? repairColor : XRAY_BODY_COLOR).clone() })
+      xray.setParams(isRepair ? XRAY_REPAIR_PARAMS : XRAY_BODY_PARAMS)
+      instances.push(xray)
+
+      restore.push({ mesh, material: mesh.material, renderOrder: mesh.renderOrder })
+
+      mesh.material    = Array.isArray(mesh.material)
+        ? new Array(mesh.material.length).fill(xray.material)
+        : xray.material
+      mesh.renderOrder = isRepair ? 2 : 1
+    })
+
+    this._xray = { instances, restore }
   }
 
-  disableXray(id) {
-    const marker = this._find(id)
-    if (!marker?.originalMaterials) return
+  disableXray() {
+    if (!this._xray) return
 
-    marker.meshes.forEach(mesh => {
-      const orig = marker.originalMaterials.get(mesh)
-      if (orig !== undefined) mesh.material = orig
+    this._xray.restore.forEach(({ mesh, material, renderOrder }) => {
+      mesh.material    = material
+      mesh.renderOrder = renderOrder
     })
-
-    marker.xrayInstances?.forEach(x => x.dispose())
-    marker.xrayInstances     = null
-    marker.originalMaterials = null
+    this._xray.instances.forEach(x => x.dispose())
+    this._xray = null
   }
 
   confirmRepair(id, action) {
-    this.disableXray(id)
+    this.disableXray()
 
     const idx = this._markers.findIndex(m => m.repairDef.id === id)
     if (idx === -1) return
@@ -86,8 +100,8 @@ export default class RepairMarkerManager extends EventEmitter {
   }
 
   destroy() {
+    this.disableXray()
     this._markers.forEach(m => {
-      this.disableXray(m.repairDef.id)
       this._exp.scene.remove(m.sprite)
       m.sprite.material.map?.dispose()
       m.sprite.material.dispose()

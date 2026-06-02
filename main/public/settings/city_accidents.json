@@ -4,8 +4,8 @@
     {
       "id": "acc_1",
       "label": "Accident",
-      "modelPath": "assets/models/vehicules/Voiture 2.gltf",
-      "repairFile": "car_repair_.json",
+      "modelPath": "/models/vehicules/Bus.gltf",
+      "repairFile": "bus_repaire.json",
       "position": {
         "x": 48.54,
         "y": 0.15,
