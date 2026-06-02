@@ -22,9 +22,10 @@ export default class FpsController {
     this._collisionManager = null
 
     this.controls = new PointerLockControls(this._camera, document.body)
-    this._keys    = { w: false, a: false, s: false, d: false }
-    this.speed    = WALK_SPEED
-    this.enabled  = true
+    this._keys       = { w: false, a: false, s: false, d: false }
+    this.speed       = WALK_SPEED
+    this.enabled     = true
+    this._walkHandle = null
 
     this._velocity = new Vector3()
     this._onFloor  = false
@@ -43,7 +44,11 @@ export default class FpsController {
     this._onClick   = this._onClick.bind(this)
 
     this.controls.addEventListener('lock',   () => { if (!this._cinematicActive) this._crosshairEl.style.opacity = '1' })
-    this.controls.addEventListener('unlock', () => { this._crosshairEl.style.opacity = '0' })
+    this.controls.addEventListener('unlock', () => {
+      this._crosshairEl.style.opacity = '0'
+      this._stopWalk()
+      this._keys.w = this._keys.a = this._keys.s = this._keys.d = false
+    })
 
     this._cinematicActive = false
     this._onCinematicStart = () => {
@@ -172,12 +177,16 @@ export default class FpsController {
   }
 
   _onKeyDown(e) {
+    if (e.repeat) return
     switch (e.code) {
       case 'KeyW': case 'ArrowUp':    this._keys.w = true; break
       case 'KeyS': case 'ArrowDown':  this._keys.s = true; break
       case 'KeyA': case 'ArrowLeft':  this._keys.a = true; break
       case 'KeyD': case 'ArrowRight': this._keys.d = true; break
       case 'KeyG': this._experience.glasses?.toggle(); break
+    }
+    if (!this._walkHandle && this._isMoving) {
+      this._walkHandle = this._experience.sound?.play('walk', { loop: true }) ?? null
     }
   }
 
@@ -188,9 +197,20 @@ export default class FpsController {
       case 'KeyA': case 'ArrowLeft':  this._keys.a = false; break
       case 'KeyD': case 'ArrowRight': this._keys.d = false; break
     }
+    if (!this._isMoving) this._stopWalk()
+  }
+
+  get _isMoving() {
+    return this._keys.w || this._keys.s || this._keys.a || this._keys.d
+  }
+
+  _stopWalk() {
+    this._walkHandle?.stop()
+    this._walkHandle = null
   }
 
   dispose() {
+    this._stopWalk()
     this._experience.cinematic?.off('start', this._onCinematicStart)
     this._experience.cinematic?.off('end',   this._onCinematicEnd)
     window.removeEventListener('keydown', this._onKeyDown)

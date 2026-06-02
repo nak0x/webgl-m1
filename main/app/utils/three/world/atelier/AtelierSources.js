@@ -6,4 +6,9 @@ export default [
     type: 'glb',
     path: assetPath('/models/atelier_1.4.0.glb'),
   },
+  {
+    name: 'character',
+    type: 'glb',
+    path: assetPath('/models/caracter/rigged_caracter.glb'),
+  },
 ]

@@ -75,7 +75,10 @@ export default class SceneManager {
       if (resources.isReady) {
         // trigger() est synchrone : _setup() + onReady() dans le même tick que la
         // fin de la cinématique, avant le prochain RAF — aucune frame noire.
+        // off() avant onReady() bloque le setTimeout schedulé dans Resources([])
+        // qui déclencherait un second _setup() sur CinematicWorld.
         resources.trigger('ready')
+        resources.off('ready')
         onReady()
       } else {
         resources.on('ready', onReady)
