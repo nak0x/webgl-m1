@@ -23,7 +23,7 @@ export const SCENES = {
           { text: 'Vous avez déjà vécu cette journée ?', duration: 3000 },
         ],
       },
-      { type: 'video', src: '/videos/intro_atelier.mp4' },
+      { type: 'video', src: assetPath('/videos/intro_atelier.mp4') },
     ],
   },
 
@@ -31,7 +31,7 @@ export const SCENES = {
     World:   HubWorld,
     sources: HubSources,
     flow: [
-      { type: 'video', src: '/videos/transition_s1_s2.mp4' },
+      { type: 'video', src: assetPath('/videos/transition_s1_s2.mp4') },
     ],
   },
   'scene_3': { World: CityWorld, sources: CitySources, flow: [] },
