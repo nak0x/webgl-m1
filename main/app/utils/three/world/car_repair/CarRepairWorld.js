@@ -165,7 +165,7 @@ export default class CarRepairWorld {
 
     const builder = new RepairBuilder()
     const repairMarkers = builder.build(this._repairData.repairs, this._model)
-    this._markerManager = new RepairMarkerManager(this.experience, repairMarkers)
+    this._markerManager = new RepairMarkerManager(this.experience, repairMarkers, this._model)
 
     const { interaction } = this.experience
     const ids = new Set(repairMarkers.map(m => m.repairDef.id))
@@ -184,7 +184,7 @@ export default class CarRepairWorld {
       if (!ids.has(id)) return
 
       if (this._xrayActive === id) {
-        this._markerManager.disableXray(id)
+        this._markerManager.disableXray()
         this._xrayActive = null
         this._callbacks.onXrayChange?.(null)
         // E key = user gesture → lock() works here
@@ -192,10 +192,10 @@ export default class CarRepairWorld {
         this._fps.lock()
       } else {
         if (this._xrayActive) {
-          this._markerManager.disableXray(this._xrayActive)
+          this._markerManager.disableXray()
           this._callbacks.onXrayChange?.(null)
         }
-        this._markerManager.enableXray(id)
+        this._markerManager.enableXray()
         this._xrayActive = id
         this._callbacks.onXrayChange?.(id)
         this._fps.enabled = false

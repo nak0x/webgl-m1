@@ -30,13 +30,11 @@ export default class RepairBuilder {
       sprite.scale.setScalar(0.28)
 
       return {
-        repairDef:         def,
+        repairDef: def,
         sprite,
         meshes,
-        baseY:             anchorPos.y + MARKER_HEIGHT_OFFSET,
-        phase:             Math.random() * Math.PI * 2,
-        originalMaterials: null,
-        xrayInstances:     null,
+        baseY:     anchorPos.y + MARKER_HEIGHT_OFFSET,
+        phase:     Math.random() * Math.PI * 2,
       }
     })
   }
