@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset + tokens ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --black: #2d1d1b; --white: #efeadf; --orange: #ff6038; --sidebar: 17vw; --header: 7vh; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Fira Sans', sans-serif; background: #fff; }
+img { display: block; }
+
+/* ── Screens ── */
+.screen { position: absolute; inset: 0; display: none; }
+.screen.active { display: block; }
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
+#login {
+  background: var(--white);
+  display: none; width: 100%; height: 100%;
+}
+#login.active { display: flex; }
+
+#login .right-panel {
+  position: absolute; right: 0; top: 0;
+  width: 50%; height: 100%;
+  background: #d9d9d9; overflow: hidden;
+}
+#login .right-panel img { width: 100%; height: 100%; object-fit: cover; }
+
+#login .left-content {
+  position: relative; z-index: 1;
+  width: 50%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8vh; padding: 5vh 5vw;
+}
+.login-logo-area {
+  display: flex; flex-direction: column; align-items: center; gap: 2vh; width: 100%;
+}
+.login-logo-area img { width: min(34vw, 480px); height: auto; object-fit: contain; }
+.login-tagline {
+  font-size: clamp(14px, 1.6vw, 22px); font-weight: 400;
+  color: var(--black); text-align: center; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.login-form { display: flex; flex-direction: column; gap: 4vh; align-items: flex-start; width: 100%; max-width: 420px; }
+.login-field { display: flex; flex-direction: column; gap: 1vh; width: 100%; }
+.login-field label {
+  font-size: clamp(14px, 1.5vw, 22px); font-weight: 500; color: #000; text-transform: uppercase;
+}
+.login-field input {
+  background: #fff; border: 1px solid var(--black); height: clamp(28px, 3.5vh, 42px); width: 100%;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(12px, 1.1vw, 16px); padding: 0 8px; outline: none;
+}
+.login-btn {
+  background: var(--orange); box-shadow: 0 0 3px rgba(45,29,27,0.25);
+  border: none; cursor: pointer; width: 100%; padding: clamp(10px,1.5vh,18px) 2vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(12px, 1.1vw, 16px); font-weight: 500;
+  color: var(--black); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.login-btn:hover { filter: brightness(1.08); }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD (Réparations)
+═══════════════════════════════════════════════ */
+#dashboard { background: #fff; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: absolute; left: 0; top: 0; width: var(--sidebar); height: 100%;
+  background: var(--black); display: flex; flex-direction: column; z-index: 10;
+}
+.sidebar-logo {
+  height: var(--header); flex-shrink: 0;
+  border-bottom: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; padding: 0 1.5vw;
+}
+.sidebar-logo img { max-width: 80%; max-height: calc(var(--header) - 1.5vh); width: auto; height: auto; object-fit: contain; }
+
+.sidebar-menu {
+  flex: 1; padding: 1.5vh 0.8vw 0; display: flex; flex-direction: column; gap: 0.4vh;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 0.6vw; padding: 1vh 0.8vw; cursor: pointer;
+  font-size: clamp(11px, 1vw, 15px); font-weight: 500; color: var(--white); white-space: nowrap;
+}
+.nav-item.active { background: var(--orange); box-shadow: 0 0 3px rgba(239,234,223,0.25); color: var(--black); }
+.nav-item img { width: clamp(14px, 1.2vw, 18px); height: clamp(14px, 1.2vw, 18px); flex-shrink: 0; }
+
+.sidebar-profile {
+  height: clamp(60px, 8vh, 88px); flex-shrink: 0;
+  border-top: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; gap: 0.8vw; padding: 0 0.8vw;
+}
+.profile-avatar {
+  width: clamp(28px, 2.8vw, 40px); height: clamp(28px, 2.8vw, 40px);
+  background: var(--orange); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(9px, 0.9vw, 13px); font-weight: 700; color: var(--black);
+}
+.profile-name { font-size: clamp(11px, 1vw, 15px); font-weight: 500; color: var(--white); }
+.profile-role { font-size: clamp(9px, 0.8vw, 12px); font-weight: 400; color: rgba(239,234,223,0.7); }
+
+/* ── Header ── */
+.header {
+  position: absolute; top: 0; left: var(--sidebar); right: 0; height: var(--header);
+  background: var(--black); border-bottom: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; justify-content: flex-end; padding: 0 2vw;
+}
+.search-bar {
+  border: 1px solid var(--white); width: clamp(180px, 25vw, 360px); height: 70%;
+  display: flex; align-items: center; gap: 0.5vw; padding: 0 0.8vw; overflow: hidden;
+}
+.search-bar img { width: clamp(12px, 1.2vw, 18px); height: clamp(12px, 1.2vw, 18px); flex-shrink: 0; }
+.search-bar span { font-size: clamp(10px, 0.9vw, 13px); font-weight: 300; color: var(--white); white-space: nowrap; }
+
+/* ── Body ── */
+.body {
+  position: absolute; top: var(--header); left: var(--sidebar); right: 0; bottom: 0;
+  background: var(--white); overflow-y: auto;
+  padding: 3vh 2.5vw; display: flex; flex-direction: column; gap: 2.5vh;
+}
+
+.body-title { display: flex; align-items: stretch; gap: 1vw; flex-shrink: 0; }
+.body-title-icon {
+  background: var(--orange); padding: 0 0.8vw;
+  display: flex; align-items: center; justify-content: center;
+}
+.body-title-icon img { width: clamp(20px, 2.2vw, 32px); height: clamp(20px, 2.2vw, 32px); }
+.title-text { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.title-text h1 { font-size: clamp(18px, 2.2vw, 32px); font-weight: 700; color: var(--orange); }
+.title-text p  { font-size: clamp(10px, 1.1vw, 16px); font-weight: 400; color: var(--black); }
+
+.sep { height: 1px; background: rgba(45,29,27,0.2); flex-shrink: 0; }
+
+/* ── Section ── */
+.section { display: flex; flex-direction: column; gap: 2.2vh; flex-shrink: 0; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 1vw; }
+.section-title h2 { font-size: clamp(15px, 1.7vw, 24px); font-weight: 500; color: var(--black); }
+.section-title p  { font-size: clamp(10px, 1.1vw, 16px); font-weight: 400; color: rgba(45,29,27,0.75); }
+
+.week-filter {
+  background: #fff; border: 1px solid var(--black);
+  display: flex; align-items: center; justify-content: center; gap: 0.6vw;
+  padding: 0.7vh 0.9vw; font-size: clamp(9px, 0.85vw, 12px); color: #1e2939; cursor: pointer;
+}
+.week-filter img { width: clamp(12px, 1.1vw, 18px); height: clamp(12px, 1.1vw, 18px); }
+
+/* ── Grille réparations du jour ── */
+.rep-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.1vw;
+}
+.rep-card {
+  background: #fff; border: 1px solid var(--black);
+  display: flex; flex-direction: column; gap: 1.4vh; padding: 1.4vh 0.9vw;
+}
+.rep-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5vw; }
+.badge {
+  display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+  font-size: clamp(8px, 0.8vw, 12px); white-space: nowrap;
+}
+.badge-dot { width: 6px; height: 6px; flex-shrink: 0; }
+.badge--ok  { background: #e2f9f9; color: #46b2b2; }
+.badge--ok  .badge-dot { background: #46b2b2; }
+.badge--rep { background: #efaa9d; color: #e02e0e; }
+.badge--rep .badge-dot { background: #e02e0e; }
+.rapport-link {
+  font-size: clamp(9px, 0.85vw, 13px); font-weight: 500; color: var(--orange);
+  text-decoration: underline; cursor: pointer; background: none; border: none;
+  font-family: 'Fira Sans', sans-serif; white-space: nowrap;
+}
+.rep-card-title { font-size: clamp(12px, 1.2vw, 18px); font-weight: 500; color: var(--black); }
+.rep-card-meta { display: flex; flex-direction: column; gap: 4px; }
+.rep-card-vehicle { font-size: clamp(10px, 0.95vw, 14px); color: rgba(45,29,27,0.75); }
+.rep-card-loc { display: flex; align-items: center; gap: 3px; font-size: clamp(9px, 0.85vw, 12px); color: rgba(45,29,27,0.75); }
+.rep-card-loc img { width: clamp(7px, 0.7vw, 8px); height: clamp(10px, 1vw, 12px); flex-shrink: 0; }
+.rep-card-btn {
+  margin-top: auto;
+  background: var(--orange); box-shadow: 0 0 3px rgba(45,29,27,0.25);
+  border: none; cursor: pointer; width: 100%; padding: 1vh 0.6vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(10px, 1vw, 16px); font-weight: 500;
+  color: var(--black); text-align: center; text-transform: lowercase;
+}
+.rep-card-btn:hover { filter: brightness(1.08); }
+
+.validate-all-btn {
+  background: var(--orange); box-shadow: 0 0 3px rgba(45,29,27,0.25);
+  border: none; cursor: pointer; width: 100%; padding: 1.3vh 2vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(11px, 1.1vw, 16px); font-weight: 500;
+  color: var(--black); text-align: center;
+}
+.validate-all-btn:hover { filter: brightness(1.08); }
+
+/* ── Tableau de la semaine ── */
+.week-grid { display: flex; gap: 1vw; }
+.week-day {
+  flex: 1; min-width: 0; background: #fff; border: 1px solid var(--black);
+  display: flex; flex-direction: column; gap: 1.4vh; padding: 1.4vh 0.9vw;
+}
+.week-day-head { display: flex; align-items: center; justify-content: space-between; }
+.week-day-name { font-size: clamp(12px, 1.2vw, 18px); font-weight: 500; color: var(--black); }
+.week-day-count {
+  background: #fff; border: 1px solid #e5e7eb; padding: 3px 8px;
+  font-size: clamp(9px, 0.85vw, 12px); color: rgba(45,29,27,0.75);
+}
+.week-day-list { display: flex; flex-direction: column; gap: 1vh; }
+.week-rep {
+  background: #fff; border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 1.5px rgba(0,0,0,0.1);
+  display: flex; flex-direction: column; gap: 0.6vh; padding: 1vh 0.7vw;
+}
+.week-rep-title { font-size: clamp(10px, 0.95vw, 14px); color: var(--black); }
+.week-rep-sep { height: 1px; background: rgba(45,29,27,0.1); }
+.week-rep-infos { display: flex; align-items: center; justify-content: space-between; gap: 0.4vw; }
+.week-rep-infos > span { font-size: clamp(9px, 0.8vw, 12px); color: rgba(45,29,27,0.75); }
+.week-rep-loc { display: flex; align-items: center; gap: 3px; font-size: clamp(9px, 0.8vw, 12px); color: rgba(45,29,27,0.75); }
+.week-rep-loc img { width: 7px; height: 11px; flex-shrink: 0; }
+.week-day--empty .week-empty {
+  flex: 1; border: 2px dashed #e5e7eb;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(10px, 0.95vw, 14px); color: rgba(45,29,27,0.75); min-height: 14vh;
+}
+
+/* ═══════════════════════════════════════════════
+   TUTORIAL — spotlight sur "Réparations du jour"
+═══════════════════════════════════════════════ */
+
+/* Spotlight robuste : le cadre noir + l'assombrissement plein écran sont
+   portés par une seule box-shadow ancrée sur la section éclairée.
+   Pas de bataille de z-index avec un overlay séparé, et l'ombre suit la
+   section quel que soit le scroll. */
+.tuto-on #rep-jour {
+  position: relative; z-index: 250;
+  background: var(--white);
+  box-shadow:
+    0 0 0 4px var(--black),
+    0 0 0 100vmax rgba(45,29,27,0.82);
+}
+
+/* L'overflow du body clipperait la box-shadow → on le laisse déborder
+   pendant le tuto (le scroll n'est de toute façon pas nécessaire ici). */
+.tuto-on .body { overflow: visible; }
+
+/* Carte tuto : enfant de la section éclairée, donc au-dessus de l'ombre.
+   Cachée tant que le tuto n'est pas actif. */
+.tuto-card { display: none; }
+.tuto-on #rep-jour .tuto-card {
+  display: flex;
+  position: absolute; z-index: 260;
+  top: calc(100% + 4px); left: 0;
+  background: var(--black); padding: 3vh 2vw;
+  width: min(26vw, 340px);
+  flex-direction: column; align-items: center; gap: 2.5vh; text-align: center;
+}
+.tuto-desc {
+  font-size: clamp(13px, 1.3vw, 20px); font-weight: 400; line-height: 1.5;
+  color: var(--white);
+}
+.tuto-btn {
+  background: var(--orange); border: none; cursor: pointer; width: 100%; padding: 1.4vh 1.5vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(11px, 1.1vw, 16px); font-weight: 500;
+  color: var(--black); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.tuto-btn:hover { filter: brightness(1.08); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════════════ -->
+<div id="login" class="screen active">
+  <div class="right-panel">
+    <img src="https://www.figma.com/api/mcp/asset/2bb1cfec-8d65-4fb5-9589-cfa4efd3ddeb" alt="">
+  </div>
+  <div class="left-content">
+    <div class="login-logo-area">
+      <img src="https://www.figma.com/api/mcp/asset/985da54e-d732-4b63-935e-f9f218a7eb7e" alt="od-hoc">
+      <p class="login-tagline">Artisans de la maintenance</p>
+    </div>
+    <div class="login-form">
+      <div class="login-field">
+        <label for="identifiant">Identifiant</label>
+        <input type="text" id="identifiant" autocomplete="off">
+      </div>
+      <button class="login-btn" onclick="goToDashboard()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     DASHBOARD — Réparations
+══════════════════════════════════════════════════ -->
+<div id="dashboard" class="screen tuto-on">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="https://www.figma.com/api/mcp/asset/bb665da8-3da8-47a0-a360-0fc58ec28b74" alt="od-hoc">
+    </div>
+    <div class="sidebar-menu">
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/5fda8272-124d-4d77-9a46-f096e8bb60ea" alt="">
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/5367f1ee-e85c-4c9d-9925-6a77a1fa9cc6" alt="">
+        Affluence
+      </div>
+      <div class="nav-item active">
+        <img src="https://www.figma.com/api/mcp/asset/1bae3915-1247-40c6-8471-f3500ed09505" alt="">
+        Réparations
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/268fe83f-fcfc-4ac9-a16a-8fd22c8b528d" alt="">
+        Flotte &amp; Véhicules
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/aa4f8fba-b2c7-4c61-bfbe-c1ecc50fa318" alt="">
+        Stocks &amp; Pièces
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="profile-avatar">LM</div>
+      <div>
+        <div class="profile-name">Lisa M.</div>
+        <div class="profile-role">Artisan Maintenance</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="search-bar">
+      <img src="https://www.figma.com/api/mcp/asset/3f1bc1bc-f78c-4727-89fa-b96a04a2bcc2" alt="">
+      <span>Rechercher un véhicule, un hub...</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="body-title">
+      <div class="body-title-icon">
+        <img src="https://www.figma.com/api/mcp/asset/75f9d29f-8e02-4bd3-8f09-ac40439c96e4" alt="">
+      </div>
+      <div class="title-text">
+        <h1>Réparations</h1>
+        <p>Gérez et validez vos interventions d'entretien</p>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- ── Réparations du jour ── -->
+    <div class="section" id="rep-jour">
+      <div class="section-title">
+        <h2>Réparations du jour</h2>
+        <p>A valider</p>
+      </div>
+
+      <div class="rep-grid">
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--ok"><span class="badge-dot"></span>Bon état</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Remplacement batterie</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Vélo cargo</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Nord</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--rep"><span class="badge-dot"></span>réparation</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Révision moteur</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Camionette hydrogène</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Atelier Central</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--rep"><span class="badge-dot"></span>réparation</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Remplacement selle</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Vélo de ville</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Quartier Résidentiel</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--rep"><span class="badge-dot"></span>réparation</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Changement de selle</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Vélo cargo</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Nord</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--rep"><span class="badge-dot"></span>réparation</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Pneu avant</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Vélo de ville</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub centre</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--rep"><span class="badge-dot"></span>réparation</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Réparation alternateur</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Bus ligne A</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Arrêt du Chêne</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--ok"><span class="badge-dot"></span>Bon état</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Panne moteur</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Voiture hydrogène</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Quartier des Ressources</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+
+        <div class="rep-card">
+          <div class="rep-card-head">
+            <div class="badge badge--ok"><span class="badge-dot"></span>Bon état</div>
+            <button class="rapport-link">Rapport</button>
+          </div>
+          <div class="rep-card-title">Remplissage huile moteur</div>
+          <div class="rep-card-meta">
+            <div class="rep-card-vehicle">Ambulance</div>
+            <div class="rep-card-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Quartier de la Santé</div>
+          </div>
+          <button class="rep-card-btn">valider l'intervention</button>
+        </div>
+      </div>
+
+      <button class="validate-all-btn" onclick="validateAll()">valider toutes les interventions</button>
+
+      <!-- Carte tuto (visible uniquement quand #dashboard a la classe tuto-on) -->
+      <div class="tuto-card">
+        <div class="tuto-desc">Vous devez valider vos interventions du jour.</div>
+        <button class="tuto-btn" onclick="dismissTuto()">J'ai compris</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- ── Réparations de la semaine ── -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">
+          <h2>Réparations de la semaine</h2>
+          <p>Récapitulatif de la semaine</p>
+        </div>
+        <div class="week-filter">
+          <img src="https://www.figma.com/api/mcp/asset/afedb30e-24a3-4512-a4b1-d68b5351e0d2" alt="">
+          Semaine 24
+          <img src="https://www.figma.com/api/mcp/asset/a910f1e3-e0d0-4081-9fdc-b868c9a32e6c" alt="">
+        </div>
+      </div>
+
+      <div class="week-grid">
+        <div class="week-day">
+          <div class="week-day-head"><span class="week-day-name">Lundi</span><span class="week-day-count">8</span></div>
+          <div class="week-day-list">
+            <div class="week-rep"><div class="week-rep-title">Réparation guidon</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo cargo</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Station Nord</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Révision climatisation</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Voiture</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Atelier Central</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Pneu avant</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo de ville</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Centre</div></div></div>
+          </div>
+        </div>
+
+        <div class="week-day">
+          <div class="week-day-head"><span class="week-day-name">Mardi</span><span class="week-day-count">8</span></div>
+          <div class="week-day-list">
+            <div class="week-rep"><div class="week-rep-title">Réparation guidon</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo cargo</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Station Nord</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Révision climatisation</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Voiture</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Atelier Central</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Pneu avant</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo de ville</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Centre</div></div></div>
+          </div>
+        </div>
+
+        <div class="week-day">
+          <div class="week-day-head"><span class="week-day-name">Mercredi</span><span class="week-day-count">8</span></div>
+          <div class="week-day-list">
+            <div class="week-rep"><div class="week-rep-title">Réparation guidon</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo cargo</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Station Nord</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Révision climatisation</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Voiture</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Atelier Central</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Pneu avant</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo de ville</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Centre</div></div></div>
+          </div>
+        </div>
+
+        <div class="week-day">
+          <div class="week-day-head"><span class="week-day-name">Jeudi</span><span class="week-day-count">8</span></div>
+          <div class="week-day-list">
+            <div class="week-rep"><div class="week-rep-title">Réparation guidon</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo cargo</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Station Nord</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Révision climatisation</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Voiture</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Atelier Central</div></div></div>
+            <div class="week-rep"><div class="week-rep-title">Pneu avant</div><div class="week-rep-sep"></div><div class="week-rep-infos"><span>Vélo de ville</span><div class="week-rep-loc"><img src="https://www.figma.com/api/mcp/asset/1d7a44ba-3ed4-4425-9cbf-cf999a140790" alt="">Hub Centre</div></div></div>
+          </div>
+        </div>
+
+        <div class="week-day week-day--empty">
+          <div class="week-day-head"><span class="week-day-name">Vendredi</span><span class="week-day-count">0</span></div>
+          <div class="week-empty">Aucune réparation</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function goToDashboard() {
+    document.getElementById('login').classList.remove('active')
+    document.getElementById('dashboard').classList.add('active')
+  }
+  function dismissTuto() {
+    document.getElementById('dashboard').classList.remove('tuto-on')
+    window.parent.postMessage({ type: 'crm:tuto-done' }, '*')
+  }
+  function validateAll() {
+    window.parent.postMessage({ type: 'crm:validate-all' }, '*')
+  }
+</script>
+</body>
+</html>

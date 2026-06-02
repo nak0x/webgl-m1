@@ -18,14 +18,12 @@ export const SCENES = {
       {
         type: 'text',
         cards: [
-          { title: 'NEXORA CORP.',                                           duration: 3500 },
-          { text: 'Secteur industriel, zone 7-B.\n2031.',                   duration: 3000 },
-          { text: 'La maintenance automatisée est en panne depuis 48h.\nTous les techniciens sont mobilisés ailleurs.', duration: 4500 },
-          { title: 'MISSION', subtitle: 'Remise en service de l\'atelier',  duration: 3500 },
+          { text: 'En 2050, après l\'effondrement de l\'ère des Villes-Marques, Altera s\'est reconstruite sur les ruines du capitalisme pour devenir un écosystème de "Communs" géré par et pour ses citoyens.', duration: 5000 },
+          { text: 'Au sein de l\'Atelier de la Maintenance, les artisans veillent sur la flotte de véhicules partagés, répondant aux alertes pour garantir une mobilité fluide et solidaire basée sur l\'urgence sociale.', duration: 5000 },
+          { text: 'Vous avez déjà vécu cette journée ?', duration: 3000 },
         ],
       },
-      // Décommenter quand la vidéo Blender est prête :
-      { type: 'video', src: assetPath('/videos/intro_atelier.mp4') },
+      { type: 'video', src: '/videos/intro_atelier.mp4' },
     ],
   },
 
@@ -33,15 +31,7 @@ export const SCENES = {
     World:   HubWorld,
     sources: HubSources,
     flow: [
-      {
-        type: 'text',
-        cards: [
-          { text: 'Atelier remis en service.\nRapport transmis au hub central.',  duration: 3500 },
-          { title: 'HUB CENTRAL', subtitle: 'Secteur de coordination — niveau 0', duration: 3500 },
-        ],
-      },
-      // Décommenter quand la vidéo Blender est prête :
-      // { type: 'video', src: '/videos/transition_atelier_hub.mp4' },
+      { type: 'video', src: '/videos/transition_s1_s2.mp4' },
     ],
   },
   'scene_3': { World: CityWorld, sources: CitySources, flow: [] },

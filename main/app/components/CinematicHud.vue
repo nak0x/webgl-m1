@@ -95,7 +95,6 @@ function onSeekEnd(e) {
   display: flex;
   align-items: center;
   gap: 24px;
-  border-radius: 4px;
 }
 
 /* ── Boutons icône ── */
