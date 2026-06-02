@@ -5,6 +5,14 @@
       <h1 class="rb__title">Repair Builder</h1>
 
       <div class="rb__field">
+        <label>Projet existant</label>
+        <select v-model="loadFile" @change="loadProject">
+          <option value="">— nouveau projet —</option>
+          <option v-for="f in projectFiles" :key="f" :value="f">{{ f }}</option>
+        </select>
+      </div>
+
+      <div class="rb__field">
         <label>Modèle (chemin MinIO)</label>
         <input v-model="modelPath" placeholder="/models/vehicles/dacia_sandero.glb" />
         <button :disabled="loading || !modelPath" @click="loadModel">
@@ -156,6 +164,8 @@ const parts     = ref([])
 const selectedPart = ref('')
 const pieceLabel   = ref('')
 const repairFile   = ref('')
+const projectFiles = ref([])
+const loadFile     = ref('')
 const accidents    = ref([])
 const assocId      = ref('')
 const message      = ref('')
@@ -195,6 +205,7 @@ const pointer   = new THREE.Vector2()
 onMounted(() => {
   initThree()
   loadAccidents()
+  loadProjectList()
 })
 
 onBeforeUnmount(() => {
@@ -363,6 +374,44 @@ async function saveJson() {
 async function saveAndRedirect() {
   const ok = await saveJson()
   if (ok) setTimeout(() => window.location.assign('/repair-builder'), 700)
+}
+
+async function loadProjectList() {
+  try {
+    const res = await fetch('/api/settings')
+    if (!res.ok) return
+    const files = await res.json()
+    const blocklist = new Set(['city_accidents.json', 'city_sky.json', 'rendering.json'])
+    projectFiles.value = files.filter(f => !blocklist.has(f))
+  } catch { /* endpoint absent en prod : pas bloquant */ }
+}
+
+async function loadProject() {
+  if (!loadFile.value) return
+  try {
+    const res = await fetch('/settings/' + loadFile.value)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json()
+    if (!json || typeof json !== 'object' || !Array.isArray(json.repairs) || !json.vehicle) {
+      throw new Error('format inattendu')
+    }
+    data.vehicle = {
+      name: '', year: 2030, immatriculation: '', km: 0, fuel_level: 0, fuel_type: '',
+      ...json.vehicle,
+    }
+    data.context = json.context ?? ''
+    data.priority = json.priority ?? 'normal'
+    data.repair_delay_days = json.repair_delay_days ?? 0
+    data.available_parts = json.available_parts ?? []
+    data.repair_history = json.repair_history ?? []
+    data.repairs = json.repairs
+    repairFile.value = loadFile.value
+    startNewRepair()
+    setMessage(`Projet chargé : ${loadFile.value}`)
+  } catch (err) {
+    setMessage('Échec chargement : ' + err.message, true)
+    loadFile.value = ''
+  }
 }
 
 async function loadAccidents() {

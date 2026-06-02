@@ -154,8 +154,7 @@ export default class CarRepairWorld {
   }
 
   _setupFps() {
-    const octreeRoot = this._model ?? this.scene
-    this._fps = new FpsController(this.experience, buildOctree(octreeRoot))
+    this._fps = new FpsController(this.experience, buildOctree(this.scene))
     this._crosshairTarget = new CrosshairTarget(this.experience)
     this.experience.interaction.setFpsMode(true)
     this._callbacks.onFpsReady?.(this._fps)
