@@ -476,6 +476,16 @@ export default class CityWorld {
   resize() {}
 
   dispose() {
+    // Torn down first: it lives in document.body (position:fixed) and Experience
+    // disposes the world last, so a throw from an already-disposed subsystem below
+    // must never strand the minimap overlay on screen.
+    if (this._minimap) {
+      this._minimap.wrapper.remove()
+      this._minimap.renderTarget.dispose()
+      this._minimap.heightShader.dispose()
+      this._minimap = null
+    }
+
     this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
@@ -492,12 +502,6 @@ export default class CityWorld {
       this.scene.remove(this._debugCollisionSphere)
       this._debugCollisionSphere.geometry?.dispose()
       this._debugCollisionSphere.material?.dispose()
-    }
-    if (this._minimap) {
-      document.body.removeChild(this._minimap.wrapper)
-      this._minimap.renderTarget.dispose()
-      this._minimap.heightShader.dispose()
-      this._minimap = null
     }
     if (this._debugFolder) {
       this._debugFolder.destroy()
