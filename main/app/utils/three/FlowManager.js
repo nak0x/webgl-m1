@@ -91,7 +91,7 @@ export default class FlowManager extends EventEmitter {
         if (!cards.length && step.src) {
           cards = await fetch(step.src).then(r => r.json())
         }
-        if (this._textHandler) await this._textHandler(cards)
+        if (this._textHandler) await this._textHandler(cards, step.options ?? {})
         break
       }
 

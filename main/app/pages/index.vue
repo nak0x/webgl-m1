@@ -66,6 +66,9 @@
     :visible="textCinematic.visible.value"
     :card="textCinematic.card.value"
     :background-image="textCinematic.backgroundImage.value"
+    :position="textCinematic.position.value"
+    :text-color="textCinematic.textColor.value"
+    :theme="textCinematic.theme.value"
   />
 
   <PauseHud
@@ -219,7 +222,7 @@ async function onGameEnd() {
   experience?.sound.fadeOutAndStop(FADE_MS)
   isFading.value = true
   await new Promise(r => setTimeout(r, FADE_MS))
-  await textCinematic.play(endCreditsCards)
+  await textCinematic.play(endCreditsCards, { theme: 'ville-soir', position: 'center', textColor: '#efeadf' })
   isFading.value = false
   isGameEnded.value = true
 }
@@ -266,7 +269,7 @@ function startExperience() {
   experience.flow = new FlowManager(experience, sceneManager)
   cinematic.bind(experience.cinematic)
 
-  experience.flow.bindTextHandler(cards => textCinematic.play(cards))
+  experience.flow.bindTextHandler((cards, opts) => textCinematic.play(cards, opts))
   experience.flow.bindSceneResolver(name => ({
     World:     SCENES[name].World,
     sources:   SCENES[name].sources,
