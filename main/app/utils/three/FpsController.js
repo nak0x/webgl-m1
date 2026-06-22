@@ -11,6 +11,7 @@ const EYE_HEIGHT     = 1.0   // distance start → end (hauteur du cylindre)
 const _forward = new Vector3()
 const _right   = new Vector3()
 const _move    = new Vector3()
+const _delta   = new Vector3()
 const _up      = new Vector3(0, 1, 0)
 
 export default class FpsController {
@@ -19,11 +20,13 @@ export default class FpsController {
     this._camera     = experience.camera.instance
     this._canvas     = experience.canvas
     this._octree     = octree
+    this._collisionManager = null
 
     this.controls = new PointerLockControls(this._camera, document.body)
-    this._keys    = { w: false, a: false, s: false, d: false }
-    this.speed    = WALK_SPEED
-    this.enabled  = true
+    this._keys       = { w: false, a: false, s: false, d: false }
+    this.speed       = WALK_SPEED
+    this.enabled     = true
+    this._walkHandle = null
 
     this._velocity = new Vector3()
     this._onFloor  = false
@@ -41,8 +44,24 @@ export default class FpsController {
     this._onKeyUp   = this._onKeyUp.bind(this)
     this._onClick   = this._onClick.bind(this)
 
-    this.controls.addEventListener('lock',   () => { this._crosshairEl.style.opacity = '1' })
-    this.controls.addEventListener('unlock', () => { this._crosshairEl.style.opacity = '0' })
+    this.controls.addEventListener('lock',   () => { if (!this._cinematicActive) this._crosshairEl.style.opacity = '1' })
+    this.controls.addEventListener('unlock', () => {
+      this._crosshairEl.style.opacity = '0'
+      this._stopWalk()
+      this._keys.w = this._keys.a = this._keys.s = this._keys.d = false
+    })
+
+    this._cinematicActive = false
+    this._onCinematicStart = () => {
+      this._cinematicActive = true
+      this._crosshairEl.style.opacity = '0'
+    }
+    this._onCinematicEnd = () => {
+      this._cinematicActive = false
+      if (this.controls.isLocked) this._crosshairEl.style.opacity = '1'
+    }
+    experience.cinematic?.on('start', this._onCinematicStart)
+    experience.cinematic?.on('end',   this._onCinematicEnd)
 
     window.addEventListener('keydown', this._onKeyDown)
     window.addEventListener('keyup',   this._onKeyUp)
@@ -53,7 +72,19 @@ export default class FpsController {
   }
 
   get isLocked() { return this.controls.isLocked }
-  lock()         { this.controls.lock() }
+
+  // PointerLockControls.lock() calls requestPointerLock() but discards its
+  // Promise, causing uncaught rejections when called without a user gesture
+  // or when already locked. We call the DOM API directly to catch those cases.
+  lock() {
+    if (this.controls.isLocked) return
+    this.controls.domElement.requestPointerLock()?.catch(() => {})
+  }
+
+  setCollisionManager(cm) { this._collisionManager = cm }
+
+  hideCrosshair() { this._crosshairEl.style.opacity = '0' }
+  showCrosshair() { if (this.controls.isLocked && !this._cinematicActive) this._crosshairEl.style.opacity = '1' }
 
   _createCrosshair() {
     const el = document.createElement('div')
@@ -111,7 +142,16 @@ export default class FpsController {
       this._velocity.y -= GRAVITY * dt
     }
 
-    this._capsule.translate(this._velocity.clone().multiplyScalar(dt))
+    _delta.copy(this._velocity).multiplyScalar(dt)
+    if (this._collisionManager) {
+      const { x, z } = this._capsule.end
+      const { dx, dz } = this._collisionManager.resolveMovement(x, z, _delta.x, _delta.z)
+      if (dx === 0 && _delta.x !== 0) this._velocity.x = 0
+      if (dz === 0 && _delta.z !== 0) this._velocity.z = 0
+      _delta.x = dx
+      _delta.z = dz
+    }
+    this._capsule.translate(_delta)
     this._resolveCollisions()
     this._camera.position.copy(this._capsule.end)
   }
@@ -134,15 +174,20 @@ export default class FpsController {
   }
 
   _onClick() {
-    if (!this.controls.isLocked) this.controls.lock()
+    this.lock()
   }
 
   _onKeyDown(e) {
+    if (e.repeat) return
     switch (e.code) {
       case 'KeyW': case 'ArrowUp':    this._keys.w = true; break
       case 'KeyS': case 'ArrowDown':  this._keys.s = true; break
       case 'KeyA': case 'ArrowLeft':  this._keys.a = true; break
       case 'KeyD': case 'ArrowRight': this._keys.d = true; break
+      case 'KeyG': this._experience.glasses?.toggle(); break
+    }
+    if (!this._walkHandle && this._isMoving) {
+      this._walkHandle = this._experience.sound?.play('walk', { loop: true }) ?? null
     }
   }
 
@@ -153,13 +198,30 @@ export default class FpsController {
       case 'KeyA': case 'ArrowLeft':  this._keys.a = false; break
       case 'KeyD': case 'ArrowRight': this._keys.d = false; break
     }
+    if (!this._isMoving) this._stopWalk()
+  }
+
+  get _isMoving() {
+    return this._keys.w || this._keys.s || this._keys.a || this._keys.d
+  }
+
+  _stopWalk() {
+    this._walkHandle?.stop()
+    this._walkHandle = null
   }
 
   dispose() {
+    this._stopWalk()
+    this._experience.cinematic?.off('start', this._onCinematicStart)
+    this._experience.cinematic?.off('end',   this._onCinematicEnd)
     window.removeEventListener('keydown', this._onKeyDown)
     window.removeEventListener('keyup',   this._onKeyUp)
     this._canvas.removeEventListener('click', this._onClick)
     this._crosshairEl.remove()
+    // PointerLockControls.dispose() removes listeners but does NOT call
+    // exitPointerLock — the lock persists across scene transitions. Release
+    // explicitly so the next scene's FPS controller can lock cleanly.
+    if (this.controls.isLocked) this.controls.unlock()
     this.controls.dispose()
 
     this._experience.camera.autoUpdate       = true

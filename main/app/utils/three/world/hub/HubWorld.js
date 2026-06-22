@@ -1,10 +1,12 @@
-import * as THREE       from '/lib/three.js'
-import FpsController   from '../../FpsController.js'
-import CrosshairTarget from '../../CrosshairTarget.js'
-import DialogueManager from '../../dialogue/DialogueManager.js'
-import QuestManager    from '../../quest/QuestManager.js'
-import { buildOctree } from '../../buildOctree.js'
-import { OBJECTS, PROXIMITY } from './HubConfig.js'
+import * as THREE              from '/lib/three.js'
+import FpsController          from '../../FpsController.js'
+import CrosshairTarget        from '../../CrosshairTarget.js'
+import DialogueManager        from '../../dialogue/DialogueManager.js'
+import QuestManager           from '../../quest/QuestManager.js'
+import QuestIndicatorManager  from '../../quest/QuestIndicatorManager.js'
+import { buildOctree }        from '../../buildOctree.js'
+import GlassesManager         from '../../glasses/GlassesManager.js'
+import { OBJECTS, PROXIMITY, ACT_LABEL, COLLECTIBLES } from './HubConfig.js'
 
 export default class HubWorld {
   constructor(experience, callbacks = {}) {
@@ -18,6 +20,10 @@ export default class HubWorld {
 
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
+
+    this._glasses = new GlassesManager()
+    experience.setGlasses(this._glasses)
+    this._callbacks.onGlassesReady?.(this._glasses)
 
     experience.resources.on('ready', () => this._setup())
   }
@@ -109,61 +115,81 @@ export default class HubWorld {
 
     const steps = [
       {
-        id:      'pick_wrench',
-        label:   'Récupérer la clé à molette',
-        hint:    'Approchez-vous et appuyez sur E',
-        trigger: { type: 'interact', id: 'wrench' },
+        id:        'pick_wrench',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
+        trigger:   { type: 'interact', id: 'wrench' },
+        indicator: { type: 'item' },
         onComplete: () => {
           wrench?.removeFromParent()
           interaction.unregister('wrench')
+          this._glasses.collect('pick_wrench')
         },
       },
       {
-        id:      'pick_screwdriver',
-        label:   'Récupérer le tournevis',
-        hint:    'Approchez-vous du tournevis et appuyez sur E',
-        trigger: { type: 'interact', id: 'screwdriver' },
+        id:        'pick_screwdriver',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
+        trigger:   { type: 'interact', id: 'screwdriver' },
+        indicator: { type: 'item' },
         onComplete: () => {
           screwdriver?.removeFromParent()
           interaction.unregister('screwdriver')
+          this._glasses.collect('pick_screwdriver')
         },
       },
       {
-        id:      'pick_screw_box',
-        label:   'Récupérer la boîte de vis',
-        hint:    'Approchez-vous de la boîte de vis et appuyez sur E',
-        trigger: { type: 'interact', id: 'screw_box' },
+        id:        'pick_screw_box',
+        label:     'Prendre les outils indiqués',
+        hint:      'Récupérez l\'équipement recommandé.',
+        trigger:   { type: 'interact', id: 'screw_box' },
+        indicator: { type: 'item' },
         onComplete: () => {
           screwBox?.removeFromParent()
           interaction.unregister('screw_box')
+          this._glasses.collect('pick_screw_box')
         },
       },
       {
-        id:      'exit_door',
-        label:   'Sortir par la porte',
-        hint:    'Approchez-vous de la porte et appuyez sur E',
-        trigger: { type: 'interact', id: 'door' },
+        id:        'exit_door',
+        label:     'Sortir du microhub',
+        hint:      'Dirigez-vous vers la porte pour vous rendre sur le lieu de la réparation.',
+        trigger:   { type: 'interact', id: 'door' },
+        indicator: { type: 'door' },
         onComplete: (callbacks) => {
           callbacks.transitionTo?.('scene_3')
         },
       },
     ]
 
-    this._quest = new QuestManager(this.experience, steps, this._callbacks)
-    this._callbacks.onQuestReady?.(this._quest)
+    const meshMap = { wrench, screwdriver, screw_box: screwBox, door }
+
+    this._quest    = new QuestManager(this.experience, steps, this._callbacks)
+    this._indicator = new QuestIndicatorManager(this.experience, this._quest, meshMap)
+
+    this._callbacks.onQuestReady?.(this._quest, { act: ACT_LABEL })
+    this._callbacks.onIndicatorReady?.(this._indicator)
     this._callbacks.onDialogueReady?.(this.dialogue)
     this._quest.start()
+
+    this._glasses.equip()
+    this._glasses.addCollectible('pick_wrench',      COLLECTIBLES.WRENCH)
+    this._glasses.addCollectible('pick_screwdriver', COLLECTIBLES.SCREWDRIVER)
+    this._glasses.addCollectible('pick_screw_box',   COLLECTIBLES.SCREW_BOX)
   }
 
   update() {
     this._fps?.update(this.experience.time.delta)
     this._crosshairTarget?.update()
+    this._indicator?.update(this.experience.time.delta)
   }
 
   resize() {}
 
   dispose() {
+    this._indicator?.destroy()
     this._quest?.dispose()
+    this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshairTarget?.dispose()

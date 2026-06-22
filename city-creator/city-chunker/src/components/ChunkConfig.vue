@@ -10,6 +10,11 @@ const cfg = reactive({
   lod1Error:   0.01,
   lod2Error:   0.05,
   previewOnly: false,
+  collisionEnabled:    true,
+  collisionResolution: 1024,
+  collisionMinY:       0,
+  collisionMaxY:       2,
+  collisionSlices:     10,
 })
 
 const advancedOpen = ref(false)
@@ -20,6 +25,13 @@ watch(cfg, () => {
     lodRatios:   [1.0, cfg.lod1Ratio, cfg.lod2Ratio],
     lodErrors:   [0,   cfg.lod1Error, cfg.lod2Error],
     previewOnly: cfg.previewOnly,
+    collisionMap: {
+      enabled:    cfg.collisionEnabled,
+      resolution: cfg.collisionResolution,
+      minY:       cfg.collisionMinY,
+      maxY:       cfg.collisionMaxY,
+      sliceCount: cfg.collisionSlices,
+    },
   })
 }, { immediate: true })
 </script>
@@ -72,7 +84,43 @@ watch(cfg, () => {
         <input type="number" value="1.0" disabled />
         <input type="number" value="0" disabled />
       </div>
+
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Collision Map</div>
+
+    <label class="collision-toggle">
+      <input type="checkbox" v-model="cfg.collisionEnabled" />
+      <span>Generate collision maps</span>
+    </label>
+
+    <template v-if="cfg.collisionEnabled">
+      <div class="field">
+        <label>Resolution</label>
+        <select v-model.number="cfg.collisionResolution">
+          <option :value="256">256</option>
+          <option :value="512">512</option>
+          <option :value="1024">1024</option>
+          <option :value="2048">2048</option>
+          <option :value="4096">4096</option>
+          <option :value="8192">8192</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Min Y</label>
+        <input type="number" v-model.number="cfg.collisionMinY" step="0.1" />
+      </div>
+      <div class="field">
+        <label>Max Y</label>
+        <input type="number" v-model.number="cfg.collisionMaxY" step="0.1" />
+      </div>
+      <div class="field">
+        <label>Slices</label>
+        <input type="number" v-model.number="cfg.collisionSlices" min="1" max="20" step="1" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -111,8 +159,18 @@ watch(cfg, () => {
   color: #8b949e;
 }
 
-.preview-toggle input[type="checkbox"] {
+.preview-toggle input[type="checkbox"],
+.collision-toggle input[type="checkbox"] {
   accent-color: #3d9eff;
+}
+
+.collision-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #8b949e;
 }
 
 .adv-toggle {
@@ -159,5 +217,16 @@ watch(cfg, () => {
 input:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+select {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #e6edf3;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 6px;
+  width: 100%;
 }
 </style>

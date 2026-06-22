@@ -1,29 +1,19 @@
 <template>
   <Transition name="dialogue">
     <div v-if="active" class="dialogue-root">
-      <div class="dialogue-box">
+      <div class="dialogue-wrap">
 
-        <!-- Speaker -->
-        <p class="dialogue-speaker">{{ current?.speaker }}</p>
-
-        <!-- Text -->
-        <p class="dialogue-text">{{ displayedText }}</p>
-
-        <!-- Footer -->
-        <div class="dialogue-footer">
-          <span class="dialogue-dots">
-            <span
-              v-for="i in total"
-              :key="i"
-              class="dot"
-              :class="{ 'dot--active': i - 1 === index }"
-            />
-          </span>
-          <button class="dialogue-btn" @click="next">
-            {{ isTyping ? 'Passer' : isLast ? 'Terminer' : 'Suivant' }}
-            <span class="dialogue-key">[ Espace ]</span>
-          </button>
+        <div class="dialogue-box">
+          <p v-if="current?.speaker" class="dialogue-speaker">{{ current.speaker }}</p>
+          <p class="dialogue-text">{{ displayedText }}</p>
         </div>
+
+        <button class="dialogue-btn" @click="next">
+          <span>{{ isTyping ? 'Passer' : isLast ? 'Terminer' : current?.cta ?? 'Continuer' }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9,18 15,12 9,6"/>
+          </svg>
+        </button>
 
       </div>
     </div>
@@ -75,7 +65,6 @@ watch(() => props.current, (val) => {
   if (val?.text) startTyping(val.text)
 })
 
-// Espace / Entrée pour avancer ou skipper
 function onKey(e) {
   if (!props.active) return
   if (e.code === 'Space' || e.code === 'Enter') {
@@ -96,82 +85,62 @@ onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(
   right: 0;
   display: flex;
   justify-content: center;
-  padding: 0 0 40px;
+  padding: 0 0 36px;
   z-index: 500;
   pointer-events: none;
 }
 
-.dialogue-box {
+.dialogue-wrap {
   pointer-events: all;
-  width: min(680px, 90vw);
-  background: rgba(8, 8, 12, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 20px 24px 16px;
-  backdrop-filter: blur(8px);
+  width: min(720px, 90vw);
+  display: flex;
+  gap: 14px;
+  flex-direction: column;
+}
+
+.dialogue-box {
+  background: var(--color-black);
+  padding: 24px 28px;
 }
 
 .dialogue-speaker {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #88aaff;
+  color: rgba(239, 234, 223, 0.5);
   margin-bottom: 10px;
 }
 
 .dialogue-text {
-  font-size: 15px;
-  line-height: 1.65;
-  color: #e8e8e8;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--color-white);
   min-height: 48px;
-}
-
-.dialogue-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 16px;
-}
-
-.dialogue-dots {
-  display: flex;
-  gap: 5px;
-}
-
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  transition: background 0.2s;
-}
-
-.dot--active {
-  background: #fff;
 }
 
 .dialogue-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 13px;
-  padding: 6px 14px;
+  justify-content: center;
+  gap: 12px;
+  background: var(--color-orange);
+  border: none;
+  color: var(--color-black);
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 16px 28px;
   cursor: pointer;
-  transition: background 0.15s;
+  width: 100%;
+  transition: filter 0.15s;
 }
 
 .dialogue-btn:hover {
-  background: rgba(255,255,255,0.14);
-}
-
-.dialogue-key {
-  font-size: 10px;
-  color: rgba(255,255,255,0.4);
+  filter: brightness(1.08);
 }
 
 /* Transition */

@@ -2,9 +2,14 @@ import * as THREE        from '/lib/three.js'
 import FpsController    from '../../FpsController.js'
 import CrosshairTarget  from '../../CrosshairTarget.js'
 import DialogueManager  from '../../dialogue/DialogueManager.js'
+import GlassesManager   from '../../glasses/GlassesManager.js'
 import { buildOctree }  from '../../buildOctree.js'
 import CityChunkManager from './CityChunkManager.js'
-import { SPAWN, EYE_HEIGHT } from './CityConfig.js'
+import CityCollisionManager from './CityCollisionManager.js'
+import CityAccidentManager from './CityAccidentManager.js'
+import CityAccidentEditor  from './CityAccidentEditor.js'
+import { SPAWN, EYE_HEIGHT, worldToChunk } from './CityConfig.js'
+import { safeFetch }    from '../../../assetError.js'
 
 // FpsController capsule radius is 0.3, EYE_HEIGHT constant is 1.0.
 // Settled camera height = floor_y + 0.3 + 1.0.
@@ -26,6 +31,11 @@ export default class CityWorld {
     this.dialogue = new DialogueManager()
     experience.setDialogue(this.dialogue)
 
+    this._glasses = new GlassesManager()
+    experience.setGlasses(this._glasses)
+    this._callbacks.onGlassesReady?.(this._glasses)
+    this._glasses.equip()
+
     // No preloaded resources — start immediately once Resources fires 'ready'.
     experience.resources.on('ready', () => this._setup())
   }
@@ -34,9 +44,37 @@ export default class CityWorld {
     this._setupLights()
     this._setupFloor()
     this._setupFps()
+    this._registerAtmosphere()   // also loads city_sky.json + adds Atmosphere lil-gui folder
     this._setupDebug()
-    this._loadCitySky()    // async, applies atmosphere overrides after lights are ready
-    this._setupChunks()    // async, fire-and-forget — chunks load progressively
+    this._setupChunks()          // async, fire-and-forget — chunks load progressively
+    this._setupAccidents()       // async, fire-and-forget — vehicles load progressively
+  }
+
+  async _loadAccidents() {
+    const res = await safeFetch('/settings/city_accidents.json', {
+      context: 'CityWorld', name: 'city_accidents.json', verb: 'accidents fetch failed', level: 'warn',
+    })
+    if (!res) return []
+    const json = await res.json()
+    return Array.isArray(json?.accidents) ? json.accidents : []
+  }
+
+  async _setupAccidents() {
+    const accidents = await this._loadAccidents()
+
+    if (this.experience.debug.active) {
+      this._accidentEditor = new CityAccidentEditor(this.experience, this._debugFolder, accidents)
+    }
+
+    this._accidents = new CityAccidentManager(this.experience, accidents, {
+      onEnterRepair: (acc) => this._callbacks.transitionTo?.('car_repair', {
+        repairContext: { modelPath: acc.modelPath, repairFile: acc.repairFile },
+      }),
+      onPromptShow: (txt) => this._callbacks.onPromptShow?.(txt),
+      onPromptHide: ()    => this._callbacks.onPromptHide?.(),
+    })
+    await this._accidents.loadModels()
+    this._accidents.spawn()
   }
 
   _setupLights() {
@@ -94,30 +132,33 @@ export default class CityWorld {
     this._callbacks.onFpsReady?.(this._fps)
   }
 
-  _setupDebug() {
-    const { debug } = this.experience
-    if (!debug.active) return
+  _registerAtmosphere() {
+    this.experience.renderProfile.registerAtmosphere({
+      key:   'city',
+      file:  'city_sky.json',          // preserved filename — existing tuning survives
+      getSettings:   () => this._buildAtmosphere(),
+      applySettings: s  => this._applyAtmosphere(s),
+      setupDebug:    folder => this._setupAtmosphereDebug(folder),
+    })
+  }
 
-    const root = debug.gui.addFolder('City')
-
-    // ── Sky & Fog ─────────────────────────────────────────────────────────
-    const skyF    = root.addFolder('Sky & Fog')
+  _setupAtmosphereDebug(root) {
+    const skyF    = root.addFolder('Sky & Fog'); skyF.close()
     const skyProxy = { color: '#' + this.scene.background.getHexString() }
     const fogProxy = { color: '#' + this.scene.fog.color.getHexString() }
     skyF.addColor(skyProxy, 'color').name('sky').onChange(v => this.scene.background.set(v))
     skyF.addColor(fogProxy, 'color').name('fog').onChange(v => this.scene.fog.color.set(v))
     skyF.add(this.scene.fog, 'density', 0, 0.05, 0.001).name('density')
 
-    // ── Lights ────────────────────────────────────────────────────────────
-    const lightsF = root.addFolder('Lights')
+    const lightsF = root.addFolder('Lights'); lightsF.close()
 
     const ambProxy = { color: '#' + this._ambient.color.getHexString() }
-    const ambF     = lightsF.addFolder('Ambient')
+    const ambF     = lightsF.addFolder('Ambient'); ambF.close()
     ambF.addColor(ambProxy, 'color').onChange(v => this._ambient.color.set(v))
     ambF.add(this._ambient, 'intensity', 0, 3, 0.01)
 
     const sunProxy = { color: '#' + this._sun.color.getHexString() }
-    const sunF     = lightsF.addFolder('Sun')
+    const sunF     = lightsF.addFolder('Sun'); sunF.close()
     sunF.addColor(sunProxy, 'color').onChange(v => this._sun.color.set(v))
     sunF.add(this._sun, 'intensity', 0, 10, 0.1)
     sunF.add(this._sun.position, 'x', -30, 30, 0.1 ).name('pos X')
@@ -131,7 +172,7 @@ export default class CityWorld {
     })
 
     const fillProxy = { color: '#' + this._fill.color.getHexString() }
-    const fillF     = lightsF.addFolder('Fill')
+    const fillF     = lightsF.addFolder('Fill'); fillF.close()
     fillF.addColor(fillProxy, 'color').onChange(v => this._fill.color.set(v))
     fillF.add(this._fill, 'intensity', 0, 3, 0.01)
     fillF.add(this._fill.position, 'x', -30, 30, 0.1).name('pos X')
@@ -140,29 +181,228 @@ export default class CityWorld {
 
     const hemiSkyProxy    = { color: '#' + this._hemi.color.getHexString() }
     const hemiGroundProxy = { color: '#' + this._hemi.groundColor.getHexString() }
-    const hemiF           = lightsF.addFolder('Hemisphere')
+    const hemiF           = lightsF.addFolder('Hemisphere'); hemiF.close()
     hemiF.addColor(hemiSkyProxy,    'color').name('sky').onChange(v => this._hemi.color.set(v))
     hemiF.addColor(hemiGroundProxy, 'color').name('ground').onChange(v => this._hemi.groundColor.set(v))
     hemiF.add(this._hemi, 'intensity', 0, 2, 0.01)
-
-    root.add({ export: () => this._exportCitySky() }, 'export').name('Export sky ↓')
-
-    this._debugFolder = root
   }
 
-  // ── City sky / atmosphere persistence ────────────────────────────────────
+  _setupDebug() {
+    const { debug } = this.experience
+    if (!debug.active) return
 
-  async _loadCitySky() {
-    try {
-      const res = await fetch('/settings/city_sky.json')
-      if (!res.ok) return
-      this._applyCitySky(await res.json())
-    } catch {
-      // file absent or malformed — scene defaults remain
+    const root = debug.gui.addFolder('City'); root.close()
+    this._debugFolder = root
+    this._setupMinimap()
+  }
+
+  _setupMinimap() {
+    const MAP_PX = 256
+
+    const wrapper = document.createElement('div')
+    Object.assign(wrapper.style, {
+      position:      'fixed',
+      bottom:        '16px',
+      right:         '16px',
+      zIndex:        '1000',
+      pointerEvents: 'none',
+    })
+
+    const canvas = document.createElement('canvas')
+    canvas.width  = MAP_PX
+    canvas.height = MAP_PX
+    Object.assign(canvas.style, {
+      display:        'block',
+      position:       'static',
+      inset:          'unset',
+      width:          `${MAP_PX}px`,
+      height:         `${MAP_PX}px`,
+      border:         '1px solid rgba(0,255,255,0.35)',
+      imageRendering: 'pixelated',
+    })
+
+    const coords = document.createElement('div')
+    Object.assign(coords.style, {
+      marginTop:  '4px',
+      background: 'rgba(0,0,0,0.72)',
+      padding:    '3px 8px',
+      font:       '11px/1.5 monospace',
+      color:      '#0ff',
+      whiteSpace: 'pre',
+    })
+    coords.textContent = 'x:   0.0   y:   0.0   z:   0.0'
+
+    wrapper.appendChild(canvas)
+    wrapper.appendChild(coords)
+    document.body.appendChild(wrapper)
+
+    // Ortho camera looking straight down, -Z is screen up (= world north).
+    // Covers 64 WU (1 CHUNK_SIZE) from edge to edge.
+    const orthoCamera = new THREE.OrthographicCamera(-32, 32, 32, -32, 0.1, 600)
+    orthoCamera.up.set(0, 0, -1)
+
+    // Height-based shader: light grey below 0.4 m (streets/ground), dark grey above (buildings).
+    const heightShader = new THREE.ShaderMaterial({
+      vertexShader: /* glsl */`
+        varying float vWorldY;
+        void main() {
+          vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldY = worldPos.y;
+          gl_Position = projectionMatrix * viewMatrix * worldPos;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        varying float vWorldY;
+        void main() {
+          float grey = mix(0.72, 0.22, step(0.4, vWorldY));
+          gl_FragColor = vec4(vec3(grey), 1.0);
+        }
+      `,
+      side: THREE.DoubleSide,
+    })
+
+    // Reusable pixel buffers — avoid allocating on every throttled frame.
+    const pixelBuffer   = new Uint8Array(MAP_PX * MAP_PX * 4)
+    const flippedBuffer = new Uint8ClampedArray(MAP_PX * MAP_PX * 4)
+    const savedClearColor = new THREE.Color()
+
+    this._minimap = {
+      wrapper, canvas, ctx: canvas.getContext('2d'), coords, timer: 0,
+      renderTarget: new THREE.WebGLRenderTarget(MAP_PX, MAP_PX),
+      orthoCamera, heightShader, pixelBuffer, flippedBuffer, savedClearColor,
     }
   }
 
-  _applyCitySky(s) {
+  _updateMinimap(delta) {
+    if (!this._minimap) return
+
+    const cam        = this.camera.instance
+    const { x, y, z } = cam.position
+
+    // Coordinates — updated every frame.
+    this._minimap.coords.textContent =
+      `x: ${x.toFixed(1).padStart(7)}   y: ${y.toFixed(1).padStart(5)}   z: ${z.toFixed(1).padStart(7)}`
+
+    // Canvas — throttled to ~20 fps.
+    this._minimap.timer += delta
+    if (this._minimap.timer < 50) return
+    this._minimap.timer = 0
+
+    const { canvas, ctx, renderTarget, orthoCamera, heightShader,
+            pixelBuffer, flippedBuffer, savedClearColor } = this._minimap
+    const MAP_PX   = canvas.width
+    const renderer = this.experience.renderer.instance
+    const scene    = this.scene
+
+    // Position ortho camera 400 m above player, looking straight down.
+    orthoCamera.position.set(x, 400, z)
+    orthoCamera.lookAt(x, 0, z)
+    orthoCamera.updateMatrixWorld()
+
+    // Override scene state for the minimap render.
+    const savedBackground     = scene.background
+    const savedFog            = scene.fog
+    const savedOverride       = scene.overrideMaterial
+    const savedClearAlpha     = renderer.getClearAlpha()
+    renderer.getClearColor(savedClearColor)
+
+    scene.background      = null
+    scene.fog             = null
+    scene.overrideMaterial = heightShader
+    renderer.setClearColor(0x0a0c16, 1)
+
+    // Render scene top-down into the minimap render target.
+    renderer.setRenderTarget(renderTarget)
+    renderer.clearColor()
+    renderer.clearDepth()
+    renderer.render(scene, orthoCamera)
+
+    // Read pixels back (WebGL stores rows bottom-to-top).
+    renderer.readRenderTargetPixels(renderTarget, 0, 0, MAP_PX, MAP_PX, pixelBuffer)
+
+    // Restore renderer + scene state before any other use.
+    renderer.setRenderTarget(null)
+    renderer.setClearColor(savedClearColor, savedClearAlpha)
+    scene.background       = savedBackground
+    scene.fog              = savedFog
+    scene.overrideMaterial = savedOverride
+
+    // Flip Y: WebGL = bottom-to-top, Canvas 2D = top-to-bottom.
+    const stride = MAP_PX * 4
+    for (let row = 0; row < MAP_PX; row++) {
+      const src = (MAP_PX - 1 - row) * stride
+      flippedBuffer.set(pixelBuffer.subarray(src, src + stride), row * stride)
+    }
+    ctx.putImageData(new ImageData(flippedBuffer, MAP_PX, MAP_PX), 0, 0)
+
+    // Crosshair guide.
+    const HW = MAP_PX / 2, HH = MAP_PX / 2
+    ctx.strokeStyle = 'rgba(0,255,255,0.15)'
+    ctx.lineWidth   = 1
+    ctx.beginPath()
+    ctx.moveTo(HW, 0);   ctx.lineTo(HW, MAP_PX)
+    ctx.moveTo(0,  HH);  ctx.lineTo(MAP_PX, HH)
+    ctx.stroke()
+
+    // Direction arrow.
+    const dir   = new THREE.Vector3()
+    cam.getWorldDirection(dir)
+    const ARROW = 14
+    const ax    = HW + dir.x * ARROW
+    const ay    = HH + dir.z * ARROW
+    const angle = Math.atan2(dir.x, dir.z)
+    const WING  = 6
+
+    ctx.strokeStyle = '#00ffff'
+    ctx.lineWidth   = 2
+    ctx.beginPath()
+    ctx.moveTo(HW, HH); ctx.lineTo(ax, ay)
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(ax + Math.sin(angle + 2.4) * WING, ay + Math.cos(angle + 2.4) * WING)
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(ax + Math.sin(angle - 2.4) * WING, ay + Math.cos(angle - 2.4) * WING)
+    ctx.stroke()
+
+    // Player dot.
+    ctx.fillStyle = '#00ffff'
+    ctx.beginPath()
+    ctx.arc(HW, HH, 3, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  _setupCollisionDebug() {
+    if (!this._debugFolder) return
+
+    const colF  = this._debugFolder.addFolder('Collision')
+    const proxy = { radius: this._collision.radius, showSphere: false }
+
+    colF.add(proxy, 'radius', 0.1, 2.0, 0.05).name('radius').onChange(v => {
+      this._collision.radius = v
+    })
+
+    const geo = new THREE.SphereGeometry(1, 16, 8)
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true })
+    this._debugCollisionSphere = new THREE.Mesh(geo, mat)
+    this._debugCollisionSphere.visible = false
+    this.scene.add(this._debugCollisionSphere)
+
+    colF.add(proxy, 'showSphere').name('show sphere').onChange(v => {
+      this._debugCollisionSphere.visible = v
+    })
+  }
+
+  _updateDebugMap() {
+    if (!this._collision || !this._debugCollisionSphere?.visible) return
+    this._debugCollisionSphere.position.copy(this.camera.instance.position)
+    this._debugCollisionSphere.scale.setScalar(this._collision.radius)
+  }
+
+  // ── Atmosphere import/export (delegated to RenderProfile) ────────────────
+
+  _applyAtmosphere(s) {
     if (s.sky) this.scene.background.set(s.sky.color)
     if (s.fog) {
       this.scene.fog.color.set(s.fog.color)
@@ -194,7 +434,7 @@ export default class CityWorld {
     }
   }
 
-  _buildCitySkySettings() {
+  _buildAtmosphere() {
     return {
       sky:  { color: '#' + this.scene.background.getHexString() },
       fog:  { color: '#' + this.scene.fog.color.getHexString(), density: this.scene.fog.density },
@@ -225,18 +465,19 @@ export default class CityWorld {
     }
   }
 
-  _exportCitySky() {
-    const json = JSON.stringify(this._buildCitySkySettings(), null, 2)
-    const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'city_sky.json' })
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   async _setupChunks() {
     this._chunks = new CityChunkManager(this.scene, this.experience.renderProfile.material)
     try {
       await this._chunks.init()
+
+      if (this._chunks.manifest?.chunks?.some(c => c.collision?.bin)) {
+        this._collision = new CityCollisionManager(this._chunks.manifest)
+        this._fps.setCollisionManager(this._collision)
+        const { col, row } = worldToChunk(SPAWN.x, SPAWN.z)
+        this._collision.preload(col, row, SPAWN.x, SPAWN.z)
+        this._setupCollisionDebug()
+      }
+
       this._chunks.update(SPAWN.x, SPAWN.z)
     } catch (err) {
       console.error('[CityWorld] manifest load failed:', err)
@@ -250,22 +491,55 @@ export default class CityWorld {
     if (this._chunks) {
       const { x, z } = this.camera.instance.position
       this._chunks.update(x, z)
+
+      if (this._collision) {
+        const { col, row } = worldToChunk(x, z)
+        this._collision.preload(col, row, x, z)
+      }
+    }
+
+    if (this.experience.debug.active) {
+      this._updateMinimap(this.experience.time.delta)
+      this._updateDebugMap()
     }
   }
 
   resize() {}
 
   dispose() {
+    // Torn down first: it lives in document.body (position:fixed) and Experience
+    // disposes the world last, so a throw from an already-disposed subsystem below
+    // must never strand the minimap overlay on screen.
+    if (this._minimap) {
+      this._minimap.wrapper.remove()
+      this._minimap.renderTarget.dispose()
+      this._minimap.heightShader.dispose()
+      this._minimap = null
+    }
+
+    this._accidentEditor?.destroy()
+    this._accidents?.destroy()
+    this._glasses?.destroy()
     this.dialogue.dispose()
     this._fps?.dispose()
     this._crosshair?.dispose()
     this.experience.interaction.setFpsMode(false)
     this._chunks?.dispose()
+    this._collision?.dispose()
     this._floor?.geometry?.dispose()
     this._floor?.material?.dispose()
     this._sun.castShadow = false
     this._sun.shadow.map?.dispose()
     this._sun.shadow.map = null
-    this._debugFolder?.destroy()
+    if (this._debugCollisionSphere) {
+      this.scene.remove(this._debugCollisionSphere)
+      this._debugCollisionSphere.geometry?.dispose()
+      this._debugCollisionSphere.material?.dispose()
+    }
+    if (this._debugFolder) {
+      this._debugFolder.destroy()
+      this._debugFolder = null
+    }
+    this.experience.renderProfile.unregisterAtmosphere()
   }
 }

@@ -4,7 +4,8 @@ import ChunkerWorker from '../workers/chunker.worker.js?worker'
 
 export function useChunker() {
   const isRunning    = ref(false)
-  const chunks       = ref([])   // { chunkId, lod, buffer: ArrayBuffer, filename, triCount }
+  const chunks       = ref([])   // { chunkId, lod, gltf, gltfFilename, triCount }
+  const collisions   = ref([])   // { chunkId, bin, bmp }
   const error        = ref(null)
   const manifest     = ref(null)
   const totalChunks  = ref(0)
@@ -32,6 +33,7 @@ export function useChunker() {
   function start(files, config, offsets = []) {
     cancel()
     chunks.value      = []
+    collisions.value  = []
     error.value       = null
     manifest.value    = null
     totalChunks.value = 0
@@ -56,6 +58,14 @@ export function useChunker() {
           triCount:     msg.triCount,
         }]
         lodCounts[msg.lod]++
+      } else if (msg.type === 'collision_chunk_done') {
+        collisions.value = [...collisions.value, {
+          chunkId: msg.chunkId,
+          bin:     msg.bin,
+          bmp:     msg.bmp,
+          binFile: msg.binFile,
+          bmpFile: msg.bmpFile,
+        }]
       } else if (msg.type === 'done') {
         manifest.value    = msg.manifest
         totalChunks.value = msg.manifest.chunks.length
@@ -86,6 +96,7 @@ export function useChunker() {
           lodRatios:   [...(config.lodRatios   ?? [1.0, 0.25, 0.06])],
           lodErrors:   [...(config.lodErrors   ?? [0, 0.01, 0.05])],
           previewOnly: config.previewOnly ?? false,
+          collisionMap: { ...(config.collisionMap ?? { enabled: false }) },
         },
         buffers  // only ArrayBuffers are transferred; offsets are plain objects (structured clone)
       )
@@ -111,6 +122,10 @@ export function useChunker() {
     for (const chunk of chunks.value) {
       entries[chunk.gltfFilename] = new TextEncoder().encode(chunk.gltf)
     }
+    for (const col of collisions.value) {
+      entries[col.binFile] = new Uint8Array(col.bin)
+      if (col.bmp && col.bmpFile) entries[col.bmpFile] = new Uint8Array(col.bmp)
+    }
     entries['manifest.json'] = new TextEncoder().encode(JSON.stringify(mf, null, 2))
 
     const zipped = zipSync(entries)
@@ -124,5 +139,5 @@ export function useChunker() {
     chunks.value = []
   }
 
-  return { isRunning, chunks, error, manifest, districtProgress, lodProgress, start, cancel }
+  return { isRunning, chunks, collisions, error, manifest, districtProgress, lodProgress, start, cancel }
 }

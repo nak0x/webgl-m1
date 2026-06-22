@@ -14,12 +14,14 @@ let _manager = null
 const currentStep = ref(null)    // { id, label, hint }
 const stepIndex   = ref(0)
 const totalSteps  = ref(0)
+const actLabel    = ref('')
 const completed   = ref(false)
 
 export function useQuestState() {
-  function bind(manager) {
+  function bind(manager, { act = '' } = {}) {
     _manager          = manager
     totalSteps.value  = manager.totalSteps
+    actLabel.value    = act
     completed.value   = false
 
     manager.on('step:active', ({ step, index }) => {
@@ -37,5 +39,5 @@ export function useQuestState() {
     })
   }
 
-  return { currentStep, stepIndex, totalSteps, completed, bind }
+  return { currentStep, stepIndex, totalSteps, actLabel, completed, bind }
 }

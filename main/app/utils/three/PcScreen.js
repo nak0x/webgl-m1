@@ -33,6 +33,9 @@ export default class PcScreen {
     this._trans  = false
     this._tProg  = 0
     this._tDir   = 1
+    this._onEnterCb    = null
+    this._onExitCb     = null
+    this._onTutoDoneCb = null
 
     this._fromPos  = new THREE.Vector3()
     this._fromQuat = new THREE.Quaternion()
@@ -371,8 +374,17 @@ export default class PcScreen {
     window.removeEventListener('message', this._onMsg)
   }
 
+  setCallbacks({ onEnter, onExit, onTutoDone } = {}) {
+    this._onEnterCb    = onEnter ?? null
+    this._onExitCb     = onExit  ?? null
+    this._onTutoDoneCb = onTutoDone ?? null
+  }
+
   _onKey(e) { if (e.key === 'Escape') this.exit() }
-  _onMsg(e) { if (e.data?.type === 'pcscreen:exit') this.exit() }
+  _onMsg(e) {
+    if (e.data?.type === 'pcscreen:exit') this.exit()
+    else if (e.data?.type === 'crm:tuto-done') this._onTutoDoneCb?.()
+  }
 
   _onTransitionEnd() {
     this._trans = false
@@ -381,6 +393,7 @@ export default class PcScreen {
       const el = this._cssRenderer.domElement
       el.style.pointerEvents = 'auto'
       el.style.opacity = '1'   // fade in CSS (0.25s)
+      this._onEnterCb?.()
     } else {
       // Fade out terminé → cache complètement et restaure
       this._cssRenderer.domElement.style.display = 'none'
@@ -389,6 +402,7 @@ export default class PcScreen {
         this._fps.enabled = true
         this._fps.lock()
       }
+      this._onExitCb?.()
     }
   }
 

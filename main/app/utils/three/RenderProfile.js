@@ -8,6 +8,8 @@ import * as THREE from '/lib/three.js'
  *   - `apply(scene)` : remplace les materials de tous les meshes visibles
  *   - `restore(scene)` : restaure les materials originaux
  *   - Chargement automatique depuis `/settings/rendering.json`
+ *   - `registerAtmosphere({ key, file, getSettings, applySettings, setupDebug })`
+ *     pour qu'un World branche son ciel/lumières sur l'export unifié
  *   - Post-effects actifs par défaut : SMAA, Bloom, Color Grading, SSAO
  *   - Dossier lil-gui "Rendering" accessible si debug.active
  *
@@ -18,11 +20,14 @@ export default class RenderProfile {
     this.experience = experience
 
     this.material = new THREE.MeshPhongMaterial({
-      color:     0xffffff,
-      shininess: 12,
-      specular:  new THREE.Color(0x1a1a1a),
+      color:     0xefeadf,
+      shininess: 5,
+      specular:  new THREE.Color(0xefeadf),
       side:      THREE.DoubleSide,
     })
+
+    this._atmosphere     = null   // { key, file, getSettings, applySettings }
+    this._atmosphereGui  = null   // lil-gui folder owned by the active atmosphere
 
     this._initEffects()
     this._loadSettings()
@@ -55,6 +60,52 @@ export default class RenderProfile {
       child.material = child._profileMat
       delete child._profileMat
     })
+  }
+
+  // ── Atmosphere registration (per-scene) ───────────────────────────────────
+
+  /**
+   * Branche le ciel/fog/lumières d'un World sur l'export unifié.
+   *
+   * @param {Object}   opts
+   * @param {string}   opts.key            — identifiant scène (ex: 'city')
+   * @param {string}   opts.file           — nom du fichier dans /settings/
+   * @param {Function} opts.getSettings    — () => Object  pour l'export
+   * @param {Function} opts.applySettings  — (Object) => void  pour l'import
+   * @param {Function} [opts.setupDebug]   — (folder, gui) => void  pour brancher les contrôleurs lil-gui
+   *                                          (le folder "Atmosphere" est créé et nettoyé par RenderProfile)
+   */
+  registerAtmosphere({ key, file, getSettings, applySettings, setupDebug }) {
+    this.unregisterAtmosphere()
+    this._atmosphere = { key, file, getSettings, applySettings }
+
+    if (this.experience.debug.active && setupDebug) {
+      this._atmosphereGui = this.experience.debug.gui.addFolder('Atmosphere')
+      this._atmosphereGui.close()
+      setupDebug(this._atmosphereGui, this.experience.debug.gui)
+    }
+
+    this._loadAtmosphereSettings()
+  }
+
+  unregisterAtmosphere() {
+    this._atmosphere = null
+    this._atmosphereGui?.destroy()
+    this._atmosphereGui = null
+  }
+
+  async _loadAtmosphereSettings() {
+    if (!this._atmosphere) return
+    const target = this._atmosphere
+    try {
+      const res = await fetch('/settings/' + target.file)
+      if (!res.ok) return
+      const json = await res.json()
+      // Scene may have changed between fetch start and resolution.
+      if (this._atmosphere === target) target.applySettings(json)
+    } catch {
+      // file absent or malformed — defaults remain
+    }
   }
 
   // ── Settings persistence ──────────────────────────────────────────────────
@@ -119,9 +170,12 @@ export default class RenderProfile {
   _initEffects() {
     const { renderer } = this.experience
     renderer.setSMAA({ enabled: true })
-    renderer.setBloom({ strength: 0.25, radius: 0.5, threshold: 0.88 })
-    renderer.setColorGrading({ contrast: 0.08, saturation: 0.82, gamma: 1.05, gain: 1.0 })
-    renderer.setSsao({ radius: 0.25, minDistance: 0.001, maxDistance: 0.04, kernelSize: 64 })
+    renderer.setBloom({ strength: 0.03, radius: 0.59, threshold: 0.88 })
+    renderer.bloomPass.enabled = false
+    renderer.setColorGrading({ brightness: -0.04, contrast: 0.42, saturation: 1.15, temperature: -0.04, gamma: 0.89, gain: 1.27 })
+    renderer.setSsao({ radius: 0.49, minDistance: 0.0002, maxDistance: 0.028, kernelSize: 64 })
+    renderer.setEdge({ edgeStrength: 0.33, edgeScale: 0.7 })
+    renderer.edgePass.enabled = true
   }
 
   // ── Debug GUI ─────────────────────────────────────────────────────────────
@@ -208,7 +262,8 @@ export default class RenderProfile {
     })
 
     // ── Export ────────────────────────────────────────────────────────────
-    root.add({ export: () => this._exportSettings() }, 'export').name('Export profile ↓')
+    // Saves rendering.json + atmosphere file (if a world has registered one) in one click.
+    root.add({ export: () => this._exportSettings() }, 'export').name('Export settings ↓')
 
     this._debugFolder = root
   }
@@ -260,15 +315,26 @@ export default class RenderProfile {
       },
       exposureEv: Math.log2(renderer.acesPass.uniforms['exposure'].value),
     }
-    const json = JSON.stringify(s, null, 2)
-    const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'rendering.json' })
+    this._download(JSON.stringify(s, null, 2), 'rendering.json')
+
+    if (this._atmosphere) {
+      this._download(
+        JSON.stringify(this._atmosphere.getSettings(), null, 2),
+        this._atmosphere.file,
+      )
+    }
+  }
+
+  _download(text, filename) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+    const a   = Object.assign(document.createElement('a'), { href: url, download: filename })
     a.click()
     URL.revokeObjectURL(url)
   }
 
   dispose() {
     this.material.dispose()
+    this.unregisterAtmosphere()
     this._debugFolder?.destroy()
   }
 }

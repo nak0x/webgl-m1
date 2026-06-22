@@ -10,6 +10,7 @@ export default class CrosshairTarget {
     this._raycaster   = new THREE.Raycaster()
     this._center      = new THREE.Vector2(0, 0)
     this._lastObj     = null
+    this._targets     = []   // réutilisé chaque frame, évite une alloc
 
     if (this._debug.active) {
       this._el = this._createOverlay()
@@ -39,11 +40,28 @@ export default class CrosshairTarget {
   }
 
   update() {
+    const interactables = this._interaction.getInteractables()
+
+    // Caste uniquement contre les interactables enregistrés, pas toute la scène.
+    // Dans les scènes streamées (ville), scene.children grandit sans borne : tester
+    // chaque triangle de chunk à chaque frame est le coût per-frame dominant et
+    // empire à mesure que le monde se charge. L'ensemble interactable est minuscule
+    // (objets de quête), donc le coût reste O(interactables) quelle que soit la
+    // quantité de géométrie chargée. Contrepartie : un interactable derrière un mur
+    // peut s'outliner (l'occlusion par la géométrie statique n'est plus testée) —
+    // l'interaction réelle reste gardée par la proximité / les trigger zones.
+    if (interactables.size === 0) {
+      this._clearTarget()
+      return
+    }
+
+    this._targets.length = 0
+    for (const obj of interactables.keys()) this._targets.push(obj)
+
     this._raycaster.setFromCamera(this._center, this._camera)
-    const hits = this._raycaster.intersectObjects(this._scene.children, true)
+    const hits = this._raycaster.intersectObjects(this._targets, true)
 
     // Cherche le premier hit dont un ancêtre est un objet interactable enregistré
-    const interactables = this._interaction.getInteractables()
     let targetObj = null
     let targetId  = null
     let hitMesh   = null
@@ -62,12 +80,7 @@ export default class CrosshairTarget {
     }
 
     if (!targetObj) {
-      if (this._lastObj) {
-        this._outlinePass.selectedObjects = []
-        this._lastObj = null
-      }
-      this._interaction.setAimedId(null)
-      if (this._el) this._el.style.display = 'none'
+      this._clearTarget()
       return
     }
 
@@ -86,6 +99,15 @@ export default class CrosshairTarget {
         <span style="color:#aaa">id:</span> <span style="color:#ffaa00">${targetId}</span>
       `
     }
+  }
+
+  _clearTarget() {
+    if (this._lastObj) {
+      this._outlinePass.selectedObjects = []
+      this._lastObj = null
+    }
+    this._interaction.setAimedId(null)
+    if (this._el) this._el.style.display = 'none'
   }
 
   _buildPath(obj) {

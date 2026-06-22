@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset + tokens ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --black: #2d1d1b; --white: #efeadf; --orange: #ff6038; --sidebar: 17vw; --header: 7vh; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Fira Sans', sans-serif; background: #fff; }
+img { display: block; }
+
+/* ── Screens ── */
+.screen { position: absolute; inset: 0; display: none; }
+.screen.active { display: block; }
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
+#login {
+  background: var(--white);
+  display: none; width: 100%; height: 100%;
+}
+#login.active { display: flex; }
+
+#login .right-panel {
+  position: absolute; right: 0; top: 0;
+  width: 50%; height: 100%;
+  background: #d9d9d9; overflow: hidden;
+}
+#login .right-panel img { width: 100%; height: 100%; object-fit: cover; }
+
+#login .left-content {
+  position: relative; z-index: 1;
+  width: 50%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8vh; padding: 5vh 5vw;
+}
+.login-logo-area {
+  display: flex; flex-direction: column; align-items: center; gap: 2vh; width: 100%;
+}
+.login-logo-area img { width: min(34vw, 480px); height: auto; object-fit: contain; }
+.login-tagline {
+  font-size: clamp(14px, 1.6vw, 22px); font-weight: 400;
+  color: var(--black); text-align: center; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.login-form { display: flex; flex-direction: column; gap: 4vh; align-items: flex-start; width: 100%; max-width: 420px; }
+.login-field { display: flex; flex-direction: column; gap: 1vh; width: 100%; }
+.login-field label {
+  font-size: clamp(14px, 1.5vw, 22px); font-weight: 500; color: #000; text-transform: uppercase;
+}
+.login-field input {
+  background: #fff; border: 1px solid var(--black); height: clamp(28px, 3.5vh, 42px); width: 100%;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(12px, 1.1vw, 16px); padding: 0 8px; outline: none;
+}
+.login-btn {
+  background: var(--orange); box-shadow: 0 0 3px rgba(45,29,27,0.25);
+  border: none; cursor: pointer; width: 100%; padding: clamp(10px,1.5vh,18px) 2vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(12px, 1.1vw, 16px); font-weight: 500;
+  color: var(--black); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.login-btn:hover { filter: brightness(1.08); }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════ */
+#dashboard { background: #fff; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: absolute; left: 0; top: 0; width: var(--sidebar); height: 100%;
+  background: var(--black); display: flex; flex-direction: column; z-index: 10;
+}
+.sidebar-logo {
+  height: var(--header); flex-shrink: 0;
+  border-bottom: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; padding: 0 1.5vw;
+}
+.sidebar-logo img { max-width: 80%; max-height: calc(var(--header) - 1.5vh); width: auto; height: auto; object-fit: contain; }
+
+.sidebar-menu {
+  flex: 1; padding: 1.5vh 0.8vw 0; display: flex; flex-direction: column; gap: 0.4vh;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 0.6vw; padding: 1vh 0.8vw; cursor: pointer;
+  font-size: clamp(11px, 1vw, 15px); font-weight: 500; color: var(--white); white-space: nowrap;
+}
+.nav-item.active { background: var(--orange); box-shadow: 0 0 3px rgba(239,234,223,0.25); color: var(--black); }
+.nav-item img { width: clamp(14px, 1.2vw, 18px); height: clamp(14px, 1.2vw, 18px); flex-shrink: 0; }
+
+.sidebar-profile {
+  height: clamp(60px, 8vh, 88px); flex-shrink: 0;
+  border-top: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; gap: 0.8vw; padding: 0 0.8vw;
+}
+.profile-avatar {
+  width: clamp(28px, 2.8vw, 40px); height: clamp(28px, 2.8vw, 40px);
+  background: var(--orange); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(9px, 0.9vw, 13px); font-weight: 700; color: var(--black);
+}
+.profile-name { font-size: clamp(11px, 1vw, 15px); font-weight: 500; color: var(--white); }
+.profile-role { font-size: clamp(9px, 0.8vw, 12px); font-weight: 400; color: rgba(239,234,223,0.7); }
+
+/* ── Header ── */
+.header {
+  position: absolute; top: 0; left: var(--sidebar); right: 0; height: var(--header);
+  background: var(--black); border-bottom: 1px solid rgba(239,234,223,0.25);
+  display: flex; align-items: center; justify-content: flex-end; padding: 0 2vw;
+}
+.search-bar {
+  border: 1px solid var(--white); width: clamp(180px, 25vw, 360px); height: 70%;
+  display: flex; align-items: center; gap: 0.5vw; padding: 0 0.8vw; overflow: hidden;
+}
+.search-bar img { width: clamp(12px, 1.2vw, 18px); height: clamp(12px, 1.2vw, 18px); flex-shrink: 0; }
+.search-bar span { font-size: clamp(10px, 0.9vw, 13px); font-weight: 300; color: var(--white); white-space: nowrap; }
+
+/* ── Body ── */
+.body {
+  position: absolute; top: var(--header); left: var(--sidebar); right: 0; bottom: 0;
+  background: var(--white); overflow: hidden;
+  padding: 2vh 2vw; display: flex; flex-direction: column; gap: 1.5vh;
+}
+
+.body-title { display: flex; align-items: center; gap: 1vw; flex-shrink: 0; }
+.body-title-icon {
+  background: var(--orange); padding: 0.5vw 0.8vw;
+  display: flex; align-items: center; align-self: stretch;
+}
+.body-title-icon img { width: clamp(20px, 2.2vw, 32px); height: clamp(20px, 2.2vw, 32px); }
+.title-text h1 { font-size: clamp(18px, 2.2vw, 32px); font-weight: 700; color: var(--orange); }
+.title-text p  { font-size: clamp(10px, 0.9vw, 14px); font-weight: 400; color: var(--black); }
+
+.sep { height: 1px; background: rgba(45,29,27,0.2); flex-shrink: 0; }
+
+/* Content grid */
+.content-grid {
+  display: flex; gap: 1.5vw; flex: 1; min-height: 0; overflow: hidden;
+}
+.left-col {
+  width: 58%; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 1.5vh; overflow-y: auto;
+}
+.v-sep { width: 1px; background: rgba(45,29,27,0.15); align-self: stretch; flex-shrink: 0; }
+.right-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.5vh; overflow: hidden; }
+
+/* Section */
+.section { display: flex; flex-direction: column; gap: 1.5vh; }
+.section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1vw; }
+.section-title h2 { font-size: clamp(13px, 1.4vw, 22px); font-weight: 500; color: var(--black); }
+.section-title p  { font-size: clamp(9px, 0.8vw, 13px); font-weight: 400; color: rgba(45,29,27,0.75); }
+.section-filters { display: flex; gap: 0.8vw; align-items: center; flex-shrink: 0; }
+.filter-select {
+  background: #fff; border: 1px solid var(--black);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5vh 0.6vw; min-width: 100px; height: 3vh; cursor: pointer;
+  font-size: clamp(9px, 0.75vw, 12px); color: var(--black); gap: 0.4vw;
+}
+.filter-select img { width: 8px; height: 8px; flex-shrink: 0; }
+.filter-toggle {
+  background: #fff; border: 1px solid var(--black);
+  display: flex; height: 3vh; padding: 2px; gap: 0;
+}
+.toggle-opt {
+  padding: 0 0.8vw; font-size: clamp(9px, 0.75vw, 12px);
+  display: flex; align-items: center; cursor: pointer; color: var(--black);
+}
+.toggle-opt.active { background: rgba(142,184,184,0.3); }
+
+/* Quartier rows */
+.section-rows { display: flex; flex-direction: column; gap: 1vh; }
+.quartier-row {
+  background: #fff; border: 1px solid var(--black);
+  height: clamp(48px, 7vh, 73px);
+  display: flex; align-items: center; justify-content: space-between; padding: 1px 0.8vw;
+}
+.q-left { display: flex; align-items: center; gap: 0.6vw; height: 100%; }
+.q-icon { width: clamp(24px, 2.5vw, 38px); height: clamp(24px, 2.5vw, 38px); flex-shrink: 0; }
+.q-icon img { width: 100%; height: 100%; object-fit: contain; }
+.q-name { font-size: clamp(11px, 1.1vw, 17px); font-weight: 500; color: var(--black); }
+.q-heure { display: flex; align-items: center; gap: 3px; font-size: clamp(9px, 0.8vw, 13px); color: rgba(45,29,27,0.75); }
+.q-heure img { width: clamp(10px, 1vw, 14px); height: clamp(10px, 1vw, 14px); }
+.q-infos { display: flex; gap: 1.2vw; align-items: center; }
+.q-people { display: flex; flex-direction: column; align-items: flex-end; }
+.q-count { display: flex; align-items: center; gap: 2px; }
+.q-count span { font-size: clamp(10px, 1vw, 15px); font-weight: 500; color: var(--black); }
+.q-count img { width: clamp(10px, 1vw, 14px); height: clamp(10px, 1vw, 14px); }
+.q-count-label { font-size: clamp(8px, 0.7vw, 11px); color: rgba(45,29,27,0.75); }
+.q-cap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.q-cap-label { font-size: clamp(10px, 1vw, 15px); font-weight: 500; color: var(--black); }
+.q-cap-sub { font-size: clamp(8px, 0.7vw, 11px); color: rgba(45,29,27,0.75); }
+.q-bar { background: #e5e7eb; height: 4px; width: clamp(60px, 8vw, 110px); }
+.q-fill { height: 4px; background: #efaa9d; }
+
+.section-btn {
+  background: var(--orange); box-shadow: 0 0 3px rgba(45,29,27,0.25);
+  border: none; cursor: pointer; width: 100%; padding: 1vh 2vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(11px, 1vw, 15px); font-weight: 500;
+  color: var(--black); text-align: center;
+}
+.section-btn:hover { filter: brightness(1.08); }
+
+/* Reparation rows */
+.rep-row {
+  background: #fff; border: 1px solid var(--black);
+  height: clamp(56px, 8.5vh, 86px);
+  display: flex; align-items: center; justify-content: space-between; padding: 1px 0.8vw;
+}
+.rep-left { display: flex; align-items: center; gap: 0.6vw; height: 100%; }
+.rep-icon {
+  background: #fff; border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 1.5px rgba(0,0,0,0.1);
+  width: clamp(32px, 3.2vw, 50px); height: clamp(32px, 3.2vw, 50px); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; padding: 6px;
+}
+.rep-icon img { width: clamp(12px, 1.1vw, 16px); height: clamp(12px, 1.1vw, 16px); object-fit: contain; }
+.rep-title-row { display: flex; align-items: baseline; gap: 4px; font-size: clamp(11px, 1.1vw, 17px); }
+.rep-main { font-weight: 500; color: var(--black); }
+.rep-sub  { font-weight: 400; color: rgba(45,29,27,0.75); }
+.rep-loc  { display: flex; align-items: center; gap: 3px; font-size: clamp(9px, 0.8vw, 13px); color: rgba(45,29,27,0.75); }
+.rep-loc img { width: 6px; height: 10px; flex-shrink: 0; }
+.rep-date { font-size: clamp(8px, 0.7vw, 11px); color: rgba(45,29,27,0.75); }
+.rapport-link {
+  font-size: clamp(10px, 1vw, 15px); font-weight: 500; color: var(--orange);
+  text-decoration: underline; cursor: pointer; background: none; border: none;
+  font-family: 'Fira Sans', sans-serif; white-space: nowrap;
+}
+
+/* ── Alertes ── */
+.alertes-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5vw; flex-shrink: 0; }
+.alertes-badge {
+  background: var(--black); height: clamp(22px, 3vh, 32px);
+  display: flex; align-items: center; gap: 5px; padding: 0 0.8vw; flex-shrink: 0;
+}
+.badge-dot { width: 5px; height: 5px; background: var(--white); flex-shrink: 0; }
+.alertes-badge span { font-size: clamp(9px, 0.75vw, 12px); color: var(--white); white-space: nowrap; }
+
+.alertes-list { display: flex; flex-direction: column; overflow-y: auto; flex: 1; }
+.alerte-card {
+  background: #fff; border: 1px solid var(--black); border-left: 3px solid var(--black);
+  padding: 1vh 0.8vw 1vh 2vw;
+  position: relative; display: flex; flex-direction: column; gap: 0.5vh;
+  flex-shrink: 0;
+}
+.alerte-card + .alerte-card { border-top: none; }
+.alerte-drag-icon { position: absolute; left: 0.4vw; top: 1vh; width: clamp(10px, 1vw, 14px); height: clamp(10px, 1vw, 14px); }
+.alerte-drag-icon img { width: 100%; height: 100%; }
+.alerte-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5vw; }
+.alerte-prio {
+  display: flex; align-items: center; gap: 4px; padding: 2px 0.5vw;
+  font-size: clamp(8px, 0.7vw, 11px); font-weight: 400; white-space: nowrap;
+}
+.alerte-prio-dot { width: 5px; height: 5px; flex-shrink: 0; }
+.alerte-time { font-size: clamp(8px, 0.7vw, 11px); color: rgba(45,29,27,0.75); white-space: nowrap; }
+.alerte-title { font-size: clamp(10px, 1.1vw, 16px); font-weight: 500; color: var(--black); text-transform: uppercase; }
+.alerte-desc  { font-size: clamp(9px, 0.8vw, 13px); color: rgba(45,29,27,0.75); }
+.alerte-loc   { display: flex; align-items: center; gap: 3px; }
+.alerte-loc img { width: 6px; height: 9px; flex-shrink: 0; }
+.alerte-loc span { font-size: clamp(8px, 0.7vw, 11px); color: rgba(45,29,27,0.75); text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════
+   TUTORIAL OVERLAY
+═══════════════════════════════════════════════ */
+#tuto-overlay {
+  position: absolute; inset: 0; z-index: 200;
+  background: rgba(45,29,27,0.78);
+  pointer-events: all;
+}
+#tuto-overlay.hidden { display: none; }
+
+/* Colonne alertes mise en avant (spotlight) au-dessus de l'overlay */
+.tuto-on .right-col {
+  position: relative; z-index: 250;
+  background: var(--white);
+  outline: 4px solid var(--black); outline-offset: 6px;
+}
+#dashboard:not(.tuto-on) #tuto-overlay { display: none; }
+
+/* Carte tuto : flotte à gauche de la colonne alertes */
+.tuto-card {
+  position: absolute; z-index: 260;
+  top: 16vh; right: 35vw;
+  background: var(--black); padding: 3vh 2.5vw;
+  width: min(30vw, 380px);
+  display: flex; flex-direction: column; align-items: center; gap: 2.5vh; text-align: center;
+}
+.tuto-desc {
+  font-size: clamp(13px, 1.3vw, 20px); font-weight: 400; line-height: 1.5;
+  color: var(--white);
+}
+.tuto-btn {
+  background: var(--orange); border: none; cursor: pointer; width: 100%; padding: 1.4vh 1.5vw;
+  font-family: 'Fira Sans', sans-serif; font-size: clamp(11px, 1.1vw, 16px); font-weight: 500;
+  color: var(--black); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.tuto-btn:hover { filter: brightness(1.08); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════════════ -->
+<div id="login" class="screen active">
+  <div class="right-panel">
+    <img src="https://www.figma.com/api/mcp/asset/2bb1cfec-8d65-4fb5-9589-cfa4efd3ddeb" alt="">
+  </div>
+  <div class="left-content">
+    <div class="login-logo-area">
+      <img src="https://www.figma.com/api/mcp/asset/985da54e-d732-4b63-935e-f9f218a7eb7e" alt="od-hoc">
+      <p class="login-tagline">Artisans de la maintenance</p>
+    </div>
+    <div class="login-form">
+      <div class="login-field">
+        <label for="identifiant">Identifiant</label>
+        <input type="text" id="identifiant" autocomplete="off">
+      </div>
+      <button class="login-btn" onclick="goToDashboard()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════════════ -->
+<div id="dashboard" class="screen tuto-on">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="https://www.figma.com/api/mcp/asset/15b740b6-0fb3-4471-80db-3c30aeae2138" alt="od-hoc">
+    </div>
+    <div class="sidebar-menu">
+      <div class="nav-item active">
+        <img src="https://www.figma.com/api/mcp/asset/06ed0bf4-e6bb-479f-95c7-d6434e707286" alt="">
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/8045b5d3-cfe6-42e8-8ed7-d0f7a8faed8b" alt="">
+        Affluence
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/77061e20-5774-41b3-8369-853e6634949b" alt="">
+        Réparations
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/5d3003bf-7791-4e90-8ead-a304a728d519" alt="">
+        Flotte &amp; Véhicules
+      </div>
+      <div class="nav-item">
+        <img src="https://www.figma.com/api/mcp/asset/a9207e87-968e-4e64-8b22-915bb211ab96" alt="">
+        Stocks &amp; Pièces
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="profile-avatar">LM</div>
+      <div>
+        <div class="profile-name">Lisa M.</div>
+        <div class="profile-role">Artisan Maintenance</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="search-bar">
+      <img src="https://www.figma.com/api/mcp/asset/a09ee0ad-6340-40cd-9e50-e10708d8c468" alt="">
+      <span>Rechercher un véhicule, un hub...</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="body-title">
+      <div class="body-title-icon">
+        <img src="https://www.figma.com/api/mcp/asset/475f4ad9-4a2f-429b-9f72-4aeeab49c202" alt="">
+      </div>
+      <div class="title-text">
+        <h1>Dashboard</h1>
+        <p>Vue d'ensemble de la flotte communautaire &amp; maintenance</p>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="content-grid">
+
+      <!-- Colonne gauche -->
+      <div class="left-col">
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Prévisions d'affluence par quartier</h2>
+              <p>Basé sur l'historique et les évènements planifiés</p>
+            </div>
+            <div class="section-filters">
+              <div class="filter-select">
+                <span>Par Heure</span>
+                <img src="https://www.figma.com/api/mcp/asset/cd67aa6b-a1b8-48fc-abf0-cdbb79fc8c3d" alt="">
+              </div>
+              <div class="filter-toggle">
+                <div class="toggle-opt active">Carte</div>
+                <div class="toggle-opt">Liste</div>
+              </div>
+            </div>
+          </div>
+          <div class="section-rows">
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon"><img src="https://www.figma.com/api/mcp/asset/708aca5f-412d-4eb4-b3ed-1c7515f55198" alt=""></div>
+                <div><div class="q-name">Résidentiel</div><div class="q-heure"><img src="https://www.figma.com/api/mcp/asset/ac5f791d-474e-4ac0-a905-ffd5441b48f9" alt="">08:00 - 09:30</div></div>
+              </div>
+              <div class="q-infos">
+                <div class="q-people"><div class="q-count"><span>1 000</span><img src="https://www.figma.com/api/mcp/asset/e6be4f88-6b51-4081-a7c8-f935b239ec07" alt=""></div><div class="q-count-label">Personnes est.</div></div>
+                <div class="q-cap"><div class="q-cap-label">90% <span class="q-cap-sub">capacité</span></div><div class="q-bar"><div class="q-fill" style="width:90%"></div></div></div>
+              </div>
+            </div>
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon"><img src="https://www.figma.com/api/mcp/asset/708aca5f-412d-4eb4-b3ed-1c7515f55198" alt=""></div>
+                <div><div class="q-name">Santé</div><div class="q-heure"><img src="https://www.figma.com/api/mcp/asset/ac5f791d-474e-4ac0-a905-ffd5441b48f9" alt="">08:00 - 09:30</div></div>
+              </div>
+              <div class="q-infos">
+                <div class="q-people"><div class="q-count"><span>700</span><img src="https://www.figma.com/api/mcp/asset/e6be4f88-6b51-4081-a7c8-f935b239ec07" alt=""></div><div class="q-count-label">Personnes est.</div></div>
+                <div class="q-cap"><div class="q-cap-label">85% <span class="q-cap-sub">capacité</span></div><div class="q-bar"><div class="q-fill" style="width:85%"></div></div></div>
+              </div>
+            </div>
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon"><img src="https://www.figma.com/api/mcp/asset/708aca5f-412d-4eb4-b3ed-1c7515f55198" alt=""></div>
+                <div><div class="q-name">Ressources</div><div class="q-heure"><img src="https://www.figma.com/api/mcp/asset/ac5f791d-474e-4ac0-a905-ffd5441b48f9" alt="">08:00 - 09:30</div></div>
+              </div>
+              <div class="q-infos">
+                <div class="q-people"><div class="q-count"><span>600</span><img src="https://www.figma.com/api/mcp/asset/e6be4f88-6b51-4081-a7c8-f935b239ec07" alt=""></div><div class="q-count-label">Personnes est.</div></div>
+                <div class="q-cap"><div class="q-cap-label">75% <span class="q-cap-sub">capacité</span></div><div class="q-bar"><div class="q-fill" style="width:75%"></div></div></div>
+              </div>
+            </div>
+            <div class="quartier-row">
+              <div class="q-left">
+                <div class="q-icon"><img src="https://www.figma.com/api/mcp/asset/708aca5f-412d-4eb4-b3ed-1c7515f55198" alt=""></div>
+                <div><div class="q-name">Centre</div><div class="q-heure"><img src="https://www.figma.com/api/mcp/asset/ac5f791d-474e-4ac0-a905-ffd5441b48f9" alt="">08:00 - 09:30</div></div>
+              </div>
+              <div class="q-infos">
+                <div class="q-people"><div class="q-count"><span>200</span><img src="https://www.figma.com/api/mcp/asset/e6be4f88-6b51-4081-a7c8-f935b239ec07" alt=""></div><div class="q-count-label">Personnes est.</div></div>
+                <div class="q-cap"><div class="q-cap-label">60% <span class="q-cap-sub">capacité</span></div><div class="q-bar"><div class="q-fill" style="width:60%;background:#f2bfb3"></div></div></div>
+              </div>
+            </div>
+            <button class="section-btn">Voir plus de quartiers</button>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Réparations récentes</h2>
+              <p>Basé sur l'historique et les évènements planifiés</p>
+            </div>
+            <div class="section-filters">
+              <div class="filter-select"><span>Cette semaine</span><img src="https://www.figma.com/api/mcp/asset/cd67aa6b-a1b8-48fc-abf0-cdbb79fc8c3d" alt=""></div>
+              <div class="filter-select"><span>Lisa.M</span><img src="https://www.figma.com/api/mcp/asset/cd67aa6b-a1b8-48fc-abf0-cdbb79fc8c3d" alt=""></div>
+            </div>
+          </div>
+          <div class="section-rows">
+            <div class="rep-row">
+              <div class="rep-left">
+                <div class="rep-icon"><img src="https://www.figma.com/api/mcp/asset/921d1a22-a052-4474-8e9e-b51e9e755822" alt=""></div>
+                <div>
+                  <div class="rep-title-row"><span class="rep-main">remplacement batterie</span><span class="rep-sub">(Vélo cargo)</span></div>
+                  <div class="rep-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt="">Quartier résidentiel</div>
+                  <div class="rep-date">LUN 12 JUIN - 18:30</div>
+                </div>
+              </div>
+              <button class="rapport-link">Rapport</button>
+            </div>
+            <div class="rep-row">
+              <div class="rep-left">
+                <div class="rep-icon"><img src="https://www.figma.com/api/mcp/asset/921d1a22-a052-4474-8e9e-b51e9e755822" alt=""></div>
+                <div>
+                  <div class="rep-title-row"><span class="rep-main">Changement pneu</span><span class="rep-sub">(Vélo électrique)</span></div>
+                  <div class="rep-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt="">Quartier des ressources</div>
+                  <div class="rep-date">LUN 12 JUIN - 18:00</div>
+                </div>
+              </div>
+              <button class="rapport-link">Rapport</button>
+            </div>
+            <button class="section-btn">Voir la page réparation</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="v-sep"></div>
+
+      <!-- Alertes -->
+      <div class="right-col">
+        <div class="alertes-header">
+          <div class="section-title">
+            <h2>Alertes en cours</h2>
+            <p>Glissez pour changer la priorité</p>
+          </div>
+          <div class="alertes-badge"><div class="badge-dot"></div><span>5 actives</span></div>
+        </div>
+        <div class="alertes-list">
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#efaa9d;color:#e02e0e"><div class="alerte-prio-dot" style="background:#e02e0e"></div>Très urgente</div><span class="alerte-time">Il y a 4 min</span></div>
+            <div class="alerte-title">panne moteur hydrogène</div>
+            <div class="alerte-desc">Véhicule de fonction</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Quartier de la santé - Hôpital</span></div>
+          </div>
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#efaa9d;color:#e02e0e"><div class="alerte-prio-dot" style="background:#e02e0e"></div>Urgente</div><span class="alerte-time">Il y a 12 min</span></div>
+            <div class="alerte-title">Panne bus ligne 4</div>
+            <div class="alerte-desc">Risque de retard majeur pour les travailleurs</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Quartier résidentiel - Arrêt du chêne</span></div>
+          </div>
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#f2bfb3;color:#f34c22"><div class="alerte-prio-dot" style="background:#f34c22"></div>Moyenne</div><span class="alerte-time">Il y a 32 min</span></div>
+            <div class="alerte-title">accident léger de vélo cargo</div>
+            <div class="alerte-desc">Trajet de livraison</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Centre ville - Marché central</span></div>
+          </div>
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#f2bfb3;color:#f34c22"><div class="alerte-prio-dot" style="background:#f34c22"></div>Moyenne</div><span class="alerte-time">Il y a 10 min</span></div>
+            <div class="alerte-title">crevaison sur vélo de ville</div>
+            <div class="alerte-desc">Trajet pour le travail</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Centre ville - Marché central</span></div>
+          </div>
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#e2f9f9;color:#46b2b2"><div class="alerte-prio-dot" style="background:#46b2b2"></div>Peu urgente</div><span class="alerte-time">Il y a 1h</span></div>
+            <div class="alerte-title">Portière bloquée</div>
+            <div class="alerte-desc">Véhicule de tourisme (vacances)</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Quartier résidentiel - Parking de l'est</span></div>
+          </div>
+          <div class="alerte-card">
+            <div class="alerte-drag-icon"><img src="https://www.figma.com/api/mcp/asset/ed166f61-64cf-482f-8986-fb8116d14844" alt=""></div>
+            <div class="alerte-meta"><div class="alerte-prio" style="background:#e2f9f9;color:#46b2b2"><div class="alerte-prio-dot" style="background:#46b2b2"></div>Pas urgente</div><span class="alerte-time">Il y a 1h30</span></div>
+            <div class="alerte-title">Rayure carosserie</div>
+            <div class="alerte-desc">Signalement utilisateur</div>
+            <div class="alerte-loc"><img src="https://www.figma.com/api/mcp/asset/c9e32ebe-584e-418f-a8fe-f56448b6d85a" alt=""><span>Centre ville</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tutorial overlay -->
+  <div id="tuto-overlay">
+    <div class="tuto-card">
+      <div class="tuto-desc">Les urgences sociales de la journée s'affichent ici, elles sont déjà priorisées en fonction de l'urgence sociale.</div>
+      <button class="tuto-btn" onclick="dismissTuto()">J'ai compris</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function goToDashboard() {
+    document.getElementById('login').classList.remove('active')
+    document.getElementById('dashboard').classList.add('active')
+  }
+  function dismissTuto() {
+    document.getElementById('dashboard').classList.remove('tuto-on')
+    window.parent.postMessage({ type: 'crm:tuto-done' }, '*')
+  }
+</script>
+</body>
+</html>

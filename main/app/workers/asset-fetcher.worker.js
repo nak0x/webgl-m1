@@ -1,6 +1,18 @@
 async function fetchWithProgress(path, onProgress) {
-  const response = await fetch(path)
-  if (!response.ok) throw new Error(`HTTP ${response.status} — ${path}`)
+  let response
+  try {
+    response = await fetch(path)
+  } catch (err) {
+    const e = new Error(`network error — ${err.message ?? err}`)
+    e.url = path
+    throw e
+  }
+  if (!response.ok) {
+    const e = new Error(`HTTP ${response.status} ${response.statusText || ''}`.trim())
+    e.url    = path
+    e.status = response.status
+    throw e
+  }
 
   const contentLength = Number(response.headers.get('content-length')) || 0
   const reader = response.body.getReader()
@@ -36,7 +48,13 @@ self.onmessage = async ({ data: { sources } }) => {
           [buffer]
         )
       } catch (err) {
-        self.postMessage({ type: 'error', name: source.name, message: err.message })
+        self.postMessage({
+          type:    'error',
+          name:    source.name,
+          message: err.message,
+          url:     err.url    ?? source.path,
+          status:  err.status ?? null,
+        })
       }
     })
   )

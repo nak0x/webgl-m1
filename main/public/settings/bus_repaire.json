@@ -1,0 +1,45 @@
+{
+  "vehicle": {
+    "name": "Bus",
+    "year": 2030,
+    "immatriculation": "FK 188 PD",
+    "km": 370000,
+    "fuel_level": 50,
+    "fuel_type": "hydrogene"
+  },
+  "context": "Bus de ville utilisé par le réseau de transport commun.",
+  "priority": "urgent",
+  "repair_delay_days": 1,
+  "available_parts": [],
+  "repair_history": [],
+  "repairs": [
+    {
+      "id": "panne_moteur",
+      "name": "panne moteur hydrogène",
+      "description": "Blocage intermittent de la\nvanne de détente haute pression par givrage interne du circuit hydrogène.",
+      "severity": "critique",
+      "repairable": true,
+      "replaceable": true,
+      "pieces": [
+        {
+          "mesh": "Moteur",
+          "name": "Moteur hydrogène"
+        }
+      ]
+    },
+    {
+      "id": "panne_courroie",
+      "name": "Panne courroie",
+      "description": "Courroie de transmission en mauvais état.",
+      "severity": "use",
+      "repairable": true,
+      "replaceable": true,
+      "pieces": [
+        {
+          "mesh": "Courroie",
+          "name": "Courroie de transmission"
+        }
+      ]
+    }
+  ]
+}

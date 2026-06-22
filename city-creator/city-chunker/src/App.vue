@@ -21,9 +21,17 @@ const config = ref({
   lodRatios:   [1.0, 0.25, 0.06],
   lodErrors:   [0, 0.01, 0.05],
   previewOnly: false,
+  collisionMap: {
+    enabled:    true,
+    resolution: 1024,
+    minY:       0,
+    maxY:       2,
+    sliceCount: 10,
+  },
 })
 
-const { isRunning, error, manifest, districtProgress, lodProgress, start, cancel } = useChunker()
+const { isRunning, error, manifest, collisions, districtProgress, lodProgress, start, cancel } = useChunker()
+const showCollisionMap = ref(false)
 
 function onFilesAdded(files) {
   districts.value = files
@@ -67,6 +75,11 @@ function onProcess() {
         :lod-progress="lodProgress"
         :is-running="isRunning"
       />
+
+      <label v-if="collisions.length" class="collision-overlay-toggle">
+        <input type="checkbox" v-model="showCollisionMap" />
+        <span>Show collision overlay</span>
+      </label>
     </aside>
 
     <main class="canvas-panel">
@@ -75,18 +88,47 @@ function onProcess() {
         :offsets="districtOffsets"
         :chunk-size="config.chunkSize"
         :manifest="manifest"
+        :collisions="collisions"
+        :show-collision-map="showCollisionMap"
         @offset-changed="onOffsetChanged"
       />
 
-      <!-- Offset legend — shows each district's current XZ position -->
+      <!-- Offset legend — editable XZ + rotation per district -->
       <div v-if="districts.length" class="offset-legend">
         <div v-for="(d, i) in districts" :key="d.name" class="legend-row">
           <span class="legend-dot" :style="{ background: DISTRICT_COLORS[i % DISTRICT_COLORS.length] }"></span>
           <span class="legend-name" :title="d.name">{{ d.name }}</span>
-          <span class="legend-pos">
-            X&nbsp;{{ Math.round(districtOffsets[i]?.x ?? 0) }}&nbsp;
-            Z&nbsp;{{ Math.round(districtOffsets[i]?.z ?? 0) }}&nbsp;
-            R&nbsp;{{ Math.round(((districtOffsets[i]?.angle ?? 0) * 180 / Math.PI + 360) % 360) }}°
+          <span class="legend-fields">
+            <label class="legend-field">
+              <span class="legend-field-label">X</span>
+              <input
+                class="legend-input"
+                type="number"
+                :value="Math.round(districtOffsets[i]?.x ?? 0)"
+                @change="e => onOffsetChanged({ index: i, x: +e.target.value, z: districtOffsets[i]?.z ?? 0, angle: districtOffsets[i]?.angle ?? 0 })"
+                @keydown.enter="e => e.target.blur()"
+              />
+            </label>
+            <label class="legend-field">
+              <span class="legend-field-label">Z</span>
+              <input
+                class="legend-input"
+                type="number"
+                :value="Math.round(districtOffsets[i]?.z ?? 0)"
+                @change="e => onOffsetChanged({ index: i, x: districtOffsets[i]?.x ?? 0, z: +e.target.value, angle: districtOffsets[i]?.angle ?? 0 })"
+                @keydown.enter="e => e.target.blur()"
+              />
+            </label>
+            <label class="legend-field">
+              <span class="legend-field-label">R°</span>
+              <input
+                class="legend-input"
+                type="number"
+                :value="Math.round(((districtOffsets[i]?.angle ?? 0) * 180 / Math.PI + 360) % 360)"
+                @change="e => onOffsetChanged({ index: i, x: districtOffsets[i]?.x ?? 0, z: districtOffsets[i]?.z ?? 0, angle: +e.target.value * Math.PI / 180 })"
+                @keydown.enter="e => e.target.blur()"
+              />
+            </label>
           </span>
         </div>
       </div>
@@ -172,6 +214,18 @@ function onProcess() {
   word-break: break-word;
 }
 
+.collision-overlay-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #8b949e;
+}
+.collision-overlay-toggle input[type="checkbox"] {
+  accent-color: #3d9eff;
+}
+
 /* Offset legend — bottom-left of the 3D canvas */
 .offset-legend {
   position: absolute;
@@ -204,17 +258,47 @@ function onProcess() {
 .legend-name {
   font-size: 11px;
   color: #8b949e;
-  max-width: 120px;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.legend-pos {
-  font-size: 11px;
-  color: #e6edf3;
-  font-variant-numeric: tabular-nums;
+.legend-fields {
+  display: flex;
+  gap: 4px;
   margin-left: 4px;
+}
+
+.legend-field {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.legend-field-label {
+  font-size: 10px;
+  color: #6e7681;
   white-space: nowrap;
+}
+
+.legend-input {
+  width: 52px;
+  background: rgba(22, 27, 34, 0.9);
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #e6edf3;
+  font-size: 11px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 4px;
+  text-align: right;
+  pointer-events: all;
+}
+
+.legend-input:focus {
+  outline: none;
+  border-color: #3d9eff;
+  background: rgba(13, 17, 23, 0.95);
 }
 </style>

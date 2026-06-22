@@ -51,6 +51,7 @@ onMounted(() => {
     canvas,
     antialias: true,
     powerPreference: 'high-performance',
+    logarithmicDepthBuffer: true,
   })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setSize(container.clientWidth, container.clientHeight)

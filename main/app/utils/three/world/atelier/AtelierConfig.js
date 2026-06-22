@@ -5,6 +5,8 @@
  * Mettre à jour ici après chaque ré-export Blender.
  */
 
+export const ACT_LABEL = 'Acte 1 - L\'atelier'
+
 /** Noms exacts des meshes dans le fichier GLB */
 export const OBJECTS = {
   NPC:         'coffee_machine',
@@ -18,11 +20,21 @@ export const OBJECTS = {
 
 /** Rayons de détection de proximité (unités Three.js) */
 export const PROXIMITY = {
-  NPC:  2.0,
-  PC:   1.5,
-  TOOL: 1.5,
-  DOOR: 2.0,
+  NPC:         2.0,
+  PC:          1.5,
+  TOOL:        1.5,
+  DOOR:        2.0,
+  CHARACTER_1: 2.0,
+  CHARACTER_2: 2.0,
 }
+
+export const CHARACTER_1 = {
+  position: { x: 0.980, y: 0.000, z: -1.000 },
+  rotation: { y: 1.998 },
+  scale:    0.860,
+}
+
+export const CHARACTER_2 = { position: { x: 0.980, y: 0.000, z: -1.880 }, rotation: { y: 1.188 }, scale: 0.860 }
 
 /**
  * USE_BUILTIN_FLOOR : true  → _setupFloor() crée un plan procédural

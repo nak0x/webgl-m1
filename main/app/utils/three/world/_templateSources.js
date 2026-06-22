@@ -1,18 +1,9 @@
-/**
- * Sources d'assets pour _TemplateWorld
- *
- * Types supportés :
- *   'gltf'    → GLTFLoader    → items.monAsset        (objet GLTF)
- *   'texture' → TextureLoader → items.maTexture       (THREE.Texture)
- *
- * Accès dans le World :
- *   this.experience.resources.items.monAsset
- *
- * Si tu n'as pas d'assets à charger, passe [] à Experience
- * ou supprime ce fichier et n'importe pas les sources dans ta page.
- */
+// import { assetPath } from '../../../assetPath.js'
+
 export default [
   // TODO: ajouter tes assets
-  // { name: 'monAsset',   type: 'gltf',    path: '/models/mon_modele.gltf' },
-  // { name: 'maTexture',  type: 'texture', path: '/textures/ma_texture.jpg' },
+  // type acceptés : 'glb' | 'gltf' | 'fbx'  (Draco détecté automatiquement)
+  //                 'texture' | 'png' | 'jpg' | 'jpeg' | 'webp'
+  // { name: 'monAsset',   type: 'glb',     path: assetPath('/models/mon_modele.glb') },
+  // { name: 'maTexture',  type: 'texture', path: assetPath('/textures/ma_texture.jpg') },
 ]

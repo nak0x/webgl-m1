@@ -2,42 +2,42 @@
   "aa": {
     "mode": "SMAA",
     "taaSamples": 2,
-    "taaAccumulate": true
+    "taaAccumulate": false
   },
   "bloom": {
-    "enabled": true,
-    "strength": 0.01,
-    "radius": 0.08,
-    "threshold": 0.96
+    "enabled": false,
+    "strength": 0.03,
+    "radius": 0.59,
+    "threshold": 0.88
   },
   "colorGrading": {
     "enabled": true,
-    "brightness": 0,
-    "contrast": 0.13,
-    "saturation": 1.35,
-    "temperature": -0.17,
-    "gamma": 0.81,
-    "gain": 1
+    "brightness": -0.04,
+    "contrast": 0.42,
+    "saturation": 1.15,
+    "temperature": -0.04,
+    "gamma": 0.89,
+    "gain": 1.27
   },
   "ssao": {
     "enabled": true,
     "kernelSize": 64,
-    "radius": 0.31,
-    "minDist": 0.0001,
-    "maxDist": 0.005,
-    "aoStrength": 0.62,
-    "aoColor": "#54a8ff"
+    "radius": 0.49,
+    "minDist": 0.0002,
+    "maxDist": 0.028,
+    "aoStrength": 0.35,
+    "aoColor": "#f0b075"
   },
   "edge": {
-    "enabled": false,
-    "strength": 1.35,
-    "scale": 2.2,
-    "color": "#000000"
+    "enabled": true,
+    "strength": 0.33,
+    "scale": 0.7,
+    "color": "#ff6038"
   },
   "material": {
-    "color": "#ebf8ff",
-    "shininess": 34,
-    "specular": "#1a1a1a"
+    "color": "#efeadf",
+    "shininess": 5,
+    "specular": "#efeadf"
   },
-  "exposureEv": -0.25
+  "exposureEv": -0.7
 }
